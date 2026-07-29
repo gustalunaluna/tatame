@@ -1,0 +1,91 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import {
+  Outlet,
+  createRootRouteWithContext,
+  useRouter,
+  HeadContent,
+} from "@tanstack/react-router";
+import { Toaster } from "@/components/ui/sonner";
+import { BottomNav } from "@/components/BottomNav";
+
+function NotFoundComponent() {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+      <div className="max-w-md text-center">
+        <h1 className="text-7xl font-black text-primary">404</h1>
+        <h2 className="mt-4 text-xl font-semibold">Página não encontrada</h2>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Essa rota não existe no tatame. Volta pra guarda.
+        </p>
+        <a
+          href="/"
+          className="mt-6 inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
+        >
+          Voltar ao início
+        </a>
+      </div>
+    </div>
+  );
+}
+
+function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
+  console.error(error);
+  const router = useRouter();
+
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+      <div className="max-w-md text-center">
+        <h1 className="text-xl font-semibold">Algo travou</h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Respira, ajusta a pegada e tenta de novo.
+        </p>
+        <div className="mt-6 flex justify-center gap-2">
+          <button
+            onClick={() => {
+              router.invalidate();
+              reset();
+            }}
+            className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
+          >
+            Tentar de novo
+          </button>
+          <a
+            href="/"
+            className="rounded-md border border-border px-4 py-2 text-sm font-semibold"
+          >
+            Início
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
+  head: () => ({
+    meta: [
+      { title: "Tatame — Diário de BJJ" },
+      {
+        name: "description",
+        content:
+          "Aplicativo pessoal de Jiu-Jitsu: diário de treino, biblioteca de técnicas, plano de 8 semanas e metas.",
+      },
+    ],
+  }),
+  component: RootComponent,
+  notFoundComponent: NotFoundComponent,
+  errorComponent: ErrorComponent,
+});
+
+function RootComponent() {
+  const { queryClient } = Route.useRouteContext();
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <HeadContent />
+      <Outlet />
+      <BottomNav />
+      <Toaster position="top-center" richColors />
+    </QueryClientProvider>
+  );
+}
