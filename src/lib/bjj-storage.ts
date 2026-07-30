@@ -201,17 +201,22 @@ export function useTrainings() {
     mutationFn: async (t: Omit<Training, "id">) => {
       const uid_ = await getUserId();
       if (!uid_) throw new Error("Sem sessão");
-      const { error } = await supabase.from("trainings").insert({
-        user_id: uid_,
-        date: t.date,
-        type: t.type,
-        duration_min: t.durationMin,
-        rolls: t.rolls,
-        partners: t.partners,
-        techniques: t.techniques,
-        notes: t.notes,
-      });
+      const { data, error } = await supabase
+        .from("trainings")
+        .insert({
+          user_id: uid_,
+          date: t.date,
+          type: t.type,
+          duration_min: t.durationMin,
+          rolls: t.rolls,
+          partners: t.partners,
+          techniques: t.techniques,
+          notes: t.notes,
+        })
+        .select("id")
+        .single();
       if (error) throw error;
+      return data.id as string;
     },
     onSuccess: invalidate,
     onError: aoFalhar("registrar o treino"),
@@ -250,7 +255,13 @@ export function useTrainings() {
     // Devolvem `true` só quando o banco confirmou. O erro já vira aviso na
     // tela via onError, então a promessa nunca rejeita — a tela só precisa
     // saber se pode comemorar.
-    add: (t: Omit<Training, "id">) => ok(addMut.mutateAsync(t)),
+    // Devolve o id do treino criado — o Diário precisa dele para gravar os
+    // parceiros. `null` quando a gravação falhou (o aviso já saiu no onError).
+    add: (t: Omit<Training, "id">) =>
+      addMut.mutateAsync(t).then(
+        (id) => id,
+        () => null,
+      ),
     remove: (id: string) => ok(removeMut.mutateAsync(id)),
     update: (id: string, patch: Partial<Training>) =>
       ok(updateMut.mutateAsync({ id, patch })),

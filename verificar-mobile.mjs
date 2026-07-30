@@ -41,7 +41,7 @@ const dados = {
     partners: "Gui", techniques: "guarda fechada", notes: "boa aula",
   })),
   profiles: [{
-    user_id: "u1", seeded: true, nickname: "Gustavo", belt: "Branca", degrees: 3,
+    user_id: "u1", seeded: true, nickname: "Gustavo", handle: "gustavo", belt: "Branca", degrees: 3,
     master: "Gui", gym: "Bonsai", photo_url: "", birth_date: "2000-01-01",
     fights_won: 0, fights_lost: 0, goal_start: "2025-10-13",
   }],
@@ -63,6 +63,31 @@ await pagina.route(`https://${REF}.supabase.co/**`, async (rota) => {
   const json = (b) => rota.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(b) });
   if (url.includes("/auth/v1/user")) return json({ id: "u1", email: "t@e.com", aud: "authenticated" });
   if (url.includes("/rpc/achievement_stats")) return json({ total: 1006, unlocked: 101 });
+  if (url.includes("/rpc/resumo_parceiros")) return json([
+    { partner_id: "u2", partner_name: "", sessoes: 12, rolls: 40, subs_for: 9, subs_against: 4, pendentes: 1, ultimo_treino: "2026-07-28" },
+    { partner_id: null, partner_name: "Pedro da academia", sessoes: 5, rolls: 11, subs_for: 1, subs_against: 7, pendentes: 0, ultimo_treino: "2026-07-20" },
+  ]);
+  if (url.includes("/rpc/registros_a_confirmar")) return json([
+    { id: "r1", autor_id: "u2", autor_handle: "joaozinho123", autor_nickname: "Joãozinho",
+      data: "2026-07-29", rolls: 5, subs_for: 3, subs_against: 1 },
+  ]);
+  if (url.includes("/rpc/cartao_publico")) return json([
+    { user_id: "u2", handle: "joaozinho123", nickname: "Joãozinho", belt: "Branca", degrees: 2, gym: "Bonsai", photo_url: "" },
+  ]);
+  if (url.includes("/rpc/membros_da_equipe")) return json([
+    { user_id: "u1", handle: "gustavo", nickname: "Gustavo", belt: "Branca", degrees: 3, photo_url: "", role: "dono", status: "ativo" },
+    { user_id: "u2", handle: "joaozinho123", nickname: "Joãozinho", belt: "Branca", degrees: 2, photo_url: "", role: "membro", status: "ativo" },
+  ]);
+  if (url.includes("/rest/v1/partnerships")) return json([
+    { id: "p1", requester_id: "u1", addressee_id: "u2", status: "aceito", created_at: "2026-07-01" },
+  ]);
+  if (url.includes("/rest/v1/teams")) return json([
+    { id: "e1", name: "Bonsai Jiu-Jitsu", slug: "bonsai-jiu-jitsu", city: "Curitiba",
+      master: "Gui", created_by: "u1", status: "aprovada", motivo_recusa: "" },
+  ]);
+  if (url.includes("/rest/v1/team_members")) return json([
+    { team_id: "e1", user_id: "u1", role: "dono", status: "ativo" },
+  ]);
   for (const [tabela, linhas] of Object.entries(dados)) {
     if (url.includes(`/rest/v1/${tabela}`)) return json(linhas);
   }
@@ -85,6 +110,17 @@ async function medir(nome, rotulo) {
       if (r.width === 0 || r.height === 0) continue;
       // ignora o que está fora da tela por rolagem, não por corte
       if (r.bottom < 0 || r.top > alturaVisivel) continue;
+      // ignora também o que está recortado por um container rolável: nesse
+      // caso o elemento não é "escondido pelo aparelho", só exige rolar.
+      let recortado = false;
+      for (let pai = el.parentElement; pai; pai = pai.parentElement) {
+        const est = getComputedStyle(pai);
+        if (est.overflowY === "auto" || est.overflowY === "scroll" || est.overflow === "hidden") {
+          const rp = pai.getBoundingClientRect();
+          if (r.top >= rp.bottom - 1 || r.bottom <= rp.top + 1) { recortado = true; break; }
+        }
+      }
+      if (recortado) continue;
       const fixo = getComputedStyle(el).position === "fixed" ||
         !!el.closest("nav[style*='z-nav'], [role='dialog'], .fixed");
       const folgaTopo = r.top - t;
@@ -101,7 +137,7 @@ async function medir(nome, rotulo) {
   });
 }
 
-for (const [rota, nome] of [["/", "inicio"], ["/diario", "diario"], ["/conquistas", "conquistas"], ["/perfil", "perfil"]]) {
+for (const [rota, nome] of [["/", "inicio"], ["/diario", "diario"], ["/conquistas", "conquistas"], ["/perfil", "perfil"], ["/parceiros", "parceiros"], ["/equipe", "equipe"]]) {
   await pagina.goto(`${BASE}${rota}`, { waitUntil: "networkidle" });
   await pagina.addStyleTag({ content: ENTALHE });
   await pagina.waitForTimeout(700);

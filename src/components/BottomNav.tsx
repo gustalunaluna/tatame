@@ -10,6 +10,8 @@ import {
   TrendingUp,
   Trophy,
   User,
+  Users,
+  Shield,
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -31,6 +33,8 @@ const MENU = [
   { to: "/plano", label: "Plano", icon: ClipboardList, desc: "8 semanas" },
   { to: "/metas", label: "Metas", icon: Target, desc: "Faixas e pontos fracos" },
   { to: "/conquistas", label: "Conquistas", icon: Trophy, desc: "Rumo ao topo" },
+  { to: "/parceiros", label: "Parceiros", icon: Users, desc: "Placar entre vocês" },
+  { to: "/equipe", label: "Equipe", icon: Shield, desc: "Sua academia" },
   { to: "/perfil", label: "Perfil", icon: User, desc: "Faixa, mestre e lutas" },
 ] as const;
 
@@ -96,8 +100,8 @@ export function BottomNav() {
             role="dialog"
             aria-modal="true"
             aria-label="Menu"
-            style={{ zIndex: "var(--z-panel)" }}
-            className="panel-in absolute bottom-0 right-0 top-0 flex w-[82%] min-w-[16rem] max-w-xs flex-col border-l border-border/60 bg-card shadow-[-24px_0_60px_-20px_rgba(0,0,0,0.8)]"
+            style={{ zIndex: "var(--z-panel)", paddingBottom: "var(--safe-b)" }}
+            className="panel-in absolute bottom-0 right-0 top-0 flex w-[82%] min-w-[16rem] max-w-xs flex-col overflow-hidden border-l border-border/60 bg-card shadow-[-24px_0_60px_-20px_rgba(0,0,0,0.8)]"
           >
             <div
               className="flex items-center justify-between border-b border-border/60 px-4 pb-4"
@@ -118,10 +122,7 @@ export function BottomNav() {
               </button>
             </div>
 
-            <nav
-              className="flex-1 overflow-y-auto overscroll-contain p-3"
-              style={{ paddingBottom: "calc(1rem + var(--safe-b))" }}
-            >
+            <nav className="flex-1 overflow-y-auto overscroll-contain p-3">
               <ul className="space-y-1">
                 {MENU.map(({ to, label, icon: Icon, desc }, i) => {
                   const on = ativo(to);

@@ -24,6 +24,9 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useTrainings, useHydrated } from "@/lib/bjj-storage";
+import { salvarParceirosDoTreino } from "@/lib/social-storage";
+import { ParceirosDoTreino } from "@/components/ParceirosDoTreino";
+import type { RascunhoParceiro } from "@/lib/social-types";
 import type { TrainingType } from "@/lib/bjj-types";
 
 export const Route = createFileRoute("/_authenticated/diario")({
@@ -60,11 +63,27 @@ function DiaryPage() {
             </Button>
           </DialogTrigger>
           <NewTrainingDialog
-            onAdd={async (t) => {
+            onAdd={async ({ parceiros, ...t }) => {
               setOpen(false);
               // Só comemora depois que o banco confirmou. Antes o "Boa!"
               // aparecia mesmo quando a gravação falhava e o treino se perdia.
-              if (await add(t)) toast.success("Treino registrado. Boa!");
+              const id = await add(t);
+              if (!id) return;
+              try {
+                await salvarParceirosDoTreino(id, parceiros);
+              } catch (erro) {
+                // O treino já está salvo; só os parceiros falharam. Dizer isso
+                // é mais útil do que um sucesso genérico ou um erro genérico.
+                console.error("[Tatame] Falha ao salvar os parceiros:", erro);
+                toast.error("Treino salvo, mas os parceiros não. Edite depois.");
+                return;
+              }
+              const comConta = parceiros.filter((p) => p.partnerId).length;
+              toast.success(
+                comConta
+                  ? `Treino registrado. ${comConta} ${comConta === 1 ? "parceiro vai confirmar" : "parceiros vão confirmar"}.`
+                  : "Treino registrado. Boa!",
+              );
             }}
           />
         </Dialog>
@@ -182,15 +201,16 @@ function NewTrainingDialog({
     partners: string;
     techniques: string;
     notes: string;
+    parceiros: RascunhoParceiro[];
   }) => void;
 }) {
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
   const [type, setType] = useState<TrainingType>("Gi");
   const [durationMin, setDuration] = useState(60);
   const [rolls, setRolls] = useState(4);
-  const [partners, setPartners] = useState("");
   const [techniques, setTechniques] = useState("");
   const [notes, setNotes] = useState("");
+  const [parceiros, setParceiros] = useState<RascunhoParceiro[]>([]);
 
   return (
     <DialogContent className="max-h-[90vh] overflow-y-auto">
@@ -234,10 +254,7 @@ function NewTrainingDialog({
             />
           </div>
         </div>
-        <div>
-          <Label>Parceiros</Label>
-          <Input value={partners} onChange={(e) => setPartners(e.target.value)} placeholder="Ex: João, Pedro" />
-        </div>
+        <ParceirosDoTreino linhas={parceiros} aoMudar={setParceiros} />
         <div>
           <Label>Técnicas trabalhadas</Label>
           <Textarea rows={2} value={techniques} onChange={(e) => setTechniques(e.target.value)} placeholder="Ex: DLR → costas, tesourinha" />
@@ -250,7 +267,22 @@ function NewTrainingDialog({
       <DialogFooter>
         <Button
           className="w-full"
-          onClick={() => onAdd({ date, type, durationMin, rolls, partners, techniques, notes })}
+          onClick={() =>
+            onAdd({
+              date,
+              type,
+              durationMin,
+              rolls,
+              // mantido para os treinos antigos continuarem exibindo nomes
+              partners: parceiros
+                .map((p) => p.partnerName)
+                .filter(Boolean)
+                .join(", "),
+              techniques,
+              notes,
+              parceiros,
+            })
+          }
         >
           Salvar treino
         </Button>

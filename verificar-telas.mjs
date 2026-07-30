@@ -51,6 +51,31 @@ await pagina.route(`https://${REF}.supabase.co/**`, async (rota) => {
   if (url.includes("/rest/v1/trainings")) return json(treinos);
   if (url.includes("/rest/v1/weak_points")) return json(pontos);
   if (url.includes("/rest/v1/rpc/achievement_stats")) return json({ total: 1006, unlocked: 101 });
+  if (url.includes("/rpc/resumo_parceiros")) return json([
+    { partner_id: "u2", partner_name: "", sessoes: 12, rolls: 40, subs_for: 9, subs_against: 4, pendentes: 1, ultimo_treino: "2026-07-28" },
+    { partner_id: null, partner_name: "Pedro da academia", sessoes: 5, rolls: 11, subs_for: 1, subs_against: 7, pendentes: 0, ultimo_treino: "2026-07-20" },
+  ]);
+  if (url.includes("/rpc/registros_a_confirmar")) return json([
+    { id: "r1", autor_id: "u2", autor_handle: "joaozinho123", autor_nickname: "Joãozinho",
+      data: "2026-07-29", rolls: 5, subs_for: 3, subs_against: 1 },
+  ]);
+  if (url.includes("/rpc/cartao_publico")) return json([
+    { user_id: "u2", handle: "joaozinho123", nickname: "Joãozinho", belt: "Branca", degrees: 2, gym: "Bonsai", photo_url: "" },
+  ]);
+  if (url.includes("/rpc/membros_da_equipe")) return json([
+    { user_id: "u1", handle: "gustavo", nickname: "Gustavo", belt: "Branca", degrees: 3, photo_url: "", role: "dono", status: "ativo" },
+    { user_id: "u2", handle: "joaozinho123", nickname: "Joãozinho", belt: "Branca", degrees: 2, photo_url: "", role: "membro", status: "ativo" },
+  ]);
+  if (url.includes("/rest/v1/partnerships")) return json([
+    { id: "p1", requester_id: "u1", addressee_id: "u2", status: "aceito", created_at: "2026-07-01" },
+  ]);
+  if (url.includes("/rest/v1/teams")) return json([
+    { id: "e1", name: "Bonsai Jiu-Jitsu", slug: "bonsai-jiu-jitsu", city: "Curitiba",
+      master: "Gui", created_by: "u1", status: "aprovada", motivo_recusa: "" },
+  ]);
+  if (url.includes("/rest/v1/team_members")) return json([
+    { team_id: "e1", user_id: "u1", role: "dono", status: "ativo" },
+  ]);
   if (url.includes("/rest/v1/profiles"))
     return json([{ user_id: "u1", seeded: true, nickname: "Gustavo", belt: "Branca", degrees: 3,
       master: "Gui", gym: "Bonsai", photo_url: "", birth_date: "2000-01-01",
@@ -67,7 +92,7 @@ await pagina.route(`https://${REF}.supabase.co/**`, async (rota) => {
   return json([]);
 });
 
-const telas = ["/", "/diario", "/tecnicas", "/analises", "/plano", "/metas", "/conquistas", "/perfil"];
+const telas = ["/", "/diario", "/tecnicas", "/analises", "/plano", "/metas", "/conquistas", "/parceiros", "/equipe", "/perfil"];
 const resultado = [];
 
 for (const tela of telas) {
