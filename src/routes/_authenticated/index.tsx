@@ -22,6 +22,7 @@ import {
   useTrainings,
   useHydrated,
 } from "@/lib/bjj-storage";
+import { DIAS_AZUL } from "@/lib/bjj-types";
 
 export const Route = createFileRoute("/_authenticated/")({
   head: () => ({
@@ -89,7 +90,7 @@ function Home() {
 
   const startDate = new Date(start);
   const daysTraining = Math.max(0, daysBetween(startDate, now));
-  const azulPct = Math.min(100, Math.round((daysTraining / 180) * 100));
+  const azulPct = Math.min(100, Math.round((daysTraining / DIAS_AZUL) * 100));
 
   const unlockedAch = achievements.filter((a) => a.unlocked).length;
   const totalAch = achievements.length;
@@ -114,7 +115,7 @@ function Home() {
   return (
     <PageShell
       title="Oss, guerreiro."
-      subtitle="Faixa branca 3 graus · ~8 meses · Gi"
+      subtitle={`Faixa branca 3 graus · ${Math.max(0, Math.floor(daysTraining / 30.44))} meses · Gi`}
       action={
         <button
           onClick={handleLogout}
@@ -286,13 +287,13 @@ function Home() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Target className="h-4 w-4 text-primary" />
-              <p className="font-bold">Faixa Azul em 6 meses</p>
+              <p className="font-bold">Faixa Azul em 1 ano</p>
             </div>
             <span className="text-xs font-black text-primary">{azulPct}%</span>
           </div>
           <Progress className="mt-3 h-1.5" value={azulPct} />
           <p className="mt-1 text-[10px] text-muted-foreground">
-            {daysTraining} de 180 dias
+            {daysTraining} de {DIAS_AZUL} dias
           </p>
         </CardContent>
       </Card>

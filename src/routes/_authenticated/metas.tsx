@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Slider } from "@/components/ui/slider";
 import { useGoalStart, useWeakPoints, useHydrated } from "@/lib/bjj-storage";
+import { DIAS_AZUL, DIAS_ROXA } from "@/lib/bjj-types";
 
 export const Route = createFileRoute("/_authenticated/metas")({
   head: () => ({
@@ -45,8 +46,8 @@ function MetasPage() {
   const startDate = new Date(start + "T00:00:00");
   const now = new Date();
   const days = Math.max(0, Math.floor((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)));
-  const azul = pct(days, 180);
-  const roxa = pct(days, 730);
+  const azul = pct(days, DIAS_AZUL);
+  const roxa = pct(days, DIAS_ROXA);
 
   const chartData = items.length
     ? aggregateHistory(items)
@@ -75,11 +76,11 @@ function MetasPage() {
         <CardContent className="p-4">
           <div className="flex items-center gap-2">
             <Award className="h-5 w-5 text-primary" />
-            <p className="font-semibold">Faixa Azul em 6 meses</p>
+            <p className="font-semibold">Faixa Azul em 1 ano</p>
           </div>
           <div className="mt-2 flex items-end justify-between">
             <p className="text-3xl font-black">{azul}%</p>
-            <p className="text-xs text-muted-foreground">{days}/180 dias</p>
+            <p className="text-xs text-muted-foreground">{days}/{DIAS_AZUL} dias</p>
           </div>
           <Progress className="mt-2" value={azul} />
         </CardContent>
@@ -89,11 +90,11 @@ function MetasPage() {
         <CardContent className="p-4">
           <div className="flex items-center gap-2">
             <Award className="h-5 w-5 text-gold" />
-            <p className="font-semibold">Faixa Roxa em 2 anos</p>
+            <p className="font-semibold">Faixa Roxa em 3 anos</p>
           </div>
           <div className="mt-2 flex items-end justify-between">
             <p className="text-3xl font-black">{roxa}%</p>
-            <p className="text-xs text-muted-foreground">{days}/730 dias</p>
+            <p className="text-xs text-muted-foreground">{days}/{DIAS_ROXA} dias</p>
           </div>
           <Progress className="mt-2" value={roxa} />
         </CardContent>

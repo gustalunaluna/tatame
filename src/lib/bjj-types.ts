@@ -1,3 +1,7 @@
+// Metas de graduação (em dias desde o início da jornada)
+export const DIAS_AZUL = 365; // Faixa Azul em 1 ano
+export const DIAS_ROXA = 1095; // Faixa Roxa em 3 anos
+
 export type TrainingType = "Gi" | "No-Gi";
 
 export interface Training {
