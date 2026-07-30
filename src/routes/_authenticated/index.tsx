@@ -1,4 +1,5 @@
 import type { CSSProperties } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import {
   CalendarDays,
@@ -68,6 +69,7 @@ function Home() {
   const hydrated = useHydrated();
   useEnsureSeeded();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { items: trainings } = useTrainings();
   const { weeks } = usePlan();
   const { start } = useGoalStart();
@@ -76,6 +78,9 @@ function Home() {
 
   async function handleLogout() {
     await supabase.auth.signOut();
+    // Limpa na hora, sem esperar o ouvinte de sessão: ninguém deve ver um
+    // frame sequer com os dados da conta que acabou de sair.
+    queryClient.clear();
     navigate({ to: "/auth", replace: true });
   }
 

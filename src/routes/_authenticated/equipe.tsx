@@ -15,6 +15,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Confirmar } from "@/components/Confirmar";
 import { useEquipes, useMembrosDaEquipe } from "@/lib/social-storage";
 import type { Equipe } from "@/lib/social-types";
 
@@ -208,15 +209,20 @@ function MinhaEquipe({ equipe }: { equipe: Equipe }) {
         ))}
       </section>
 
-      <Button
-        variant="ghost"
-        className="w-full text-muted-foreground"
-        onClick={async () => {
+      <Confirmar
+        gatilho={
+          <Button variant="ghost" className="w-full text-muted-foreground">
+            Sair da equipe
+          </Button>
+        }
+        titulo="Sair da equipe?"
+        descricao={`Você deixa de aparecer entre os membros da ${equipe.name}. Para voltar, precisa pedir entrada de novo e o dono aceitar.`}
+        rotuloConfirmar="Sair"
+        destrutivo
+        aoConfirmar={async () => {
           if (await sair(equipe.id)) toast("Você saiu da equipe.");
         }}
-      >
-        Sair da equipe
-      </Button>
+      />
     </div>
   );
 }

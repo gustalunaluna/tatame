@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,
@@ -7,6 +7,7 @@ import {
   HeadContent,
 } from "@tanstack/react-router";
 import { Toaster } from "@/components/ui/sonner";
+import { supabase } from "@/integrations/supabase/client";
 import { BottomNav } from "@/components/BottomNav";
 
 function NotFoundComponent() {
@@ -112,11 +113,43 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   errorComponent: ErrorComponent,
 });
 
+/**
+ * Joga fora TODO o cache quando a conta logada muda.
+ *
+ * Sem isto, sair de uma conta e entrar em outra no mesmo carregamento da
+ * página mostrava os dados da conta anterior: as consultas ficam válidas por
+ * 5 minutos e não são refeitas ao montar a tela (é o que deixa a troca de
+ * abas instantânea). O banco sempre esteve isolado — quem vazava era o cache
+ * do navegador.
+ */
+function LimparCacheAoTrocarDeConta({ queryClient }: { queryClient: QueryClient }) {
+  // `undefined` = ainda não sabemos quem está logado; `null` = ninguém.
+  const contaAtual = useRef<string | null | undefined>(undefined);
+
+  useEffect(() => {
+    const { data } = supabase.auth.onAuthStateChange((_evento, sessao) => {
+      const id = sessao?.user?.id ?? null;
+      if (contaAtual.current === undefined) {
+        contaAtual.current = id;
+        return;
+      }
+      if (contaAtual.current !== id) {
+        contaAtual.current = id;
+        queryClient.clear();
+      }
+    });
+    return () => data.subscription.unsubscribe();
+  }, [queryClient]);
+
+  return null;
+}
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
   return (
     <QueryClientProvider client={queryClient}>
+      <LimparCacheAoTrocarDeConta queryClient={queryClient} />
       <HeadContent />
       <Outlet />
       <BottomNav />

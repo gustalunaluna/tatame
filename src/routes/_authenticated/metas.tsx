@@ -26,6 +26,7 @@ import {
 import { useGoalStart, useWeakPoints, useTrainings, useHydrated } from "@/lib/bjj-storage";
 import { useMetas, useCicloAtual, diasAte, type Meta, type TipoMeta } from "@/lib/plano-storage";
 import { FAIXAS, type Faixa } from "@/lib/bjj-types";
+import { Confirmar } from "@/components/Confirmar";
 import { cn } from "@/lib/utils";
 
 const GraficoEvolucao = lazy(() => import("@/components/GraficoEvolucao"));
@@ -263,11 +264,16 @@ function CartaoMeta({
         )}
 
         <div className="mt-3 flex gap-2">
-          <Button
-            size="sm"
-            variant="outline"
-            className="flex-1"
-            onClick={async () => {
+          <Confirmar
+            gatilho={
+              <Button size="sm" variant="outline" className="flex-1">
+                Conquistei
+              </Button>
+            }
+            titulo="Conquistou essa meta?"
+            descricao={`"${meta.title}" sai das metas ativas e vai para as conquistadas. Dá para recriar depois, mas o progresso atual não volta.`}
+            rotuloConfirmar="Sim, conquistei"
+            aoConfirmar={async () => {
               if (
                 await salvar(meta.id, {
                   status: "concluida",
@@ -277,17 +283,23 @@ function CartaoMeta({
                 toast.success("Meta conquistada. Oss!");
               }
             }}
-          >
-            Conquistei
-          </Button>
-          <Button
-            size="icon"
-            variant="ghost"
-            aria-label={`Apagar meta ${meta.title}`}
-            onClick={() => apagar(meta.id)}
-          >
-            <Trash2 className="h-4 w-4 text-muted-foreground" />
-          </Button>
+          />
+          <Confirmar
+            gatilho={
+              <Button
+                size="icon"
+                variant="ghost"
+                aria-label={`Apagar meta ${meta.title}`}
+              >
+                <Trash2 className="h-4 w-4 text-muted-foreground" />
+              </Button>
+            }
+            titulo="Apagar esta meta?"
+            descricao={`"${meta.title}" some de vez, junto com o histórico dela. Não dá para desfazer.`}
+            rotuloConfirmar="Apagar"
+            destrutivo
+            aoConfirmar={() => apagar(meta.id)}
+          />
         </div>
       </CardContent>
     </Card>
