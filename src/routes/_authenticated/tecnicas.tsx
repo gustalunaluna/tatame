@@ -2,6 +2,20 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { ExternalLink, Pencil, Plus, Search, Star, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+
+/**
+ * Só deixa passar http/https. Sem isto, colar `javascript:...` no campo de
+ * vídeo virava um link que executa script ao ser tocado.
+ */
+function linkSeguro(url: string): string | null {
+  if (!url) return null;
+  try {
+    const u = new URL(url, window.location.origin);
+    return u.protocol === "http:" || u.protocol === "https:" ? u.href : null;
+  } catch {
+    return null;
+  }
+}
 import { PageShell } from "@/components/PageShell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -68,10 +82,15 @@ function TechniquesPage() {
           </DialogTrigger>
           <TechniqueDialog
             initial={editing}
-            onSave={(t) => {
-              if (editing) { update(editing.id, t); toast.success("Técnica atualizada."); }
-              else { add(t); toast.success("Técnica adicionada."); }
-              setOpen(false); setEditing(null);
+            onSave={async (t) => {
+              const emEdicao = editing;
+              setOpen(false);
+              setEditing(null);
+              if (emEdicao) {
+                if (await update(emEdicao.id, t)) toast.success("Técnica atualizada.");
+              } else if (await add(t)) {
+                toast.success("Técnica adicionada.");
+              }
             }}
           />
         </Dialog>
@@ -129,7 +148,7 @@ function TechniquesPage() {
                   <button
                     onClick={() => {
                       const backup = t;
-                      remove(t.id);
+                      void remove(t.id);
                       toast("Técnica removida.", {
                         action: {
                           label: "Desfazer",
@@ -159,9 +178,9 @@ function TechniquesPage() {
                   value={t.mastery}
                   onChange={(v) => update(t.id, { mastery: v })}
                 />
-                {t.videoUrl && (
+                {linkSeguro(t.videoUrl) && (
                   <a
-                    href={t.videoUrl}
+                    href={linkSeguro(t.videoUrl)!}
                     target="_blank"
                     rel="noreferrer"
                     className="inline-flex items-center gap-1 text-xs font-semibold text-primary"

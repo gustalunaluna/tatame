@@ -59,7 +59,14 @@ function DiaryPage() {
               <Plus className="h-4 w-4" /> Novo
             </Button>
           </DialogTrigger>
-          <NewTrainingDialog onAdd={(t) => { add(t); setOpen(false); toast.success("Treino registrado. Boa!"); }} />
+          <NewTrainingDialog
+            onAdd={async (t) => {
+              setOpen(false);
+              // Só comemora depois que o banco confirmou. Antes o "Boa!"
+              // aparecia mesmo quando a gravação falhava e o treino se perdia.
+              if (await add(t)) toast.success("Treino registrado. Boa!");
+            }}
+          />
         </Dialog>
       }
     >
@@ -118,7 +125,7 @@ function DiaryPage() {
                 <button
                   onClick={() => {
                     const backup = t;
-                    remove(t.id);
+                    void remove(t.id);
                     toast("Treino removido.", {
                       action: {
                         label: "Desfazer",

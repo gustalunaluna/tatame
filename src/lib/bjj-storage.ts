@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { Json } from "@/integrations/supabase/types";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import type {
   Achievement,
@@ -17,7 +18,34 @@ import type {
 } from "./bjj-types";
 import { ACHIEVEMENT_TIERS } from "./bjj-types";
 
-const uid = () => Math.random().toString(36).slice(2, 10);
+const uid = () =>
+  typeof crypto !== "undefined" && "randomUUID" in crypto
+    ? crypto.randomUUID()
+    : Math.random().toString(36).slice(2, 10);
+
+/** Vira `true` só se a gravação foi confirmada; o aviso de erro sai no onError. */
+const ok = (p: Promise<unknown>) => p.then(() => true).catch(() => false);
+
+/** O erro do Supabase é um objeto simples `{message, code}`, não um Error. */
+function mensagemDoErro(erro: unknown): string {
+  if (erro instanceof Error) return erro.message;
+  if (erro && typeof erro === "object" && "message" in erro) {
+    return String((erro as { message: unknown }).message);
+  }
+  return String(erro);
+}
+
+/**
+ * Toda gravação passa por aqui quando falha. Sem isto, um erro de rede ou de
+ * permissão sumia em silêncio: a tela não atualizava e ninguém era avisado.
+ */
+function aoFalhar(oque: string) {
+  return (erro: unknown) => {
+    const msg = mensagemDoErro(erro);
+    console.error(`[Tatame] Falha ao ${oque}:`, erro);
+    toast.error(`Não deu para ${oque}: ${msg}`);
+  };
+}
 
 const SEED_TECHNIQUES: Omit<Technique, "id">[] = [
   { name: "Guarda Aranha", category: "Guarda", notes: "Pegadas na manga + pés no bíceps. Base de controle e ataques.", videoUrl: "", mastery: 2 },
@@ -73,11 +101,16 @@ async function ensureSeeded(userId: string) {
 
   if (profile?.seeded) return;
 
+  // Cada passo confere o erro. Antes nenhum conferia: se um insert falhava,
+  // a marca `seeded` era gravada mesmo assim e a conta ficava permanentemente
+  // sem aquelas linhas — ou, se a marca também falhasse, o seed rodava de novo
+  // a cada abertura do app, duplicando técnicas sem parar.
   if (!profile) {
-    await supabase.from("profiles").insert({ user_id: userId });
+    const { error } = await supabase.from("profiles").insert({ user_id: userId });
+    if (error) throw error;
   }
 
-  await supabase.from("techniques").insert(
+  const { error: erroTecnicas } = await supabase.from("techniques").insert(
     SEED_TECHNIQUES.map((t) => ({
       user_id: userId,
       name: t.name,
@@ -87,8 +120,9 @@ async function ensureSeeded(userId: string) {
       mastery: t.mastery,
     })),
   );
+  if (erroTecnicas) throw erroTecnicas;
 
-  await supabase.from("plan_weeks").insert(
+  const { error: erroPlano } = await supabase.from("plan_weeks").insert(
     SEED_PLAN.map((w) => ({
       user_id: userId,
       week: w.week,
@@ -96,12 +130,18 @@ async function ensureSeeded(userId: string) {
       items: w.items.map((label) => ({ id: uid(), label, done: false })),
     })),
   );
+  if (erroPlano) throw erroPlano;
 
-  await supabase.from("weak_points").insert(
+  const { error: erroPontos } = await supabase.from("weak_points").insert(
     SEED_WEAK.map((w) => ({ user_id: userId, label: w.label, score: 2, history: [] })),
   );
+  if (erroPontos) throw erroPontos;
 
-  await supabase.from("profiles").update({ seeded: true }).eq("user_id", userId);
+  const { error: erroMarca } = await supabase
+    .from("profiles")
+    .update({ seeded: true })
+    .eq("user_id", userId);
+  if (erroMarca) throw erroMarca;
 }
 
 export function useEnsureSeeded() {
@@ -109,10 +149,16 @@ export function useEnsureSeeded() {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const id = await getUserId();
-      if (!id) return;
       try {
-        await ensureSeeded(id);
+        const id = await getUserId();
+        // Sem sessão não há o que semear — mas `ready` precisa virar true do
+        // mesmo jeito, senão quem espera por ele fica travado para sempre.
+        if (id) await ensureSeeded(id);
+      } catch (erro) {
+        console.error("[Tatame] Falha ao preparar os dados iniciais:", erro);
+        toast.error(
+          "Não deu para preparar seus dados iniciais. Recarregue a página.",
+        );
       } finally {
         if (!cancelled) setReady(true);
       }
@@ -168,6 +214,7 @@ export function useTrainings() {
       if (error) throw error;
     },
     onSuccess: invalidate,
+    onError: aoFalhar("registrar o treino"),
   });
 
   const removeMut = useMutation({
@@ -176,6 +223,7 @@ export function useTrainings() {
       if (error) throw error;
     },
     onSuccess: invalidate,
+    onError: aoFalhar("remover o treino"),
   });
 
   const updateMut = useMutation({
@@ -193,14 +241,19 @@ export function useTrainings() {
       if (error) throw error;
     },
     onSuccess: invalidate,
+    onError: aoFalhar("salvar o treino"),
   });
 
   return {
     items: query.data ?? [],
     ready: query.isSuccess,
-    add: (t: Omit<Training, "id">) => addMut.mutate(t),
-    remove: (id: string) => removeMut.mutate(id),
-    update: (id: string, patch: Partial<Training>) => updateMut.mutate({ id, patch }),
+    // Devolvem `true` só quando o banco confirmou. O erro já vira aviso na
+    // tela via onError, então a promessa nunca rejeita — a tela só precisa
+    // saber se pode comemorar.
+    add: (t: Omit<Training, "id">) => ok(addMut.mutateAsync(t)),
+    remove: (id: string) => ok(removeMut.mutateAsync(id)),
+    update: (id: string, patch: Partial<Training>) =>
+      ok(updateMut.mutateAsync({ id, patch })),
   };
 }
 
@@ -243,6 +296,7 @@ export function useTechniques() {
       if (error) throw error;
     },
     onSuccess: invalidate,
+    onError: aoFalhar("adicionar a técnica"),
   });
 
   const removeMut = useMutation({
@@ -251,6 +305,7 @@ export function useTechniques() {
       if (error) throw error;
     },
     onSuccess: invalidate,
+    onError: aoFalhar("remover a técnica"),
   });
 
   const updateMut = useMutation({
@@ -266,14 +321,16 @@ export function useTechniques() {
       if (error) throw error;
     },
     onSuccess: invalidate,
+    onError: aoFalhar("salvar a técnica"),
   });
 
   return {
     items: query.data ?? [],
     ready: query.isSuccess,
-    add: (t: Omit<Technique, "id">) => addMut.mutate(t),
-    remove: (id: string) => removeMut.mutate(id),
-    update: (id: string, patch: Partial<Technique>) => updateMut.mutate({ id, patch }),
+    add: (t: Omit<Technique, "id">) => ok(addMut.mutateAsync(t)),
+    remove: (id: string) => ok(removeMut.mutateAsync(id)),
+    update: (id: string, patch: Partial<Technique>) =>
+      ok(updateMut.mutateAsync({ id, patch })),
   };
 }
 
@@ -300,9 +357,18 @@ export function usePlan() {
 
   const toggleMut = useMutation({
     mutationFn: async ({ week, itemId }: { week: number; itemId: string }) => {
-      const current = query.data?.find((w) => w.week === week);
-      if (!current) return;
-      const nextItems = current.items.map((i) =>
+      // Relê a semana do banco antes de gravar. Usar o cache aqui fazia dois
+      // toques rápidos em itens diferentes partirem da mesma lista — o segundo
+      // sobrescrevia o primeiro e o check sumia.
+      const { data: atual, error: erroLeitura } = await supabase
+        .from("plan_weeks")
+        .select("items")
+        .eq("week", week)
+        .maybeSingle();
+      if (erroLeitura) throw erroLeitura;
+      const itens = (atual?.items as unknown as PlanItem[]) ?? [];
+      if (!itens.length) return;
+      const nextItems = itens.map((i) =>
         i.id === itemId ? { ...i, done: !i.done } : i,
       );
       const { error } = await supabase
@@ -312,6 +378,7 @@ export function usePlan() {
       if (error) throw error;
     },
     onSuccess: invalidate,
+    onError: aoFalhar("marcar o item do plano"),
   });
 
   return {
@@ -345,9 +412,16 @@ export function useWeakPoints() {
 
   const updateScoreMut = useMutation({
     mutationFn: async ({ id, score }: { id: string; score: number }) => {
-      const current = query.data?.find((w) => w.id === id);
+      // Mesmo motivo do plano: o histórico é reescrito inteiro, então precisa
+      // partir do que está gravado, não do cache.
+      const { data: atual, error: erroLeitura } = await supabase
+        .from("weak_points")
+        .select("history")
+        .eq("id", id)
+        .maybeSingle();
+      if (erroLeitura) throw erroLeitura;
       const history = [
-        ...(current?.history ?? []),
+        ...((atual?.history as unknown as WeakPoint["history"]) ?? []),
         { date: new Date().toISOString().slice(0, 10), score },
       ].slice(-30);
       const { error } = await supabase
@@ -357,6 +431,7 @@ export function useWeakPoints() {
       if (error) throw error;
     },
     onSuccess: invalidate,
+    onError: aoFalhar("salvar a nota"),
   });
 
   return {
@@ -392,7 +467,13 @@ export function useGoalStart() {
         .upsert({ user_id: uid_, goal_start: value }, { onConflict: "user_id" });
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["profile"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["profile"] });
+      // A mesma linha da tabela alimenta a tela de Perfil; sem isto ela ficava
+      // mostrando a data antiga por até 5 minutos.
+      qc.invalidateQueries({ queryKey: ["perfil"] });
+    },
+    onError: aoFalhar("salvar a data de início"),
   });
 
   return {
@@ -439,6 +520,7 @@ export function useAnalyses() {
       if (error) throw error;
     },
     onSuccess: invalidate,
+    onError: aoFalhar("salvar a análise"),
   });
 
   const removeMut = useMutation({
@@ -447,6 +529,7 @@ export function useAnalyses() {
       if (error) throw error;
     },
     onSuccess: invalidate,
+    onError: aoFalhar("remover a análise"),
   });
 
   const updateMut = useMutation({
@@ -460,6 +543,7 @@ export function useAnalyses() {
       if (error) throw error;
     },
     onSuccess: invalidate,
+    onError: aoFalhar("atualizar a análise"),
   });
 
   return {
@@ -534,6 +618,7 @@ export function useAchievements() {
     items: query.data ?? [],
     ready: query.isSuccess,
     tiers: ACHIEVEMENT_TIERS,
+    onError: aoFalhar("atualizar a conquista"),
     setUnlocked: (id: string, unlocked: boolean) =>
       setUnlockedMut.mutate({ id, unlocked }),
   };
@@ -593,6 +678,7 @@ export function usePerfil() {
       qc.invalidateQueries({ queryKey: ["perfil"] });
       qc.invalidateQueries({ queryKey: ["profile"] });
     },
+    onError: aoFalhar("salvar o perfil"),
   });
 
   /** Envia a foto para o bucket `avatars` e devolve a URL pública */
@@ -659,6 +745,7 @@ export function useDestaques() {
       qc.invalidateQueries({ queryKey: ["achievements_featured"] });
       qc.invalidateQueries({ queryKey: ["achievements"] });
     },
+    onError: aoFalhar("destacar a conquista"),
   });
 
   return {
