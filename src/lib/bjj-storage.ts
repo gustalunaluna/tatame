@@ -537,6 +537,29 @@ export function useAchievements() {
   };
 }
 
+/**
+ * Só os números — a tela inicial não precisa das ~1000 linhas de conquista
+ * para mostrar uma porcentagem. Duas contagens no banco, payload mínimo.
+ */
+export function useAchievementStats() {
+  const query = useQuery({
+    queryKey: ["achievements_stats"],
+    queryFn: async (): Promise<{ total: number; unlocked: number }> => {
+      const [todas, feitas] = await Promise.all([
+        supabase.from("achievements").select("*", { count: "exact", head: true }),
+        supabase
+          .from("achievements")
+          .select("*", { count: "exact", head: true })
+          .eq("unlocked", true),
+      ]);
+      if (todas.error) throw todas.error;
+      if (feitas.error) throw feitas.error;
+      return { total: todas.count ?? 0, unlocked: feitas.count ?? 0 };
+    },
+  });
+  return { ...(query.data ?? { total: 0, unlocked: 0 }), ready: query.isSuccess };
+}
+
 export { ACHIEVEMENT_TIERS } from "./bjj-types";
 export type { AchievementTier };
 export { TECHNIQUE_CATEGORIES } from "./bjj-types";

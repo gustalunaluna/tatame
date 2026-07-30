@@ -17,7 +17,7 @@ import { Bar } from "@/components/ui/bar";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  useAchievements,
+  useAchievementStats,
   useEnsureSeeded,
   useGoalStart,
   usePlan,
@@ -68,7 +68,7 @@ function Home() {
   const { items: trainings } = useTrainings();
   const { weeks } = usePlan();
   const { start } = useGoalStart();
-  const { items: achievements } = useAchievements();
+  const conquistas = useAchievementStats();
 
   async function handleLogout() {
     await supabase.auth.signOut();
@@ -95,8 +95,8 @@ function Home() {
   const daysTraining = Math.max(0, daysBetween(startDate, now));
   const azulPct = Math.min(100, Math.round((daysTraining / DIAS_AZUL) * 100));
 
-  const unlockedAch = achievements.filter((a) => a.unlocked).length;
-  const totalAch = achievements.length;
+  const unlockedAch = conquistas.unlocked;
+  const totalAch = conquistas.total;
   const achPct = totalAch ? Math.round((unlockedAch / totalAch) * 100) : 0;
 
   // Weekday dots — current week (Sun..Sat)
