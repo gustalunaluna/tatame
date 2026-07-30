@@ -15,6 +15,11 @@ BEGIN
   -- Início da jornada (data do primeiro registro no app antigo)
   UPDATE profiles SET goal_start='2026-07-21' WHERE user_id=uid;
 
+  -- Protecao: se os treinos ja foram migrados, nao insere de novo
+  IF EXISTS (SELECT 1 FROM trainings WHERE user_id=uid) THEN
+   RAISE NOTICE 'Treinos/analises/tecnicas ja migrados — pulando (apenas conquistas serao atualizadas).';
+  ELSE
+
   -- ===== Treinos =====
   INSERT INTO trainings (user_id,date,type,duration_min,rolls,partners,techniques,notes) VALUES
   (uid,'2026-07-21','Gi',80,3,'Kris rafa daniel','Queda com lacada e derrubada no tripé de pé finalizando na botinha','O movimento foi tecnicamente simples consegui fazer a técnica tranquilamente para finalizar na botinha não foi tão simples, fiz os rolas primeiro com o faixa marrom kris acabei não pegando tomei 3 passagens e uma montada, consegui repor depois ele me finalizou em um armlock da montada, contra o rafael eu fiz uma passagem toureando quando ele puxou para guarda deixou fiz o knee slice passei peguei a montada fui caminhando com as mãos peguei uma katagatame e depois um estrangulamento com a lapela passando a perna por cima da cabeça, contra o daniel comecei puxando para guarda fechada já atacando um triângulo sai o quadril ajustei o triângulo peguei a perna dlee para se ele postular já sair na omoplata, em seguida acabei caindo na guarda dele ele me de um um ezequiel com as mãos na guarda fechada acabei batendo depois retornamos e puxei ele novamente para guarda já atacando um triângulo'),
@@ -41,6 +46,8 @@ BEGIN
   (uid,'⭐ Toureando → Costas','Passagem','MEU JOGO. No toureando, quando ele vira de quatro ou te da o lado, nao insiste por cima: pega as costas. Maos no cinto/pescoco, primeiro gancho, depois o segundo.','',2),
   (uid,'⭐ Costas Blindadas — Cinto + Triângulo de Corpo → Mata-leão','Finalização','Sequencia fixa: 1) Cinto de seguranca. 2) Fecha o TRIANGULO DE CORPO (pernas longas favorecem). 3) Briga de mao 2-contra-1 ate tirar a defesa. 4) Encaixa o mata-leao. Nunca ataca o pescoco antes de travar o controle.','',1),
   (uid,'⭐ Postura Blindada na Guarda (anti-ezequiel/guilhotina)','Defesa','Dentro da guarda fechada dele: queixo pra DENTRO, coluna ERETA, nunca estica a cabeca pra frente (vicio de boxeador). Maos: uma no quadril, uma na lapela, cotovelos colados. Cabeca erguida = sem estrangulamento.','',1);
+
+  END IF;
 
   -- ===== Conquistas já desbloqueadas =====
   UPDATE achievements SET unlocked=true, unlocked_date='2026-07-21'
