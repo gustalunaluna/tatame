@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState, type CSSProperties } from "react";
+import { useDeferredValue, useMemo, useState, type CSSProperties } from "react";
 import { Check, ChevronDown, Lock, Search, Trophy } from "lucide-react";
 import { PageShell } from "@/components/PageShell";
 import { Card, CardContent } from "@/components/ui/card";
@@ -113,12 +113,18 @@ function ConquistasPage() {
   const { items, ready } = useAchievements();
   const [q, setQ] = useState("");
   const [filter, setFilter] = useState<Filter>("all");
+  // O campo responde à digitação na hora; a lista de ~1000 itens recalcula
+  // logo atrás, sem travar a letra que está sendo digitada.
+  const busca = useDeferredValue(q);
 
-  const total = items.length;
-  const unlocked = items.filter((a) => a.unlocked).length;
-  const pct = total ? Math.round((unlocked / total) * 100) : 0;
+  const { total, unlocked, pct } = useMemo(() => {
+    const t = items.length;
+    const u = items.reduce((n, a) => n + (a.unlocked ? 1 : 0), 0);
+    return { total: t, unlocked: u, pct: t ? Math.round((u / t) * 100) : 0 };
+  }, [items]);
 
   const filtered = useMemo(() => {
+    const termo = busca.trim().toLowerCase();
     return items
       .filter((a) =>
         filter === "all"
@@ -129,26 +135,37 @@ function ConquistasPage() {
       )
       .filter(
         (a) =>
-          !q ||
-          a.title.toLowerCase().includes(q.toLowerCase()) ||
-          a.description.toLowerCase().includes(q.toLowerCase()),
+          !termo ||
+          a.title.toLowerCase().includes(termo) ||
+          a.description.toLowerCase().includes(termo),
       );
-  }, [items, q, filter]);
+  }, [items, busca, filter]);
 
-  const byTier = ACHIEVEMENT_TIERS.map((tier) => {
-    const all = items.filter((a) => a.tier === tier);
-    const group = filtered.filter((a) => a.tier === tier);
-    const done = all.filter((a) => a.unlocked).length;
-    return {
-      tier,
-      group,
-      totalTier: all.length,
-      done,
-      pct: all.length ? Math.round((done / all.length) * 100) : 0,
-    };
-  });
+  const byTier = useMemo(
+    () =>
+      ACHIEVEMENT_TIERS.map((tier) => {
+        const all = items.filter((a) => a.tier === tier);
+        const group = filtered.filter((a) => a.tier === tier);
+        const done = all.filter((a) => a.unlocked).length;
+        return {
+          tier,
+          group,
+          totalTier: all.length,
+          done,
+          pct: all.length ? Math.round((done / all.length) * 100) : 0,
+        };
+      }),
+    [items, filtered],
+  );
 
   const firstIncomplete = byTier.find((t) => t.totalTier > 0 && t.done < t.totalTier)?.tier;
+
+  // Quais faixas estão abertas. Importa porque as linhas só entram no DOM
+  // quando a faixa abre: com tudo aberto seriam ~1000 cartões de uma vez.
+  const [abertas, setAbertas] = useState<Partial<Record<AchievementTier, boolean>>>({});
+  const filtrando = busca.trim() !== "" || filter !== "all";
+  const estaAberta = (tier: AchievementTier) =>
+    abertas[tier] ?? (filtrando || tier === firstIncomplete);
 
   const FILTERS: { key: Filter; label: string }[] = [
     { key: "all", label: "Todas" },
@@ -225,7 +242,12 @@ function ConquistasPage() {
             <details
               key={tier}
               className="reveal group"
-              open={q !== "" || filter !== "all" || tier === firstIncomplete}
+              open={estaAberta(tier)}
+              onToggle={(e) => {
+                // Lê o `open` agora: dentro do updater o currentTarget já é null.
+                const aberta = (e.currentTarget as HTMLDetailsElement).open;
+                setAbertas((s) => ({ ...s, [tier]: aberta }));
+              }}
             >
               <summary className="tap cursor-pointer select-none list-none space-y-2 rounded-xl py-1 active:opacity-70 [&::-webkit-details-marker]:hidden">
                 <div className="flex items-center justify-between">
@@ -250,7 +272,7 @@ function ConquistasPage() {
                 <Bar value={tierPct} label={`Faixa ${tier}: ${tierPct}% concluída`} />
               </summary>
               <div className="space-y-2 pt-2">
-                {group.length === 0 ? (
+                {!estaAberta(tier) ? null : group.length === 0 ? (
                   <p className="px-1 text-xs text-muted-foreground">
                     Nada nesse filtro/busca dentro desta faixa.
                   </p>

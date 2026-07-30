@@ -1,13 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Award, Shield, TrendingUp } from "lucide-react";
-import {
-  Line,
-  LineChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
+import { Suspense, lazy } from "react";
 import { PageShell } from "@/components/PageShell";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -16,6 +9,8 @@ import { Progress } from "@/components/ui/progress";
 import { Slider } from "@/components/ui/slider";
 import { useGoalStart, useWeakPoints, useHydrated } from "@/lib/bjj-storage";
 import { DIAS_AZUL, DIAS_ROXA } from "@/lib/bjj-types";
+
+const GraficoEvolucao = lazy(() => import("@/components/GraficoEvolucao"));
 
 export const Route = createFileRoute("/_authenticated/metas")({
   head: () => ({
@@ -139,27 +134,16 @@ function MetasPage() {
               <p className="text-sm font-semibold">Evolução dos pontos fracos</p>
             </div>
             <div className="h-40">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={chartData}>
-                  <XAxis dataKey="date" tick={{ fontSize: 10 }} stroke="var(--muted-foreground)" />
-                  <YAxis domain={[0, 5]} tick={{ fontSize: 10 }} stroke="var(--muted-foreground)" width={20} />
-                  <Tooltip
-                    contentStyle={{
-                      background: "var(--popover)",
-                      border: "1px solid var(--border)",
-                      borderRadius: 8,
-                      fontSize: 12,
-                    }}
+              <Suspense
+                fallback={
+                  <div
+                    className="h-full w-full animate-pulse rounded-xl bg-muted/40"
+                    aria-hidden="true"
                   />
-                  <Line
-                    type="monotone"
-                    dataKey="média"
-                    stroke="var(--primary)"
-                    strokeWidth={2}
-                    dot={{ r: 3 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+                }
+              >
+                <GraficoEvolucao dados={chartData} />
+              </Suspense>
             </div>
           </CardContent>
         </Card>
