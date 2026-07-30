@@ -1,6 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { Suspense, lazy, useState } from "react";
-import { Award, Plus, Target, Trash2, TrendingUp, Trophy } from "lucide-react";
+import { Award, ChevronRight, ClipboardList, Plus, Target, Trash2, TrendingUp, Trophy } from "lucide-react";
 import { toast } from "sonner";
 import { PageShell } from "@/components/PageShell";
 import { Card, CardContent } from "@/components/ui/card";
@@ -24,7 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useGoalStart, useWeakPoints, useTrainings, useHydrated } from "@/lib/bjj-storage";
-import { useMetas, diasAte, type Meta, type TipoMeta } from "@/lib/plano-storage";
+import { useMetas, useCicloAtual, diasAte, type Meta, type TipoMeta } from "@/lib/plano-storage";
 import { FAIXAS, type Faixa } from "@/lib/bjj-types";
 import { cn } from "@/lib/utils";
 
@@ -349,6 +349,7 @@ function MetasPage() {
   const { items } = useWeakPoints();
   const { items: treinos } = useTrainings();
   const { start, set: setStart } = useGoalStart();
+  const { ciclo, execucao } = useCicloAtual();
 
   const inicio = new Date(start + "T00:00:00");
   const dias = Math.max(
@@ -397,6 +398,26 @@ function MetasPage() {
       ))}
 
       <NovaMeta />
+
+      {/* O plano é como você chega nas metas acima — por isso mora aqui. */}
+      <Link to="/plano" className="block">
+        <Card className="tap border-primary/40 bg-card/60 active:scale-[0.99]">
+          <CardContent className="flex items-center gap-3 p-4">
+            <ClipboardList className="h-5 w-5 shrink-0 text-primary" />
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-bold">
+                {ciclo ? ciclo.titulo : "Plano do mês"}
+              </p>
+              <p className="truncate text-xs text-muted-foreground">
+                {ciclo
+                  ? `${execucao}% cumprido neste mês`
+                  : "Escolha o que melhorar e monte as 4 semanas"}
+              </p>
+            </div>
+            <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+          </CardContent>
+        </Card>
+      </Link>
 
       <Pontos kind="fraco" />
 

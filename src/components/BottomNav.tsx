@@ -5,8 +5,8 @@ import {
   ClipboardList,
   Home,
   Menu,
-  Target,
   Dumbbell,
+  FileText,
   TrendingUp,
   Trophy,
   User,
@@ -16,26 +16,42 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-/** Atalhos fixos na barra inferior */
+/**
+ * Cinco abas, agrupadas por assunto em vez de uma por funcionalidade.
+ * Conquistas, Parceiros e Equipe deixaram de ser abas: viram caixas no
+ * Perfil que abrem ao toque. Plano virou parte de Evolução, e Análises
+ * ficam no Diário, junto dos treinos que as originaram.
+ */
 const ATALHOS = [
   { to: "/", label: "Início", icon: Home },
+  { to: "/diario", label: "Diário", icon: Dumbbell },
   { to: "/tecnicas", label: "Técnicas", icon: BookOpen },
-  { to: "/plano", label: "Plano", icon: ClipboardList },
+  { to: "/metas", label: "Evolução", icon: TrendingUp },
   { to: "/perfil", label: "Perfil", icon: User },
 ] as const;
 
-/** Todas as telas, no menu lateral */
+/** Tudo que existe, com o que cada tela realmente faz */
 const MENU = [
-  { to: "/", label: "Início", icon: Home, desc: "Resumo e level" },
-  { to: "/diario", label: "Diário", icon: Dumbbell, desc: "Registrar treinos" },
-  { to: "/tecnicas", label: "Técnicas", icon: BookOpen, desc: "Sua biblioteca" },
-  { to: "/analises", label: "Análises", icon: TrendingUp, desc: "Leitura do treinador" },
-  { to: "/plano", label: "Plano", icon: ClipboardList, desc: "8 semanas" },
-  { to: "/metas", label: "Metas", icon: Target, desc: "Faixas e pontos fracos" },
-  { to: "/conquistas", label: "Conquistas", icon: Trophy, desc: "Rumo ao topo" },
-  { to: "/parceiros", label: "Parceiros", icon: Users, desc: "Placar entre vocês" },
-  { to: "/equipe", label: "Equipe", icon: Shield, desc: "Sua academia" },
-  { to: "/perfil", label: "Perfil", icon: User, desc: "Faixa, mestre e lutas" },
+  { to: "/", label: "Início", icon: Home,
+    desc: "Como você está hoje: sequência, semana e o próximo passo" },
+  { to: "/diario", label: "Diário", icon: Dumbbell,
+    desc: "Registrar o treino de hoje e reler os anteriores" },
+  { to: "/analises", label: "Análises", icon: FileText,
+    desc: "A leitura do treinador sobre a sua evolução" },
+  { to: "/tecnicas", label: "Técnicas", icon: BookOpen,
+    desc: "Sua biblioteca de posições, com a nota de domínio de cada uma" },
+  { to: "/metas", label: "Evolução", icon: TrendingUp,
+    desc: "Aonde você quer chegar e como está o caminho" },
+  { to: "/plano", label: "Plano do mês", icon: ClipboardList,
+    desc: "Um objetivo, quatro semanas, para a sua faixa" },
+  { to: "/perfil", label: "Perfil", icon: User,
+    desc: "Seu cartão: faixa, equipe, mestre, parceiros e conquistas" },
+  { to: "/parceiros", label: "Parceiros de rola", icon: Users,
+    desc: "Quem treina com você e há quanto tempo" },
+  { to: "/equipe", label: "Equipe", icon: Shield,
+    desc: "Sua academia e quem treina nela" },
+  { to: "/conquistas", label: "Conquistas", icon: Trophy,
+    desc: "Da faixa branca à vermelha, o que você já desbloqueou" },
 ] as const;
 
 export function BottomNav() {

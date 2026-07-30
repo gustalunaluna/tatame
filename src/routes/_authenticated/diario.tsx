@@ -1,6 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { ChevronRight, FileText, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { PageShell } from "@/components/PageShell";
 import { Button } from "@/components/ui/button";
@@ -89,6 +89,20 @@ function DiaryPage() {
         </Dialog>
       }
     >
+      {/* As análises nascem destes treinos — por isso ficam aqui. */}
+      <Link to="/analises" className="block">
+        <div className="tap flex items-center gap-3 rounded-2xl border border-border/60 bg-card/60 p-3 active:scale-[0.99]">
+          <FileText className="h-5 w-5 shrink-0 text-primary" />
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-bold">Análises do treinador</p>
+            <p className="text-xs text-muted-foreground">
+              A leitura do que estes treinos mostram
+            </p>
+          </div>
+          <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+        </div>
+      </Link>
+
       {months.length > 0 && (
         <Select value={monthFilter} onValueChange={setMonthFilter}>
           <SelectTrigger className="w-full">

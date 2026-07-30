@@ -3,14 +3,20 @@ import { createFileRoute } from "@tanstack/react-router";
 import {
   Camera,
   Check,
+  GraduationCap,
   Pencil,
+  Shield,
   Star,
   Swords,
   Trophy,
   User,
+  Users,
 } from "lucide-react";
 import { toast } from "sonner";
 import { PageShell } from "@/components/PageShell";
+import { CaixaDoPerfil } from "@/components/CaixaDoPerfil";
+import { useEquipes, useParcerias } from "@/lib/social-storage";
+import { useAchievementStats } from "@/lib/bjj-storage";
 import { Faixa as FaixaVisual } from "@/components/Faixa";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -210,6 +216,9 @@ function PerfilPage() {
         </CardContent>
       </Card>
 
+      {/* ===== Caixas: equipe, mestre, parceiros e conquistas ===== */}
+      <CaixasDoPerfil />
+
       {/* ===== Conquistas em destaque ===== */}
       <section>
         <div className="mb-2 flex items-center justify-between">
@@ -260,6 +269,131 @@ function PerfilPage() {
 }
 
 /* ============================ Editar perfil ============================ */
+
+/**
+ * As quatro ligações do atleta, cada uma abrindo a tela cheia ao toque.
+ * Antes cada uma dessas era uma aba própria na barra de baixo.
+ */
+function CaixasDoPerfil() {
+  const { perfil } = usePerfil();
+  const { minhaEquipe, equipes, vinculos } = useEquipes();
+  const { aceitos } = useParcerias();
+  const { total, unlocked } = useAchievementStats();
+
+  const equipePendente = equipes.find(
+    (e) => e.status !== "aprovada" && vinculos.some((v) => v.teamId === e.id),
+  );
+  const equipe = minhaEquipe ?? equipePendente;
+
+  return (
+    <div className="space-y-3">
+      <CaixaDoPerfil
+        titulo="Equipe"
+        icone={<Shield className="h-4 w-4" />}
+        para="/equipe"
+        i={0}
+        contagem={equipe ? (equipe.status === "aprovada" ? "oficial" : "pendente") : undefined}
+        vazio="Você ainda não escolheu uma equipe."
+      >
+        {equipe ? (
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="truncate font-bold">{equipe.name}</p>
+              <p className="truncate text-xs text-muted-foreground">
+                {[equipe.city, equipe.master && `Mestre ${equipe.master}`]
+                  .filter(Boolean)
+                  .join(" · ") || "—"}
+              </p>
+            </div>
+          </div>
+        ) : perfil?.gym ? (
+          <div>
+            <p className="truncate font-bold">{perfil.gym}</p>
+            <p className="text-xs text-muted-foreground">
+              declarada — toque para vincular à equipe oficial
+            </p>
+          </div>
+        ) : null}
+      </CaixaDoPerfil>
+
+      <CaixaDoPerfil
+        titulo="Mestre"
+        icone={<GraduationCap className="h-4 w-4" />}
+        para="/equipe"
+        i={1}
+        vazio="Você ainda não indicou seu mestre."
+      >
+        {perfil?.master ? (
+          <div>
+            <p className="truncate font-bold">{perfil.master}</p>
+            <p className="text-xs text-muted-foreground">
+              declarado — toque para vincular ao perfil dele
+            </p>
+          </div>
+        ) : null}
+      </CaixaDoPerfil>
+
+      <CaixaDoPerfil
+        titulo="Parceiros de rola"
+        icone={<Users className="h-4 w-4" />}
+        para="/parceiros"
+        i={2}
+        contagem={aceitos.length ? String(aceitos.length) : undefined}
+        vazio="Nenhum parceiro ainda. Adicione pelo @ da pessoa."
+      >
+        {aceitos.length ? (
+          <div className="flex flex-wrap gap-2">
+            {aceitos.slice(0, 8).map(({ parceria, cartao }) => (
+              <div
+                key={parceria.id}
+                className="flex items-center gap-2 rounded-xl border border-border/50 bg-secondary/40 px-2.5 py-1.5"
+              >
+                <span className="text-xs font-semibold">
+                  {cartao?.nickname ?? "Atleta"}
+                </span>
+                {cartao && (
+                  <FaixaVisual
+                    belt={cartao.belt}
+                    degrees={cartao.degrees}
+                    compacta
+                    comTexto={false}
+                  />
+                )}
+              </div>
+            ))}
+            {aceitos.length > 8 && (
+              <span className="self-center text-xs text-muted-foreground">
+                +{aceitos.length - 8}
+              </span>
+            )}
+          </div>
+        ) : null}
+      </CaixaDoPerfil>
+
+      <CaixaDoPerfil
+        titulo="Conquistas"
+        icone={<Trophy className="h-4 w-4" />}
+        para="/conquistas"
+        i={3}
+        contagem={total ? `${unlocked}/${total}` : undefined}
+      >
+        {total ? (
+          <div>
+            <div className="h-2 overflow-hidden rounded-full bg-secondary">
+              <div
+                className="h-full rounded-full bg-primary"
+                style={{ width: `${Math.round((unlocked / total) * 100)}%` }}
+              />
+            </div>
+            <p className="mt-2 text-xs text-muted-foreground">
+              {Math.round((unlocked / total) * 100)}% do caminho até a vermelha
+            </p>
+          </div>
+        ) : null}
+      </CaixaDoPerfil>
+    </div>
+  );
+}
 
 function EditarPerfil({
   perfil,
