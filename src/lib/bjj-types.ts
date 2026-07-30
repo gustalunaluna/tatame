@@ -15,6 +15,8 @@ export type Faixa = (typeof FAIXAS)[number];
 
 export interface Perfil {
   nickname: string;
+  /** Texto livre do atleta: "3x campeão mundial", o que ele quiser dizer */
+  bio: string;
   birthDate: string | null;
   photoUrl: string;
   belt: Faixa;

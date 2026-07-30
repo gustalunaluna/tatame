@@ -17,6 +17,11 @@ export type Database = {
           created_at: string;
           updated_at: string;
           nickname: string;
+          bio: string;
+          handle: string | null;
+          perfil_jogo: Json;
+          questionario_em: string | null;
+          verificado: boolean;
           birth_date: string | null;
           photo_url: string;
           belt: string;
@@ -33,6 +38,11 @@ export type Database = {
           created_at?: string;
           updated_at?: string;
           nickname?: string;
+          bio?: string;
+          handle?: string | null;
+          perfil_jogo?: Json;
+          questionario_em?: string | null;
+          verificado?: boolean;
           birth_date?: string | null;
           photo_url?: string;
           belt?: string;
@@ -49,6 +59,11 @@ export type Database = {
           created_at?: string;
           updated_at?: string;
           nickname?: string;
+          bio?: string;
+          handle?: string | null;
+          perfil_jogo?: Json;
+          questionario_em?: string | null;
+          verificado?: boolean;
           birth_date?: string | null;
           photo_url?: string;
           belt?: string;

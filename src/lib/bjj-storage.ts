@@ -654,8 +654,10 @@ export function usePerfil() {
         .eq("user_id", uid_)
         .maybeSingle();
       if (error) throw error;
+      const extra = data as unknown as Record<string, unknown> | null;
       return {
         nickname: data?.nickname ?? "",
+        bio: (extra?.bio as string) ?? "",
         birthDate: data?.birth_date ?? null,
         photoUrl: data?.photo_url ?? "",
         belt: (data?.belt as Faixa) ?? "Branca",
@@ -675,6 +677,7 @@ export function usePerfil() {
       if (!uid_) throw new Error("Sem sessão");
       const dbPatch = {
         ...(patch.nickname !== undefined && { nickname: patch.nickname }),
+        ...(patch.bio !== undefined && { bio: patch.bio }),
         ...(patch.birthDate !== undefined && { birth_date: patch.birthDate }),
         ...(patch.photoUrl !== undefined && { photo_url: patch.photoUrl }),
         ...(patch.belt !== undefined && { belt: patch.belt }),

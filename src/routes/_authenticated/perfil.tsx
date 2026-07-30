@@ -15,7 +15,7 @@ import {
 import { toast } from "sonner";
 import { PageShell } from "@/components/PageShell";
 import { CaixaDoPerfil } from "@/components/CaixaDoPerfil";
-import { useEquipes, useParcerias } from "@/lib/social-storage";
+import { useEquipes, useMeuHandle, useParcerias } from "@/lib/social-storage";
 import { useAchievementStats } from "@/lib/bjj-storage";
 import { Faixa as FaixaVisual } from "@/components/Faixa";
 import { Button } from "@/components/ui/button";
@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -71,6 +72,7 @@ function idade(nascimento: string | null) {
 
 function PerfilPage() {
   const { perfil, salvar, enviarFoto } = usePerfil();
+  const { handle } = useMeuHandle();
   const { items: destaques, marcar } = useDestaques();
   const { items: treinos } = useTrainings();
   const inputFoto = useRef<HTMLInputElement>(null);
@@ -102,32 +104,18 @@ function PerfilPage() {
   }
 
   return (
-    <PageShell
-      title="Perfil"
-      subtitle="Quem você é no tatame."
-      action={
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button size="sm" variant="secondary" className="gap-1">
-              <Pencil className="h-4 w-4" /> Editar
-            </Button>
-          </DialogTrigger>
-          {perfil && <EditarPerfil perfil={perfil} onSalvar={salvar} />}
-        </Dialog>
-      }
-    >
-      {/* ===== Cartão do atleta ===== */}
-      <Card className="relative overflow-hidden border-primary/40 bg-gradient-to-br from-primary/15 via-card/80 to-card/80 shadow-[0_0_40px_-12px_var(--primary)]">
-        <CardContent className="p-5">
-          <div className="flex items-center gap-4">
+    <PageShell title="Perfil" subtitle="Quem você é no tatame.">
+      {/* ===== Cabeçalho: foto à esquerda, identidade à direita ===== */}
+      <div>
+        <div className="flex items-start gap-4">
             <div className="relative shrink-0">
-              <div className="grid h-20 w-20 place-items-center overflow-hidden rounded-2xl bg-secondary ring-2 ring-primary/40">
+              <div className="grid h-24 w-24 place-items-center overflow-hidden rounded-2xl bg-secondary ring-2 ring-primary/50">
                 {perfil?.photoUrl ? (
                   <img
                     src={perfil.photoUrl}
                     alt={`Foto de ${perfil.nickname || "perfil"}`}
-                    width={80}
-                    height={80}
+                    width={96}
+                    height={96}
                     className="h-full w-full object-cover"
                   />
                 ) : (
@@ -151,32 +139,42 @@ function PerfilPage() {
               />
             </div>
 
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-2xl font-black leading-tight">
+            <div className="min-w-0 flex-1 pt-1">
+              <h2 className="truncate text-2xl font-black leading-tight">
                 {perfil?.nickname || "Sem apelido"}
-              </p>
-              <p className="mt-0.5 text-xs text-muted-foreground">
-                {[anos ? `${anos} anos` : null, perfil?.gym || null]
-                  .filter(Boolean)
-                  .join(" · ") || "Toque em Editar para completar"}
-              </p>
-              <div className="mt-2">
-                <FaixaVisual
-                  belt={perfil?.belt ?? "Branca"}
-                  degrees={perfil?.degrees ?? 0}
-                />
-              </div>
+              </h2>
+              {anos != null && (
+                <p className="text-sm text-muted-foreground">{anos} anos</p>
+              )}
+              <FaixaVisual
+                belt={perfil?.belt ?? "Branca"}
+                degrees={perfil?.degrees ?? 0}
+                className="mt-2"
+              />
+              {handle && (
+                <p className="mt-1.5 text-sm font-semibold text-primary">@{handle}</p>
+              )}
             </div>
           </div>
 
-          {perfil?.master && (
-            <p className="mt-4 border-t border-border/50 pt-3 text-xs text-muted-foreground">
-              <span className="font-bold text-foreground">Mestre:</span>{" "}
-              {perfil.master}
+          {/* Bio livre — "3x campeão mundial", o que a pessoa quiser dizer */}
+          {perfil?.bio && (
+            <p className="mt-3 whitespace-pre-line text-sm text-muted-foreground">
+              {perfil.bio}
             </p>
           )}
-        </CardContent>
-      </Card>
+
+          {/* Faixa cheia, como no modelo */}
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="secondary" className="mt-4 w-full gap-2">
+                <Pencil className="h-4 w-4" /> Editar perfil
+              </Button>
+            </DialogTrigger>
+            {perfil && <EditarPerfil perfil={perfil} onSalvar={salvar} />}
+          </Dialog>
+
+      </div>
 
       {/* ===== Lutas ===== */}
       <Card className="border-border/60 bg-card/70">
@@ -285,53 +283,64 @@ function CaixasDoPerfil() {
   );
   const equipe = minhaEquipe ?? equipePendente;
 
+  const brasao = (equipe as { crestUrl?: string } | undefined)?.crestUrl ?? "";
+
   return (
     <div className="space-y-3">
-      <CaixaDoPerfil
-        titulo="Equipe"
-        icone={<Shield className="h-4 w-4" />}
-        para="/equipe"
-        i={0}
-        contagem={equipe ? (equipe.status === "aprovada" ? "oficial" : "pendente") : undefined}
-        vazio="Você ainda não escolheu uma equipe."
-      >
-        {equipe ? (
-          <div className="flex items-center justify-between gap-3">
-            <div className="min-w-0">
-              <p className="truncate font-bold">{equipe.name}</p>
-              <p className="truncate text-xs text-muted-foreground">
-                {[equipe.city, equipe.master && `Mestre ${equipe.master}`]
-                  .filter(Boolean)
-                  .join(" · ") || "—"}
+      {/* Equipe e Mestre lado a lado, como no modelo */}
+      <div className="grid grid-cols-2 gap-3">
+        <CaixaDoPerfil
+          titulo="Equipe"
+          icone={<Shield className="h-4 w-4" />}
+          para="/equipe"
+          i={0}
+          contagem={equipe?.status === "aprovada" ? "oficial" : undefined}
+          vazio="Toque para escolher."
+        >
+          {equipe || perfil?.gym ? (
+            <div className="flex flex-col items-center gap-2 text-center">
+              {brasao ? (
+                <img
+                  src={brasao}
+                  alt=""
+                  loading="lazy"
+                  className="h-12 w-12 rounded-xl object-contain"
+                />
+              ) : (
+                <div className="grid h-12 w-12 place-items-center rounded-xl bg-secondary">
+                  <Shield className="h-6 w-6 text-muted-foreground" />
+                </div>
+              )}
+              <p className="line-clamp-2 text-xs font-bold leading-tight">
+                {equipe?.name ?? perfil?.gym}
               </p>
+              {!equipe && (
+                <p className="text-[10px] text-muted-foreground">declarada</p>
+              )}
             </div>
-          </div>
-        ) : perfil?.gym ? (
-          <div>
-            <p className="truncate font-bold">{perfil.gym}</p>
-            <p className="text-xs text-muted-foreground">
-              declarada — toque para vincular à equipe oficial
-            </p>
-          </div>
-        ) : null}
-      </CaixaDoPerfil>
+          ) : null}
+        </CaixaDoPerfil>
 
-      <CaixaDoPerfil
-        titulo="Mestre"
-        icone={<GraduationCap className="h-4 w-4" />}
-        para="/equipe"
-        i={1}
-        vazio="Você ainda não indicou seu mestre."
-      >
-        {perfil?.master ? (
-          <div>
-            <p className="truncate font-bold">{perfil.master}</p>
-            <p className="text-xs text-muted-foreground">
-              declarado — toque para vincular ao perfil dele
-            </p>
-          </div>
-        ) : null}
-      </CaixaDoPerfil>
+        <CaixaDoPerfil
+          titulo="Mestre"
+          icone={<GraduationCap className="h-4 w-4" />}
+          para="/equipe"
+          i={1}
+          vazio="Toque para indicar."
+        >
+          {perfil?.master ? (
+            <div className="flex flex-col items-center gap-2 text-center">
+              <div className="grid h-12 w-12 place-items-center rounded-xl bg-secondary">
+                <GraduationCap className="h-6 w-6 text-muted-foreground" />
+              </div>
+              <p className="line-clamp-2 text-xs font-bold leading-tight">
+                {perfil.master}
+              </p>
+              <p className="text-[10px] text-muted-foreground">declarado</p>
+            </div>
+          ) : null}
+        </CaixaDoPerfil>
+      </div>
 
       <CaixaDoPerfil
         titulo="Parceiros de rola"
@@ -422,6 +431,21 @@ function EditarPerfil({
             onChange={(e) => set("nickname", e.target.value)}
             placeholder="Como te chamam no tatame"
           />
+        </div>
+
+        <div>
+          <Label htmlFor="bio">Bio</Label>
+          <Textarea
+            id="bio"
+            rows={3}
+            maxLength={300}
+            value={f.bio}
+            onChange={(e) => set("bio", e.target.value)}
+            placeholder="3x campeão paranaense · começou em 2025 · guardeiro"
+          />
+          <p className="mt-1 text-right text-[11px] text-muted-foreground">
+            {f.bio.length}/300
+          </p>
         </div>
 
         <div className="grid grid-cols-2 gap-3">
