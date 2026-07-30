@@ -86,6 +86,26 @@ await pagina.route(`https://${REF}.supabase.co/**`, async (rota) => {
   if (url.includes("/rest/v1/techniques"))
     return json(Array.from({ length: 23 }, (_, i) => ({ id: `tec-${i}`, user_id: "u1",
       name: `Técnica ${i}`, category: "Guarda", notes: "", video_url: "", mastery: 3 })));
+  if (url.includes("/rpc/objetivos_disponiveis")) return json([
+    { slug: "retencao", nome: "Retenção de guarda", descricao: "Parar de ser passado.", tem_conteudo: true, nivel_usado: "branca_avancada" },
+    { slug: "passagem", nome: "Passagem de guarda", descricao: "Passar com pressão.", tem_conteudo: true, nivel_usado: "branca_avancada" },
+  ]);
+  if (url.includes("/rest/v1/goals")) return json([
+    { id: "g1", user_id: "u1", kind: "graduacao", title: "Faixa Azul", target_belt: "Azul",
+      target_degrees: 0, event_name: "", target_number: null, target_date: "2026-10-13",
+      status: "ativa", outcome: "" },
+  ]);
+  if (url.includes("/rest/v1/plan_cycles")) return json([
+    { id: "c1", user_id: "u1", objective_slug: "retencao", template_id: "t1", nivel: "branca_avancada",
+      titulo: "Retenção ativa", inicio: "2026-07-20", fim: "2026-08-16",
+      nota_inicial: 2, nota_final: null, status: "ativo" },
+  ]);
+  if (url.includes("/rest/v1/plan_cycle_items")) return json(
+    Array.from({ length: 16 }, (_, i) => ({
+      id: `pi-${i}`, cycle_id: "c1", user_id: "u1", semana: Math.floor(i / 4) + 1,
+      foco: `Foco ${Math.floor(i / 4) + 1}`, texto: `Item ${i}`,
+      alvo: i % 3 === 0 ? 3 : 0, feito: i % 2, nota: "", ordem: i,
+    })));
   if (url.includes("/rest/v1/plan_weeks"))
     return json(Array.from({ length: 8 }, (_, i) => ({ id: `p-${i}`, user_id: "u1",
       week: i + 1, focus: `Foco ${i + 1}`, items: [{ id: "i1", label: "Item", done: i < 3 }] })));

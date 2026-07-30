@@ -410,12 +410,17 @@ export function useWeakPoints() {
         .select("*")
         .order("created_at", { ascending: true });
       if (error) throw error;
-      return (data ?? []).map((r) => ({
-        id: r.id,
-        label: r.label,
-        score: r.score,
-        history: (r.history as unknown as WeakPoint["history"]) ?? [],
-      }));
+      return (data ?? []).map((r) => {
+        const linha = r as unknown as Record<string, unknown>;
+        return {
+          id: r.id,
+          label: r.label,
+          score: r.score,
+          kind: ((linha.kind as string) ?? "fraco") as WeakPoint["kind"],
+          objectiveSlug: (linha.objective_slug as string) ?? null,
+          history: (r.history as unknown as WeakPoint["history"]) ?? [],
+        };
+      });
     },
   });
 

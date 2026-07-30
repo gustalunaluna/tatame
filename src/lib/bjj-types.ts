@@ -83,6 +83,10 @@ export interface WeakPoint {
   id: string;
   label: string;
   score: number; // 0-5
+  /** "fraco" é o que evoluir; "forte" é o que já funciona */
+  kind: "fraco" | "forte";
+  /** liga o ponto a um objetivo de plano, quando houver */
+  objectiveSlug: string | null;
   history: { date: string; score: number }[];
 }
 
