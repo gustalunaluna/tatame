@@ -101,7 +101,7 @@ export function BottomNav() {
           >
             <div
               className="flex items-center justify-between border-b border-border/60 px-4 pb-4"
-              style={{ paddingTop: "max(1rem, calc(var(--safe-t) + 0.5rem))" }}
+              style={{ paddingTop: "max(1rem, calc(var(--safe-t) + 1.25rem))" }}
             >
               <div>
                 <p className="text-[10px] font-black uppercase tracking-[0.25em] text-primary">

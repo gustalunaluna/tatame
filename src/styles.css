@@ -150,9 +150,9 @@
   --altura-barra: calc(3.75rem + var(--safe-b));
 }
 
-/** Respiro do topo: nunca menos que o padding normal da tela. */
+/** Respiro do topo: sempre uma folga real abaixo do relógio, nunca encostado. */
 @utility topo-seguro {
-  padding-top: max(1.5rem, calc(var(--safe-t) + 0.5rem));
+  padding-top: max(1.5rem, calc(var(--safe-t) + 1.25rem));
 }
 
 /** Respiro do rodapé: livra a barra inferior e a faixa de gestos. */
