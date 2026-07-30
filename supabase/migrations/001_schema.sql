@@ -1,20 +1,18 @@
 -- ============================================================
--- TATAME — Schema completo do banco (rodar 1x no SQL Editor)
+-- TATAME — Schema completo do banco
+-- SEGURO RODAR MAIS DE UMA VEZ: cria só o que estiver faltando.
 -- ============================================================
 
--- Profiles: 1 por usuário; guarda início da meta e flag de seed
-CREATE TABLE public.profiles (
+-- ===== Tabelas =====
+CREATE TABLE IF NOT EXISTS public.profiles (
   user_id UUID PRIMARY KEY REFERENCES auth.users ON DELETE CASCADE,
   goal_start DATE NOT NULL DEFAULT CURRENT_DATE,
   seeded BOOLEAN NOT NULL DEFAULT false,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "own profile" ON public.profiles FOR ALL
-  USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
 
-CREATE TABLE public.trainings (
+CREATE TABLE IF NOT EXISTS public.trainings (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES auth.users ON DELETE CASCADE,
   date DATE NOT NULL,
@@ -27,11 +25,8 @@ CREATE TABLE public.trainings (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-ALTER TABLE public.trainings ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "own trainings" ON public.trainings FOR ALL
-  USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
 
-CREATE TABLE public.techniques (
+CREATE TABLE IF NOT EXISTS public.techniques (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES auth.users ON DELETE CASCADE,
   name TEXT NOT NULL,
@@ -42,11 +37,8 @@ CREATE TABLE public.techniques (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-ALTER TABLE public.techniques ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "own techniques" ON public.techniques FOR ALL
-  USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
 
-CREATE TABLE public.plan_weeks (
+CREATE TABLE IF NOT EXISTS public.plan_weeks (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES auth.users ON DELETE CASCADE,
   week INTEGER NOT NULL,
@@ -56,11 +48,8 @@ CREATE TABLE public.plan_weeks (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   UNIQUE (user_id, week)
 );
-ALTER TABLE public.plan_weeks ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "own plan_weeks" ON public.plan_weeks FOR ALL
-  USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
 
-CREATE TABLE public.weak_points (
+CREATE TABLE IF NOT EXISTS public.weak_points (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES auth.users ON DELETE CASCADE,
   label TEXT NOT NULL,
@@ -69,11 +58,8 @@ CREATE TABLE public.weak_points (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-ALTER TABLE public.weak_points ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "own weak_points" ON public.weak_points FOR ALL
-  USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
 
-CREATE TABLE public.analyses (
+CREATE TABLE IF NOT EXISTS public.analyses (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   date DATE NOT NULL,
@@ -81,12 +67,8 @@ CREATE TABLE public.analyses (
   content TEXT NOT NULL DEFAULT '',
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-ALTER TABLE public.analyses ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "own analyses" ON public.analyses FOR ALL
-  USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
-CREATE INDEX analyses_user_date_idx ON public.analyses (user_id, date DESC);
 
-CREATE TABLE public.achievements (
+CREATE TABLE IF NOT EXISTS public.achievements (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   key TEXT NOT NULL,
@@ -101,24 +83,61 @@ CREATE TABLE public.achievements (
   progress INTEGER NOT NULL DEFAULT 0,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-ALTER TABLE public.achievements ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "own achievements" ON public.achievements FOR ALL
-  USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
-CREATE UNIQUE INDEX achievements_user_key_idx ON public.achievements(user_id, key);
 
--- updated_at automático
+-- Garante as colunas novas caso a tabela já existisse de uma versão anterior
+ALTER TABLE public.achievements ADD COLUMN IF NOT EXISTS target INTEGER;
+ALTER TABLE public.achievements ADD COLUMN IF NOT EXISTS progress INTEGER NOT NULL DEFAULT 0;
+
+-- ===== Índices =====
+CREATE INDEX IF NOT EXISTS analyses_user_date_idx ON public.analyses (user_id, date DESC);
+CREATE UNIQUE INDEX IF NOT EXISTS achievements_user_key_idx ON public.achievements (user_id, key);
+
+-- ===== Permissões + segurança por usuário (RLS) =====
+DO $$
+DECLARE
+  t TEXT;
+BEGIN
+  FOREACH t IN ARRAY ARRAY['profiles','trainings','techniques','plan_weeks','weak_points','analyses','achievements']
+  LOOP
+    EXECUTE format('GRANT SELECT, INSERT, UPDATE, DELETE ON public.%I TO authenticated', t);
+    EXECUTE format('GRANT ALL ON public.%I TO service_role', t);
+    EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY', t);
+    EXECUTE format('DROP POLICY IF EXISTS "own rows" ON public.%I', t);
+    EXECUTE format(
+      'CREATE POLICY "own rows" ON public.%I FOR ALL TO authenticated USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id)', t);
+  END LOOP;
+END $$;
+
+-- ===== updated_at automático =====
 CREATE OR REPLACE FUNCTION public.update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN NEW.updated_at = now(); RETURN NEW; END;
 $$ LANGUAGE plpgsql SET search_path = public;
 
-CREATE TRIGGER trg_profiles_updated BEFORE UPDATE ON public.profiles
-  FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
-CREATE TRIGGER trg_trainings_updated BEFORE UPDATE ON public.trainings
-  FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
-CREATE TRIGGER trg_techniques_updated BEFORE UPDATE ON public.techniques
-  FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
-CREATE TRIGGER trg_plan_weeks_updated BEFORE UPDATE ON public.plan_weeks
-  FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
-CREATE TRIGGER trg_weak_points_updated BEFORE UPDATE ON public.weak_points
-  FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+DO $$
+DECLARE
+  t TEXT;
+BEGIN
+  FOREACH t IN ARRAY ARRAY['profiles','trainings','techniques','plan_weeks','weak_points']
+  LOOP
+    EXECUTE format('DROP TRIGGER IF EXISTS trg_%s_updated ON public.%I', t, t);
+    EXECUTE format(
+      'CREATE TRIGGER trg_%s_updated BEFORE UPDATE ON public.%I FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column()', t, t);
+  END LOOP;
+END $$;
+
+-- Remove políticas antigas de versões anteriores deste script (evita duplicidade)
+DO $$
+DECLARE
+  r RECORD;
+BEGIN
+  FOR r IN
+    SELECT tablename, policyname FROM pg_policies
+    WHERE schemaname='public' AND policyname <> 'own rows'
+      AND tablename IN ('profiles','trainings','techniques','plan_weeks','weak_points','analyses','achievements')
+  LOOP
+    EXECUTE format('DROP POLICY IF EXISTS %I ON public.%I', r.policyname, r.tablename);
+  END LOOP;
+END $$;
+
+DO $$ BEGIN RAISE NOTICE 'Schema do Tatame pronto. Agora crie sua conta no app e rode o 004.'; END $$;
