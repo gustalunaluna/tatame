@@ -65,7 +65,6 @@ BEGIN
   UPDATE achievements SET progress=LEAST(target,6) WHERE user_id=uid AND key LIKE 'hours_%';
   UPDATE achievements SET progress=LEAST(target,4) WHERE user_id=uid AND key LIKE 'streak_days_%';
   UPDATE achievements SET progress=LEAST(target,8) WHERE user_id=uid AND key LIKE 'months_active_%';
-  UPDATE achievements SET progress=LEAST(target,3) WHERE user_id=uid AND key LIKE 'vol_gi_%';
   UPDATE achievements SET progress=target WHERE user_id=uid AND unlocked=true AND target IS NOT NULL;
 
   RAISE NOTICE 'Dados pessoais migrados para o usuário %', uid;
