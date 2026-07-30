@@ -2,6 +2,30 @@
 export const DIAS_AZUL = 365; // Faixa Azul em 1 ano
 export const DIAS_ROXA = 1095; // Faixa Roxa em 3 anos
 
+export const FAIXAS = [
+  "Branca",
+  "Azul",
+  "Roxa",
+  "Marrom",
+  "Preta",
+  "Coral",
+  "Vermelha",
+] as const;
+export type Faixa = (typeof FAIXAS)[number];
+
+export interface Perfil {
+  nickname: string;
+  birthDate: string | null;
+  photoUrl: string;
+  belt: Faixa;
+  degrees: number;
+  master: string;
+  gym: string;
+  fightsWon: number;
+  fightsLost: number;
+  goalStart: string;
+}
+
 export type TrainingType = "Gi" | "No-Gi";
 
 export interface Training {

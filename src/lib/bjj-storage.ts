@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type {
   Achievement,
+  Faixa,
+  Perfil,
   AchievementTier,
   Analysis,
   PlanItem,
@@ -534,6 +536,135 @@ export function useAchievements() {
     tiers: ACHIEVEMENT_TIERS,
     setUnlocked: (id: string, unlocked: boolean) =>
       setUnlockedMut.mutate({ id, unlocked }),
+  };
+}
+
+// ---------------- Perfil ----------------
+export function usePerfil() {
+  const qc = useQueryClient();
+  const query = useQuery({
+    queryKey: ["perfil"],
+    queryFn: async (): Promise<Perfil> => {
+      const uid_ = await getUserId();
+      if (!uid_) throw new Error("Sem sessão");
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("user_id", uid_)
+        .maybeSingle();
+      if (error) throw error;
+      return {
+        nickname: data?.nickname ?? "",
+        birthDate: data?.birth_date ?? null,
+        photoUrl: data?.photo_url ?? "",
+        belt: (data?.belt as Faixa) ?? "Branca",
+        degrees: data?.degrees ?? 0,
+        master: data?.master ?? "",
+        gym: data?.gym ?? "",
+        fightsWon: data?.fights_won ?? 0,
+        fightsLost: data?.fights_lost ?? 0,
+        goalStart: data?.goal_start ?? new Date().toISOString().slice(0, 10),
+      };
+    },
+  });
+
+  const salvarMut = useMutation({
+    mutationFn: async (patch: Partial<Perfil>) => {
+      const uid_ = await getUserId();
+      if (!uid_) throw new Error("Sem sessão");
+      const dbPatch = {
+        ...(patch.nickname !== undefined && { nickname: patch.nickname }),
+        ...(patch.birthDate !== undefined && { birth_date: patch.birthDate }),
+        ...(patch.photoUrl !== undefined && { photo_url: patch.photoUrl }),
+        ...(patch.belt !== undefined && { belt: patch.belt }),
+        ...(patch.degrees !== undefined && { degrees: patch.degrees }),
+        ...(patch.master !== undefined && { master: patch.master }),
+        ...(patch.gym !== undefined && { gym: patch.gym }),
+        ...(patch.fightsWon !== undefined && { fights_won: patch.fightsWon }),
+        ...(patch.fightsLost !== undefined && { fights_lost: patch.fightsLost }),
+        ...(patch.goalStart !== undefined && { goal_start: patch.goalStart }),
+      };
+      const { error } = await supabase
+        .from("profiles")
+        .upsert({ user_id: uid_, ...dbPatch }, { onConflict: "user_id" });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["perfil"] });
+      qc.invalidateQueries({ queryKey: ["profile"] });
+    },
+  });
+
+  /** Envia a foto para o bucket `avatars` e devolve a URL pública */
+  async function enviarFoto(file: File) {
+    const uid_ = await getUserId();
+    if (!uid_) throw new Error("Sem sessão");
+    const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+    const caminho = `${uid_}/perfil-${Date.now()}.${ext}`;
+    const { error } = await supabase.storage
+      .from("avatars")
+      .upload(caminho, file, { upsert: true, contentType: file.type });
+    if (error) throw error;
+    const { data } = supabase.storage.from("avatars").getPublicUrl(caminho);
+    await salvarMut.mutateAsync({ photoUrl: data.publicUrl });
+    return data.publicUrl;
+  }
+
+  return {
+    perfil: query.data,
+    ready: query.isSuccess,
+    salvar: (patch: Partial<Perfil>) => salvarMut.mutate(patch),
+    salvando: salvarMut.isPending,
+    enviarFoto,
+  };
+}
+
+/** Conquistas marcadas para aparecer no perfil */
+export function useDestaques() {
+  const qc = useQueryClient();
+  const query = useQuery({
+    queryKey: ["achievements_featured"],
+    queryFn: async (): Promise<Achievement[]> => {
+      const { data, error } = await supabase
+        .from("achievements")
+        .select("*")
+        .eq("featured", true)
+        .order("sort_order", { ascending: true });
+      if (error) throw error;
+      return (data ?? []).map((r) => ({
+        id: r.id,
+        key: r.key,
+        title: r.title,
+        description: r.description,
+        tier: r.tier as AchievementTier,
+        category: r.category,
+        sortOrder: r.sort_order,
+        unlocked: r.unlocked,
+        unlockedDate: r.unlocked_date,
+        target: r.target,
+        progress: r.progress,
+      }));
+    },
+  });
+
+  const marcarMut = useMutation({
+    mutationFn: async ({ id, featured }: { id: string; featured: boolean }) => {
+      const { error } = await supabase
+        .from("achievements")
+        .update({ featured })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["achievements_featured"] });
+      qc.invalidateQueries({ queryKey: ["achievements"] });
+    },
+  });
+
+  return {
+    items: query.data ?? [],
+    ready: query.isSuccess,
+    marcar: (id: string, featured: boolean) => marcarMut.mutate({ id, featured }),
   };
 }
 

@@ -16,6 +16,15 @@ export type Database = {
           seeded: boolean;
           created_at: string;
           updated_at: string;
+          nickname: string;
+          birth_date: string | null;
+          photo_url: string;
+          belt: string;
+          degrees: number;
+          master: string;
+          gym: string;
+          fights_won: number;
+          fights_lost: number;
         };
         Insert: {
           user_id: string;
@@ -23,6 +32,15 @@ export type Database = {
           seeded?: boolean;
           created_at?: string;
           updated_at?: string;
+          nickname?: string;
+          birth_date?: string | null;
+          photo_url?: string;
+          belt?: string;
+          degrees?: number;
+          master?: string;
+          gym?: string;
+          fights_won?: number;
+          fights_lost?: number;
         };
         Update: {
           user_id?: string;
@@ -30,6 +48,15 @@ export type Database = {
           seeded?: boolean;
           created_at?: string;
           updated_at?: string;
+          nickname?: string;
+          birth_date?: string | null;
+          photo_url?: string;
+          belt?: string;
+          degrees?: number;
+          master?: string;
+          gym?: string;
+          fights_won?: number;
+          fights_lost?: number;
         };
         Relationships: [];
       };
@@ -212,6 +239,7 @@ export type Database = {
           unlocked_date: string | null;
           target: number | null;
           progress: number;
+          featured: boolean;
           created_at: string;
         };
         Insert: {
@@ -227,6 +255,7 @@ export type Database = {
           unlocked_date?: string | null;
           target?: number | null;
           progress?: number;
+          featured?: boolean;
           created_at?: string;
         };
         Update: {
@@ -242,6 +271,7 @@ export type Database = {
           unlocked_date?: string | null;
           target?: number | null;
           progress?: number;
+          featured?: boolean;
           created_at?: string;
         };
         Relationships: [];

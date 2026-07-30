@@ -9,6 +9,7 @@ import {
   Dumbbell,
   TrendingUp,
   Trophy,
+  User,
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -29,6 +30,7 @@ const MENU = [
   { to: "/plano", label: "Plano", icon: ClipboardList, desc: "8 semanas" },
   { to: "/metas", label: "Metas", icon: Target, desc: "Faixas e pontos fracos" },
   { to: "/conquistas", label: "Conquistas", icon: Trophy, desc: "Rumo ao topo" },
+  { to: "/perfil", label: "Perfil", icon: User, desc: "Faixa, mestre e lutas" },
 ] as const;
 
 export function BottomNav() {
