@@ -2,15 +2,17 @@ import type { CSSProperties } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import {
   CalendarDays,
+  ChevronRight,
   Dumbbell,
   Flame,
   LogOut,
   Plus,
   Target,
   Trophy,
-  Zap,
+  User,
 } from "lucide-react";
 import { PageShell } from "@/components/PageShell";
+import { Faixa } from "@/components/Faixa";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Bar } from "@/components/ui/bar";
@@ -20,6 +22,7 @@ import {
   useAchievementStats,
   useEnsureSeeded,
   useGoalStart,
+  usePerfil,
   usePlan,
   useTrainings,
   useHydrated,
@@ -68,6 +71,7 @@ function Home() {
   const { items: trainings } = useTrainings();
   const { weeks } = usePlan();
   const { start } = useGoalStart();
+  const { perfil } = usePerfil();
   const conquistas = useAchievementStats();
 
   async function handleLogout() {
@@ -123,7 +127,11 @@ function Home() {
   return (
     <PageShell
       title="Oss, guerreiro."
-      subtitle={`Faixa branca 3 graus · ${Math.max(0, Math.floor(daysTraining / 30.44))} meses · Gi`}
+      subtitle={new Date().toLocaleDateString("pt-BR", {
+        weekday: "long",
+        day: "2-digit",
+        month: "long",
+      })}
       action={
         <button
           onClick={handleLogout}
@@ -134,32 +142,73 @@ function Home() {
         </button>
       }
     >
-      {/* Level / profile card */}
+      {/* Cartão do atleta: quem você é + o level */}
       <Card className="relative overflow-hidden border-primary/40 bg-gradient-to-br from-primary/15 via-card/80 to-card/80 shadow-[0_0_40px_-12px_var(--primary)]">
         <CardContent className="p-5">
-          <div className="flex items-center gap-4">
-            <div className="grid h-16 w-16 shrink-0 place-items-center rounded-2xl bg-primary text-primary-foreground shadow-[0_0_24px_-4px_var(--primary)]">
-              <Zap className="h-8 w-8" />
+          <Link to="/perfil" className="tap flex items-center gap-4 active:scale-[0.99]">
+            <div className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-2xl bg-secondary ring-2 ring-primary/40">
+              {perfil?.photoUrl ? (
+                <img
+                  src={perfil.photoUrl}
+                  alt={`Foto de ${perfil.nickname || "perfil"}`}
+                  width={64}
+                  height={64}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <User className="h-7 w-7 text-muted-foreground" />
+              )}
             </div>
+
             <div className="min-w-0 flex-1">
+              <p className="truncate text-xl font-black leading-tight">
+                {perfil?.nickname || "Oss, guerreiro"}
+              </p>
+              <div className="mt-1.5">
+                <Faixa
+                  belt={perfil?.belt ?? "Branca"}
+                  degrees={perfil?.degrees ?? 0}
+                  compacta
+                />
+              </div>
+              <p className="mt-1 truncate text-[10px] text-muted-foreground">
+                {[
+                  perfil?.gym || null,
+                  `${Math.max(0, Math.floor(daysTraining / 30.44))} meses`,
+                  perfil?.master ? `Mestre ${perfil.master}` : null,
+                ]
+                  .filter(Boolean)
+                  .join(" · ")}
+              </p>
+            </div>
+
+            <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />
+          </Link>
+
+          {/* Level */}
+          <div className="mt-4 border-t border-border/50 pt-3">
+            <div className="flex items-end justify-between">
               <p className="text-[10px] font-bold uppercase tracking-widest text-primary">
                 Level {level}
               </p>
-              <p className="text-2xl font-black leading-tight">
-                {hydrated ? totalAnimado : "—"} treinos
-              </p>
-              <Bar
-                value={levelProgress}
-                className="mt-2 h-1.5"
-                label={`Progresso para o level ${level + 1}`}
-              />
-              <p className="mt-1 text-[10px] text-muted-foreground">
-                {5 - (totalTrainings % 5)} treinos para o próximo level
+              <p className="text-sm font-black tabular-nums">
+                {hydrated ? totalAnimado : "—"}{" "}
+                <span className="text-[10px] font-semibold text-muted-foreground">
+                  treinos
+                </span>
               </p>
             </div>
+            <Bar
+              value={levelProgress}
+              className="mt-2 h-1.5"
+              label={`Progresso para o level ${level + 1}`}
+            />
+            <p className="mt-1 text-[10px] text-muted-foreground">
+              {5 - (totalTrainings % 5)} treinos para o próximo level
+            </p>
           </div>
 
-          {/* weekday dots */}
+          {/* Dias da semana */}
           <div className="mt-4 flex items-center justify-between">
             {weekDots.map((d, i) => (
               <div
@@ -192,22 +241,13 @@ function Home() {
         </CardContent>
       </Card>
 
-      {/* CTA */}
+      {/* Registrar treino — presente, mas sem gritar */}
       <Link
         to="/diario"
-        className="tap group relative overflow-hidden rounded-2xl bg-primary p-5 text-primary-foreground shadow-[0_0_30px_-8px_var(--primary)] active:scale-[0.97]"
+        className="tap flex items-center justify-center gap-2 rounded-xl border border-primary/40 bg-primary/10 px-4 py-2.5 text-sm font-bold text-primary hover:bg-primary/15 active:scale-[0.98]"
       >
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <p className="text-[10px] font-black uppercase tracking-widest opacity-80">
-              Bora treinar
-            </p>
-            <p className="mt-1 text-2xl font-black">Registrar treino</p>
-          </div>
-          <div className="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-black/20 transition-transform duration-300 ease-[var(--ease-out-expo)] group-hover:rotate-90">
-            <Plus className="h-7 w-7" />
-          </div>
-        </div>
+        <Plus className="h-4 w-4" />
+        Registrar treino
       </Link>
 
       {/* Stat row */}

@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { PageShell } from "@/components/PageShell";
+import { Faixa as FaixaVisual } from "@/components/Faixa";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -51,16 +52,6 @@ export const Route = createFileRoute("/_authenticated/perfil")({
 
 const MAX_DESTAQUES = 6;
 
-/** Cor da faixa para a tarja visual */
-const CORES_FAIXA: Record<Faixa, string> = {
-  Branca: "bg-white",
-  Azul: "bg-blue-500",
-  Roxa: "bg-purple-500",
-  Marrom: "bg-amber-800",
-  Preta: "bg-neutral-900",
-  Coral: "bg-gradient-to-r from-red-600 to-neutral-900",
-  Vermelha: "bg-red-600",
-};
 
 function idade(nascimento: string | null) {
   if (!nascimento) return null;
@@ -72,31 +63,6 @@ function idade(nascimento: string | null) {
   return a >= 0 && a < 120 ? a : null;
 }
 
-/** Faixa com os graus, como no kimono */
-function Faixinha({ belt, degrees }: { belt: Faixa; degrees: number }) {
-  return (
-    <div className="flex items-center gap-2">
-      <div className="relative h-5 w-28 overflow-hidden rounded-sm border border-white/15">
-        <div className={cn("h-full w-full", CORES_FAIXA[belt] ?? "bg-white")} />
-        {/* ponteira preta com os graus */}
-        <div className="absolute right-0 top-0 flex h-full w-11 items-center gap-[3px] bg-neutral-900 px-1">
-          {Array.from({ length: Math.max(0, Math.min(4, degrees)) }, (_, i) => (
-            <span key={i} className="h-full w-1 bg-white" />
-          ))}
-        </div>
-      </div>
-      <span className="text-xs font-bold">
-        {belt}
-        {degrees > 0 && (
-          <span className="text-muted-foreground">
-            {" "}
-            · {degrees} grau{degrees > 1 ? "s" : ""}
-          </span>
-        )}
-      </span>
-    </div>
-  );
-}
 function PerfilPage() {
   const { perfil, salvar, enviarFoto } = usePerfil();
   const { items: destaques, marcar } = useDestaques();
@@ -189,7 +155,7 @@ function PerfilPage() {
                   .join(" · ") || "Toque em Editar para completar"}
               </p>
               <div className="mt-2">
-                <Faixinha
+                <FaixaVisual
                   belt={perfil?.belt ?? "Branca"}
                   degrees={perfil?.degrees ?? 0}
                 />

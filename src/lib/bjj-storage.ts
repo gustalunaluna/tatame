@@ -676,16 +676,11 @@ export function useAchievementStats() {
   const query = useQuery({
     queryKey: ["achievements_stats"],
     queryFn: async (): Promise<{ total: number; unlocked: number }> => {
-      const [todas, feitas] = await Promise.all([
-        supabase.from("achievements").select("*", { count: "exact", head: true }),
-        supabase
-          .from("achievements")
-          .select("*", { count: "exact", head: true })
-          .eq("unlocked", true),
-      ]);
-      if (todas.error) throw todas.error;
-      if (feitas.error) throw feitas.error;
-      return { total: todas.count ?? 0, unlocked: feitas.count ?? 0 };
+      // Função no banco: devolve uma linha com os dois números, em vez de
+      // trazer as ~1000 conquistas só para contá-las.
+      const { data, error } = await supabase.rpc("achievement_stats").single();
+      if (error) throw error;
+      return { total: Number(data?.total ?? 0), unlocked: Number(data?.unlocked ?? 0) };
     },
   });
   return { ...(query.data ?? { total: 0, unlocked: 0 }), ready: query.isSuccess };

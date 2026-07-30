@@ -19,6 +19,7 @@ const ATALHOS = [
   { to: "/", label: "Início", icon: Home },
   { to: "/tecnicas", label: "Técnicas", icon: BookOpen },
   { to: "/plano", label: "Plano", icon: ClipboardList },
+  { to: "/perfil", label: "Perfil", icon: User },
 ] as const;
 
 /** Todas as telas, no menu lateral */
@@ -147,7 +148,7 @@ export function BottomNav() {
         style={{ zIndex: "var(--z-nav)" }}
         className="fixed bottom-0 left-0 right-0 border-t border-border/60 bg-black/85 backdrop-blur-xl pb-[env(safe-area-inset-bottom)]"
       >
-        <ul className="mx-auto flex max-w-md items-stretch justify-between px-2 py-1">
+        <ul className="mx-auto flex max-w-md items-stretch justify-between px-1 py-1">
           {ATALHOS.map(({ to, label, icon: Icon }) => {
             const on = ativo(to);
             return (
@@ -155,7 +156,7 @@ export function BottomNav() {
                 <Link
                   to={to}
                   className={cn(
-                    "tap relative flex flex-col items-center gap-0.5 rounded-xl px-1 py-2 text-[11px] font-semibold active:scale-95",
+                    "tap relative flex flex-col items-center gap-0.5 rounded-xl px-0.5 py-2 text-[10px] font-semibold active:scale-95",
                     on ? "text-primary" : "text-muted-foreground hover:text-foreground",
                   )}
                 >
@@ -184,7 +185,7 @@ export function BottomNav() {
               aria-label="Abrir menu"
               aria-expanded={aberto}
               className={cn(
-                "tap flex w-full flex-col items-center gap-0.5 rounded-xl px-1 py-2 text-[11px] font-semibold active:scale-95",
+                "tap flex w-full flex-col items-center gap-0.5 rounded-xl px-0.5 py-2 text-[10px] font-semibold active:scale-95",
                 aberto ? "text-primary" : "text-muted-foreground hover:text-foreground",
               )}
             >

@@ -278,7 +278,12 @@ export type Database = {
       };
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      achievement_stats: {
+        Args: Record<string, never>;
+        Returns: { total: number; unlocked: number }[];
+      };
+    };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;
   };
