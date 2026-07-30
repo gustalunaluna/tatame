@@ -92,11 +92,30 @@
     border-color: var(--color-border);
   }
 
+  html {
+    color-scheme: dark;
+    /* toque responde na hora, sem o atraso de 300ms nem o flash cinza */
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
   html, body {
     background-color: #0a0a0a;
     color: var(--color-foreground);
     -webkit-font-smoothing: antialiased;
   }
+
+  /* Foco sempre visivel em quem e interativo */
+  a:focus-visible,
+  button:focus-visible,
+  summary:focus-visible,
+  [tabindex]:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+    border-radius: 0.5rem;
+  }
+
+  h1, h2, h3 { text-wrap: balance; }
 
   body {
     background-image:
@@ -109,4 +128,111 @@
 
 @utility glow-primary {
   box-shadow: 0 0 24px -4px oklch(0.92 0.24 130 / 0.55), 0 0 60px -12px oklch(0.92 0.24 130 / 0.35);
+}
+
+/* ============================================================
+   MOTION — tokens, camadas e keyframes
+   ============================================================ */
+:root {
+  /* Easing: saída exponencial, sem bounce */
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Durações: resposta / entrada */
+  --t-tap: 90ms;
+  --t-fast: 160ms;
+  --t-base: 260ms;
+  --t-enter: 420ms;
+  --t-bar: 900ms;
+
+  /* Camadas (escala semântica, sem números soltos) */
+  --z-nav: 40;
+  --z-overlay: 50;
+  --z-panel: 51;
+  --z-toast: 60;
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translate3d(0, 10px, 0); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes slide-from-right {
+  from { transform: translate3d(100%, 0, 0); }
+  to   { transform: none; }
+}
+@keyframes pop-check {
+  0%   { transform: scale(0.6); opacity: 0; }
+  60%  { transform: scale(1.08); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* Entrada de item de lista — use com style={{ '--i': n }} para escalonar */
+@utility rise-in {
+  animation: rise var(--t-enter) var(--ease-out-quart) both;
+  animation-delay: calc(var(--i, 0) * 45ms);
+}
+
+@utility fade-in {
+  animation: fade var(--t-base) var(--ease-standard) both;
+}
+
+@utility panel-in {
+  animation: slide-from-right var(--t-base) var(--ease-out-expo) both;
+  overscroll-behavior: contain;
+}
+
+@utility overlay-in {
+  animation: fade var(--t-fast) var(--ease-standard) both;
+}
+
+@utility pop-in {
+  animation: pop-check var(--t-base) var(--ease-out-quart) both;
+}
+
+/* Preenchimento de barra: translate em vez de width — nao toca no layout */
+@utility bar-fill {
+  transition: transform var(--t-bar) var(--ease-out-expo);
+}
+
+/* Listas muito longas (conquistas): o navegador so renderiza o que esta visivel */
+@utility list-perf {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 76px;
+}
+
+/* Feedback de toque */
+@utility tap {
+  transition: transform var(--t-tap) var(--ease-standard),
+              background-color var(--t-fast) var(--ease-standard),
+              color var(--t-fast) var(--ease-standard),
+              border-color var(--t-fast) var(--ease-standard);
+}
+
+/* Expansão animada do <details> (Chrome/Edge recentes) */
+@supports (interpolate-size: allow-keywords) {
+  :root { interpolate-size: allow-keywords; }
+  details.reveal::details-content {
+    height: 0;
+    overflow: clip;
+    transition: height var(--t-base) var(--ease-out-quart),
+                content-visibility var(--t-base) allow-discrete;
+  }
+  details.reveal[open]::details-content { height: auto; }
+}
+
+/* Acessibilidade: quem pediu menos movimento, recebe menos movimento */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  details.reveal::details-content { transition: none; }
 }

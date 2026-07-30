@@ -89,16 +89,21 @@ function PlanPage() {
                       <button
                         onClick={() => toggle(w.week, item.id)}
                         className={cn(
-                          "flex w-full items-start gap-2 rounded-md px-2 py-1.5 text-left text-sm transition",
-                          "hover:bg-secondary/60",
+                          "tap flex w-full items-start gap-2 rounded-lg px-2 py-2 text-left text-sm",
+                          "hover:bg-secondary/60 active:scale-[0.99]",
                         )}
                       >
                         {item.done ? (
-                          <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                          <CheckCircle2 className="pop-in mt-0.5 h-4 w-4 shrink-0 text-primary" />
                         ) : (
                           <Circle className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
                         )}
-                        <span className={cn(item.done && "text-muted-foreground line-through")}>
+                        <span
+                          className={cn(
+                            "transition-colors duration-200",
+                            item.done && "text-muted-foreground line-through",
+                          )}
+                        >
                           {item.label}
                         </span>
                       </button>

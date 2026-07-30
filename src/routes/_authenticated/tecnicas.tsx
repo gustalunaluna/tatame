@@ -79,7 +79,7 @@ function TechniquesPage() {
     >
       <div className="relative">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input className="pl-9" placeholder="Buscar técnica..." value={q} onChange={(e) => setQ(e.target.value)} />
+        <Input className="pl-9" placeholder="Buscar técnica…" value={q} onChange={(e) => setQ(e.target.value)} />
       </div>
 
       <div className="-mx-1 flex gap-1.5 overflow-x-auto pb-1">
@@ -88,7 +88,7 @@ function TechniquesPage() {
             key={c}
             onClick={() => setCat(c)}
             className={cn(
-              "shrink-0 rounded-full border px-3 py-1.5 text-xs font-semibold transition",
+              "tap shrink-0 rounded-full border px-3 py-1.5 text-xs font-semibold active:scale-95",
               cat === c
                 ? "border-primary bg-primary text-primary-foreground"
                 : "border-border bg-card/50 text-muted-foreground",
@@ -127,7 +127,23 @@ function TechniquesPage() {
                     <Pencil className="h-4 w-4" />
                   </button>
                   <button
-                    onClick={() => { remove(t.id); toast("Técnica removida."); }}
+                    onClick={() => {
+                      const backup = t;
+                      remove(t.id);
+                      toast("Técnica removida.", {
+                        action: {
+                          label: "Desfazer",
+                          onClick: () =>
+                            add({
+                              name: backup.name,
+                              category: backup.category,
+                              notes: backup.notes,
+                              videoUrl: backup.videoUrl,
+                              mastery: backup.mastery,
+                            }),
+                        },
+                      });
+                    }}
                     className="rounded-md p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
                     aria-label="Remover"
                   >
@@ -174,7 +190,7 @@ function MasteryStars({ value, onChange }: { value: number; onChange: (v: number
         >
           <Star
             className={cn(
-              "h-4 w-4",
+              "h-4 w-4 transition-[fill,stroke,transform] duration-200 ease-[var(--ease-out-quart)]",
               n <= value ? "fill-gold stroke-gold" : "stroke-muted-foreground",
             )}
           />
@@ -224,7 +240,7 @@ function TechniqueDialog({
         </div>
         <div>
           <Label>Link do vídeo (YouTube)</Label>
-          <Input value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} placeholder="https://youtube.com/..." />
+          <Input value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} placeholder="https://youtube.com/…" />
         </div>
         <div>
           <Label>Domínio</Label>

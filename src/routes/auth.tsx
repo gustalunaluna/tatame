@@ -89,7 +89,7 @@ function AuthPage() {
           />
         </div>
         <Button type="submit" className="w-full" disabled={loading}>
-          {loading ? "Aguenta aí..." : mode === "login" ? "Entrar" : "Criar conta"}
+          {loading ? "Aguenta aí…" : mode === "login" ? "Entrar" : "Criar conta"}
         </Button>
       </form>
 

@@ -116,7 +116,25 @@ function DiaryPage() {
                   </div>
                 </div>
                 <button
-                  onClick={() => { remove(t.id); toast("Treino removido."); }}
+                  onClick={() => {
+                    const backup = t;
+                    remove(t.id);
+                    toast("Treino removido.", {
+                      action: {
+                        label: "Desfazer",
+                        onClick: () =>
+                          add({
+                            date: backup.date,
+                            type: backup.type,
+                            durationMin: backup.durationMin,
+                            rolls: backup.rolls,
+                            partners: backup.partners,
+                            techniques: backup.techniques,
+                            notes: backup.notes,
+                          }),
+                      },
+                    });
+                  }}
                   className="shrink-0 rounded-md p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
                   aria-label="Remover"
                 >
@@ -207,7 +225,7 @@ function NewTrainingDialog({
         </div>
         <div>
           <Label>Como me senti / observações</Label>
-          <Textarea rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Sensações, o que travou, o que fluiu..." />
+          <Textarea rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Sensações, o que travou, o que fluiu…" />
         </div>
       </div>
       <DialogFooter>

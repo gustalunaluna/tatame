@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import {
   CalendarDays,
@@ -12,6 +13,7 @@ import {
 import { PageShell } from "@/components/PageShell";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { Bar } from "@/components/ui/bar";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -23,6 +25,7 @@ import {
   useHydrated,
 } from "@/lib/bjj-storage";
 import { DIAS_AZUL } from "@/lib/bjj-types";
+import { useCountUp } from "@/lib/motion";
 
 export const Route = createFileRoute("/_authenticated/")({
   head: () => ({
@@ -112,6 +115,11 @@ function Home() {
 
   const last = trainings.slice(0, 3);
 
+  // Só os números de destaque contam — em tudo viraria ruído
+  const totalAnimado = useCountUp(totalTrainings);
+  const streakAnimado = useCountUp(streakDays, 600);
+  const mesAnimado = useCountUp(thisMonth, 600);
+
   return (
     <PageShell
       title="Oss, guerreiro."
@@ -138,14 +146,13 @@ function Home() {
                 Level {level}
               </p>
               <p className="text-2xl font-black leading-tight">
-                {hydrated ? totalTrainings : "—"} treinos
+                {hydrated ? totalAnimado : "—"} treinos
               </p>
-              <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-muted">
-                <div
-                  className="h-full bg-primary transition-all"
-                  style={{ width: `${levelProgress}%` }}
-                />
-              </div>
+              <Bar
+                value={levelProgress}
+                className="mt-2 h-1.5"
+                label={`Progresso para o level ${level + 1}`}
+              />
               <p className="mt-1 text-[10px] text-muted-foreground">
                 {5 - (totalTrainings % 5)} treinos para o próximo level
               </p>
@@ -154,8 +161,12 @@ function Home() {
 
           {/* weekday dots */}
           <div className="mt-4 flex items-center justify-between">
-            {weekDots.map((d) => (
-              <div key={d.key} className="flex flex-col items-center gap-1">
+            {weekDots.map((d, i) => (
+              <div
+                key={d.key}
+                className="rise-in flex flex-col items-center gap-1"
+                style={{ "--i": i } as CSSProperties}
+              >
                 <span
                   className={cn(
                     "text-[10px] font-bold",
@@ -166,7 +177,7 @@ function Home() {
                 </span>
                 <span
                   className={cn(
-                    "block h-2.5 w-2.5 rounded-full",
+                    "block h-2.5 w-2.5 rounded-full transition-[background-color,box-shadow] duration-300 ease-[var(--ease-out-expo)]",
                     d.trained
                       ? "bg-primary shadow-[0_0_8px_var(--primary)]"
                       : d.isPast
@@ -184,7 +195,7 @@ function Home() {
       {/* CTA */}
       <Link
         to="/diario"
-        className="group relative overflow-hidden rounded-2xl bg-primary p-5 text-primary-foreground shadow-[0_0_30px_-8px_var(--primary)] transition active:scale-[0.98]"
+        className="tap group relative overflow-hidden rounded-2xl bg-primary p-5 text-primary-foreground shadow-[0_0_30px_-8px_var(--primary)] active:scale-[0.97]"
       >
         <div className="flex items-center justify-between gap-3">
           <div>
@@ -193,7 +204,7 @@ function Home() {
             </p>
             <p className="mt-1 text-2xl font-black">Registrar treino</p>
           </div>
-          <div className="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-black/20 backdrop-blur">
+          <div className="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-black/20 transition-transform duration-300 ease-[var(--ease-out-expo)] group-hover:rotate-90">
             <Plus className="h-7 w-7" />
           </div>
         </div>
@@ -206,8 +217,8 @@ function Home() {
             <div className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
               <Flame className="h-3.5 w-3.5 text-primary" /> Sequência
             </div>
-            <p className="mt-1 text-2xl font-black text-primary">
-              {hydrated ? streakDays : "—"}
+            <p className="mt-1 text-2xl font-black text-primary tabular-nums">
+              {hydrated ? streakAnimado : "—"}
             </p>
             <p className="text-[10px] text-muted-foreground">dias</p>
           </CardContent>
@@ -217,8 +228,8 @@ function Home() {
             <div className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
               <CalendarDays className="h-3.5 w-3.5 text-primary" /> Mês
             </div>
-            <p className="mt-1 text-2xl font-black">
-              {hydrated ? thisMonth : "—"}
+            <p className="mt-1 text-2xl font-black tabular-nums">
+              {hydrated ? mesAnimado : "—"}
             </p>
             <p className="text-[10px] text-muted-foreground">treinos</p>
           </CardContent>
@@ -228,8 +239,8 @@ function Home() {
             <div className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
               <Dumbbell className="h-3.5 w-3.5 text-primary" /> Total
             </div>
-            <p className="mt-1 text-2xl font-black">
-              {hydrated ? totalTrainings : "—"}
+            <p className="mt-1 text-2xl font-black tabular-nums">
+              {hydrated ? totalAnimado : "—"}
             </p>
             <p className="text-[10px] text-muted-foreground">dias</p>
           </CardContent>
@@ -239,7 +250,7 @@ function Home() {
       {/* Achievements teaser */}
       <Link
         to="/conquistas"
-        className="block rounded-2xl border border-primary/30 bg-card/70 p-4 transition active:scale-[0.99]"
+        className="tap block rounded-2xl border border-primary/30 bg-card/70 p-4 hover:border-primary/60 active:scale-[0.98]"
       >
         <div className="flex items-center gap-3">
           <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-primary/15 text-primary">
@@ -316,8 +327,12 @@ function Home() {
           </Card>
         )}
         <div className="space-y-2">
-          {last.map((t) => (
-            <Card key={t.id} className="border-border/50 bg-card/60">
+          {last.map((t, i) => (
+            <Card
+              key={t.id}
+              className="rise-in border-border/50 bg-card/60"
+              style={{ "--i": i } as CSSProperties}
+            >
               <CardContent className="flex items-center justify-between p-3">
                 <div className="min-w-0">
                   <p className="truncate text-sm font-bold">

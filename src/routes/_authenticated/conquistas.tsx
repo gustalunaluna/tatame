@@ -1,9 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useMemo, useState, type CSSProperties } from "react";
 import { Check, ChevronDown, Lock, Search, Trophy } from "lucide-react";
 import { PageShell } from "@/components/PageShell";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { Bar } from "@/components/ui/bar";
 import { cn } from "@/lib/utils";
 import {
   ACHIEVEMENT_TIERS,
@@ -44,7 +45,7 @@ function formatDate(d: string | null) {
   });
 }
 
-function AchievementRow({ a }: { a: Achievement }) {
+function AchievementRow({ a, i = 0 }: { a: Achievement; i?: number }) {
   const hasTarget = a.target != null && a.target > 0;
   const progressPct = hasTarget
     ? Math.min(100, Math.round(((a.unlocked ? a.target! : a.progress) / a.target!) * 100))
@@ -52,11 +53,12 @@ function AchievementRow({ a }: { a: Achievement }) {
 
   return (
     <div
+      style={{ "--i": Math.min(i, 10) } as CSSProperties}
       className={cn(
-        "flex items-start gap-3 rounded-2xl border p-3 transition",
+        "tap rise-in list-perf flex items-start gap-3 rounded-2xl border p-3",
         a.unlocked
           ? "border-primary/50 bg-primary/10 shadow-[0_0_18px_-6px_var(--primary)]"
-          : "border-border/50 bg-card/40 opacity-70",
+          : "border-border/50 bg-card/40 opacity-70 hover:opacity-100",
       )}
     >
       <div
@@ -67,7 +69,7 @@ function AchievementRow({ a }: { a: Achievement }) {
             : "bg-muted text-muted-foreground",
         )}
       >
-        {a.unlocked ? <Trophy className="h-5 w-5" /> : <Lock className="h-5 w-5" />}
+        {a.unlocked ? <Trophy className="pop-in h-5 w-5" /> : <Lock className="h-5 w-5" />}
       </div>
       <div className="min-w-0 flex-1">
         <div className="flex items-center justify-between gap-2">
@@ -91,15 +93,10 @@ function AchievementRow({ a }: { a: Achievement }) {
         )}
         {hasTarget && (
           <div className="mt-2">
-            <div className="h-1 w-full overflow-hidden rounded-full bg-muted">
-              <div
-                className={cn(
-                  "h-full transition-all",
-                  a.unlocked ? "bg-primary" : "bg-primary/70",
-                )}
-                style={{ width: `${progressPct}%` }}
-              />
-            </div>
+            <Bar
+              value={progressPct}
+              fillClassName={a.unlocked ? "bg-primary" : "bg-primary/70"}
+            />
             <p className="mt-0.5 text-[10px] font-semibold text-muted-foreground">
               {a.unlocked ? a.target : a.progress}/{a.target} · {progressPct}%
             </p>
@@ -188,7 +185,7 @@ function ConquistasPage() {
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <input
           className="h-9 w-full rounded-md border border-input bg-transparent pl-9 pr-3 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-          placeholder="Buscar conquista..."
+          placeholder="Buscar conquista…"
           value={q}
           onChange={(e) => setQ(e.target.value)}
         />
@@ -200,7 +197,7 @@ function ConquistasPage() {
             key={f.key}
             onClick={() => setFilter(f.key)}
             className={cn(
-              "shrink-0 rounded-full border px-3 py-1.5 text-xs font-semibold transition",
+              "tap shrink-0 rounded-full border px-3 py-1.5 text-xs font-semibold active:scale-95",
               filter === f.key
                 ? "border-primary bg-primary text-primary-foreground"
                 : "border-border bg-card/50 text-muted-foreground",
@@ -227,10 +224,10 @@ function ConquistasPage() {
           totalTier > 0 && (
             <details
               key={tier}
+              className="reveal group"
               open={q !== "" || filter !== "all" || tier === firstIncomplete}
-              className="group"
             >
-              <summary className="cursor-pointer select-none list-none space-y-2 [&::-webkit-details-marker]:hidden">
+              <summary className="tap cursor-pointer select-none list-none space-y-2 rounded-xl py-1 active:opacity-70 [&::-webkit-details-marker]:hidden">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span
@@ -250,12 +247,7 @@ function ConquistasPage() {
                     <ChevronDown className="h-4 w-4 transition-transform group-open:rotate-180" />
                   </span>
                 </div>
-                <div className="h-1 w-full overflow-hidden rounded-full bg-muted">
-                  <div
-                    className="h-full bg-primary transition-all"
-                    style={{ width: `${tierPct}%` }}
-                  />
-                </div>
+                <Bar value={tierPct} label={`Faixa ${tier}: ${tierPct}% concluída`} />
               </summary>
               <div className="space-y-2 pt-2">
                 {group.length === 0 ? (
@@ -263,7 +255,7 @@ function ConquistasPage() {
                     Nada nesse filtro/busca dentro desta faixa.
                   </p>
                 ) : (
-                  group.map((a) => <AchievementRow key={a.id} a={a} />)
+                  group.map((a, idx) => <AchievementRow key={a.id} a={a} i={idx} />)
                 )}
               </div>
             </details>
