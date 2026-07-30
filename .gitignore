@@ -4,3 +4,4 @@ dist
 .env
 !.env.production
 src/routeTree.gen.ts
+capturas-mobile

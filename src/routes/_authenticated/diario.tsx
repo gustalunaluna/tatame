@@ -215,11 +215,23 @@ function NewTrainingDialog({
           </div>
           <div>
             <Label>Duração (min)</Label>
-            <Input type="number" min={0} value={durationMin} onChange={(e) => setDuration(+e.target.value)} />
+            <Input
+              type="number"
+              inputMode="numeric"
+              min={0}
+              value={durationMin}
+              onChange={(e) => setDuration(+e.target.value)}
+            />
           </div>
           <div>
             <Label>Rolos</Label>
-            <Input type="number" min={0} value={rolls} onChange={(e) => setRolls(+e.target.value)} />
+            <Input
+              type="number"
+              inputMode="numeric"
+              min={0}
+              value={rolls}
+              onChange={(e) => setRolls(+e.target.value)}
+            />
           </div>
         </div>
         <div>

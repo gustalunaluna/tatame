@@ -6,7 +6,7 @@
 export function PendingScreen() {
   return (
     <div
-      className="mx-auto flex min-h-screen w-full max-w-md flex-col gap-5 px-4 pb-28 pt-6"
+      className="topo-seguro rodape-seguro lados-seguros mx-auto flex min-h-dvh w-full max-w-md flex-col gap-5"
       aria-busy="true"
       aria-live="polite"
     >

@@ -11,7 +11,7 @@ import { BottomNav } from "@/components/BottomNav";
 
 function NotFoundComponent() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+    <div className="topo-seguro lados-seguros flex min-h-dvh items-center justify-center bg-background pb-[calc(1.5rem+var(--safe-b))]">
       <div className="max-w-md text-center">
         <h1 className="text-7xl font-black text-primary">404</h1>
         <h2 className="mt-4 text-xl font-semibold">Página não encontrada</h2>
@@ -60,7 +60,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   }, [desatualizado]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+    <div className="topo-seguro lados-seguros flex min-h-dvh items-center justify-center bg-background pb-[calc(1.5rem+var(--safe-b))]">
       <div className="max-w-md text-center">
         <h1 className="text-xl font-semibold">
           {desatualizado ? "Atualizando o app…" : "Algo travou"}

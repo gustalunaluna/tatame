@@ -6,6 +6,10 @@ const Toaster = ({ ...props }: ToasterProps) => {
   return (
     <Sonner
       className="toaster group"
+      // No rodapé o aviso caía em cima da barra de navegação e da faixa de
+      // gestos do celular. No topo ele fica livre — e abaixo do entalhe.
+      position="top-center"
+      offset="max(1rem, calc(var(--safe-t) + 0.5rem))"
       toastOptions={{
         classNames: {
           toast:

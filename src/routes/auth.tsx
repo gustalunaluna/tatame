@@ -55,7 +55,7 @@ function AuthPage() {
   }
 
   return (
-    <div className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center px-6 py-10">
+    <div className="topo-seguro lados-seguros mx-auto flex min-h-dvh w-full max-w-md flex-col justify-center pb-[calc(2.5rem+var(--safe-b))]">
       <div className="mb-8 text-center">
         <p className="text-xs font-bold uppercase tracking-[0.3em] text-primary">Tatame</p>
         <h1 className="mt-2 text-3xl font-black">Oss, guerreiro.</h1>

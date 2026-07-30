@@ -122,12 +122,48 @@
       radial-gradient(circle at 15% -10%, oklch(0.55 0.22 130 / 0.18), transparent 55%),
       radial-gradient(circle at 95% 10%, oklch(0.35 0.10 260 / 0.35), transparent 50%),
       radial-gradient(circle at 50% 110%, oklch(0.50 0.20 130 / 0.10), transparent 55%);
-    min-height: 100vh;
+    /* dvh, não vh: no celular a barra de endereço encolhe e reaparece, e o
+       100vh fixo deixava um corte de fundo aparecendo embaixo. */
+    min-height: 100dvh;
   }
 }
 
 @utility glow-primary {
   box-shadow: 0 0 24px -4px oklch(0.92 0.24 130 / 0.55), 0 0 60px -12px oklch(0.92 0.24 130 / 0.35);
+}
+
+/* ============================================================
+   ÁREA SEGURA — entalhe, barra de status e faixa de gestos
+   ============================================================
+   O index.html pede `viewport-fit=cover` e barra de status translúcida: o app
+   desenha embaixo do entalhe de propósito. Sem estas medidas o título da tela
+   ficava escondido atrás do relógio do celular. Ficam como variáveis para que
+   o teste consiga simular um aparelho com entalhe.
+   ============================================================ */
+:root {
+  --safe-t: env(safe-area-inset-top, 0px);
+  --safe-b: env(safe-area-inset-bottom, 0px);
+  --safe-l: env(safe-area-inset-left, 0px);
+  --safe-r: env(safe-area-inset-right, 0px);
+
+  /* Barra inferior + a faixa de gestos abaixo dela */
+  --altura-barra: calc(3.75rem + var(--safe-b));
+}
+
+/** Respiro do topo: nunca menos que o padding normal da tela. */
+@utility topo-seguro {
+  padding-top: max(1.5rem, calc(var(--safe-t) + 0.5rem));
+}
+
+/** Respiro do rodapé: livra a barra inferior e a faixa de gestos. */
+@utility rodape-seguro {
+  padding-bottom: calc(var(--altura-barra) + 1.5rem);
+}
+
+/** Margens laterais — em paisagem o entalhe fica na lateral. */
+@utility lados-seguros {
+  padding-left: max(1rem, var(--safe-l));
+  padding-right: max(1rem, var(--safe-r));
 }
 
 /* ============================================================

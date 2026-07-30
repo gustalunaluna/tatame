@@ -12,7 +12,7 @@ export function PageShell({
   children: ReactNode;
 }) {
   return (
-    <div className="mx-auto flex min-h-screen w-full max-w-md flex-col gap-5 px-4 pb-28 pt-6">
+    <div className="topo-seguro rodape-seguro lados-seguros mx-auto flex min-h-dvh w-full max-w-md flex-col gap-5">
       <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
         <div className="min-w-0">
           <h1 className="truncate text-2xl font-black tracking-tight">{title}</h1>
