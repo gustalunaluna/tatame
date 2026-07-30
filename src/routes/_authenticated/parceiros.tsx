@@ -16,6 +16,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Confirmar } from "@/components/Confirmar";
 import { cn } from "@/lib/utils";
 import {
   useBuscaPorHandle,
@@ -362,16 +363,34 @@ function Convites() {
 
 function Placar() {
   const { itens, ready } = useResumoParceiros();
-  const { aceitos } = useParcerias();
+  const { aceitos, ready: prontoParcerias, desfazer } = useParcerias();
 
-  if (ready && !itens.length) {
+  // A lista é de PARCEIROS, não de placares. Quem foi aceito aparece aqui
+  // mesmo sem nunca ter treinado junto — antes sumia até o primeiro registro,
+  // que era como se o convite não tivesse valido de nada.
+  const comRegistro = new Set(itens.map((i) => i.partnerId).filter(Boolean));
+  const semRegistro = aceitos
+    .filter((a) => !comRegistro.has(a.parceria.outroId))
+    .map((a) => ({
+      partnerId: a.parceria.outroId,
+      partnerName: a.cartao?.nickname ?? "Atleta",
+      sessoes: 0,
+      rolls: 0,
+      subsFor: 0,
+      subsAgainst: 0,
+      pendentes: 0,
+      ultimoTreino: null as string | null,
+    }));
+  const lista = [...itens, ...semRegistro];
+
+  if (prontoParcerias && ready && !lista.length) {
     return (
       <Card className="border-dashed border-border/60 bg-transparent">
         <CardContent className="p-6 text-center text-sm text-muted-foreground">
           <Users className="mx-auto mb-2 h-6 w-6 text-primary" />
-          Nenhum rola registrado com parceiro ainda.
+          Nenhum parceiro ainda.
           <br />
-          Ao salvar um treino no Diário, adicione com quem você rolou.
+          Busque pelo @ da pessoa e mande o convite.
         </CardContent>
       </Card>
     );
@@ -388,7 +407,7 @@ function Placar() {
   return (
     <section className="space-y-3">
       <h2 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
-        Placar ({itens.length})
+        Seus parceiros ({lista.length})
       </h2>
 
       {(carrasco || freguês) && (
@@ -426,7 +445,7 @@ function Placar() {
         </div>
       )}
 
-      {itens.map((p, i) => {
+      {lista.map((p, i) => {
         const cartao = aceitos.find(
           (a) => a.parceria.outroId === p.partnerId,
         )?.cartao;
@@ -467,6 +486,11 @@ function Placar() {
                 </span>
               </div>
 
+              {p.sessoes === 0 && p.pendentes === 0 ? (
+                <p className="mt-3 rounded-xl bg-secondary/40 px-3 py-2 text-center text-xs text-muted-foreground">
+                  Ainda não treinaram juntos. Adicione ele ao registrar um treino.
+                </p>
+              ) : (
               <div className="mt-3 grid grid-cols-3 gap-2 text-center">
                 <div className="rounded-xl bg-secondary/60 py-2">
                   <p className="text-lg font-black leading-none">{p.rolls}</p>
@@ -491,7 +515,9 @@ function Placar() {
                   </p>
                 </div>
               </div>
+              )}
 
+              {p.sessoes > 0 && (
               <p className="mt-2 text-[11px] text-muted-foreground">
                 {p.sessoes} {p.sessoes === 1 ? "treino juntos" : "treinos juntos"}
                 {p.pendentes > 0 && (
@@ -501,6 +527,30 @@ function Placar() {
                   </span>
                 )}
               </p>
+              )}
+
+              {p.partnerId && (
+                <Confirmar
+                  gatilho={
+                    <button
+                      type="button"
+                      className="tap mt-2 text-[11px] text-muted-foreground underline underline-offset-2"
+                    >
+                      Desfazer parceria
+                    </button>
+                  }
+                  titulo="Desfazer a parceria?"
+                  descricao={`${p.partnerName} sai da sua lista. Os treinos que vocês já registraram continuam no histórico.`}
+                  rotuloConfirmar="Desfazer"
+                  destrutivo
+                  aoConfirmar={() => {
+                    const par = aceitos.find(
+                      (a) => a.parceria.outroId === p.partnerId,
+                    );
+                    if (par) return desfazer(par.parceria.id);
+                  }}
+                />
+              )}
             </CardContent>
           </Card>
         );
