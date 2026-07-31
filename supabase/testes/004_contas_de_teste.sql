@@ -1,0 +1,32 @@
+-- Contas de teste: uma por faixa, todas com pendências para exercitar o app.
+--
+-- Este arquivo é o REGISTRO do que foi semeado no banco (aplicado via MCP),
+-- não um script para rodar às cegas: ele mexe em auth.users e existe para que
+-- daqui a seis meses dê para saber de onde vieram essas contas.
+--
+-- Senha de todas: Ponteira2026!  ·  e-mail: <handle sem sufixo>@tatame.app
+--
+-- POR QUE as 8 colunas de token vão como '' e não NULL: o GoTrue lê todas como
+-- string Go e falha ANTES de conferir a senha se achar NULL. Foi o que impediu
+-- as primeiras contas de teste de entrar, e é o erro que mais custou a achar
+-- neste projeto — o sintoma é "senha inválida" numa senha correta.
+--
+--   | conta            | faixa       | meta                |
+--   |------------------|-------------|---------------------|
+--   | henrique.teste   | Branca 2    | 3º grau na Branca   |
+--   | lucas.teste      | Azul 1      | 2º grau na Azul     |
+--   | mariana.teste    | Roxa 2      | 3º grau na Roxa     |
+--   | julio.teste      | Marrom 4    | Faixa Preta         |
+--   | rafael.teste     | Preta 1     | 2º grau na Preta    |
+--   | mestre.silva     | Preta 2     | dono da academia    |
+--   | coral.teste      | Coral 7     | Faixa Vermelha      |
+--   | vermelha.teste   | Vermelha 9  | meta livre (é o topo) |
+--
+-- Cada uma recebeu: treinos proporcionais à faixa, meta da próxima graduação,
+-- convites de parceria pendentes nos dois sentidos, amizades aceitas, rolas
+-- esperando confirmação dentro da janela de 7 dias, graduações com quem
+-- entregou, medalhas (3 em destaque) e as 1006 conquistas do catálogo, já
+-- recalculadas.
+--
+-- A Academia Teste tem pedidos de entrada pendentes para o Mestre Silva
+-- aprovar, e há equipe aguardando aprovação do admin do app.
