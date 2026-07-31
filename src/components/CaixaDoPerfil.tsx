@@ -17,6 +17,7 @@ export function CaixaDoPerfil({
   aoTocar,
   vazio,
   children,
+  verTodos,
   i = 0,
 }: {
   titulo: string;
@@ -25,6 +26,12 @@ export function CaixaDoPerfil({
   /** rota para abrir ao tocar; use `aoTocar` quando não for navegação */
   para?: string;
   aoTocar?: () => void;
+  /**
+   * Link de rodapé, para quando o conteúdo da caixa já tem links dentro.
+   * Envolver tudo num link nesse caso gera âncora dentro de âncora — HTML
+   * inválido, que o navegador desfaz e faz o toque cair no lugar errado.
+   */
+  verTodos?: { para: string; rotulo: string };
   /** texto mostrado quando não há nada dentro */
   vazio?: string;
   children?: ReactNode;
@@ -63,6 +70,15 @@ export function CaixaDoPerfil({
           <p className="text-center text-xs text-muted-foreground">
             {vazio ?? "Nada por aqui ainda."}
           </p>
+        )}
+        {verTodos && (
+          <Link
+            to={verTodos.para}
+            className="tap mt-3 flex items-center justify-center gap-1 rounded-xl border border-primary/40 bg-primary/5 py-2 text-xs font-bold text-primary active:scale-[0.98]"
+          >
+            {verTodos.rotulo}
+            <ChevronRight className="h-3.5 w-3.5" />
+          </Link>
         )}
       </div>
     </div>

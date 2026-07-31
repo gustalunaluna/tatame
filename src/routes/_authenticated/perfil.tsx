@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { PageShell } from "@/components/PageShell";
 import { Link } from "@tanstack/react-router";
 import { CaixaDoPerfil } from "@/components/CaixaDoPerfil";
+import { AmostraDeAtletas } from "@/components/ListaDeAtletas";
 import { SeloVerificado } from "@/components/SeloVerificado";
 import { useEquipes, useMeuHandle, useParcerias } from "@/lib/social-storage";
 import { useAchievementStats } from "@/lib/bjj-storage";
@@ -374,37 +375,19 @@ function CaixasDoPerfil() {
       <CaixaDoPerfil
         titulo="Parceiros de rola"
         icone={<Users className="h-4 w-4" />}
-        para="/parceiros"
+        verTodos={{ para: "/parceiros", rotulo: "Ver todos" }}
         i={2}
         contagem={aceitos.length ? String(aceitos.length) : undefined}
         vazio="Nenhum parceiro ainda. Adicione pelo @ da pessoa."
       >
         {aceitos.length ? (
-          <div className="flex flex-wrap gap-2">
-            {aceitos.slice(0, 8).map(({ parceria, cartao }) => (
-              <div
-                key={parceria.id}
-                className="flex items-center gap-2 rounded-xl border border-border/50 bg-secondary/40 px-2.5 py-1.5"
-              >
-                <span className="text-xs font-semibold">
-                  {cartao?.nickname ?? "Atleta"}
-                </span>
-                {cartao && (
-                  <FaixaVisual
-                    belt={cartao.belt}
-                    degrees={cartao.degrees}
-                    compacta
-                    comTexto={false}
-                  />
-                )}
-              </div>
-            ))}
-            {aceitos.length > 8 && (
-              <span className="self-center text-xs text-muted-foreground">
-                +{aceitos.length - 8}
-              </span>
-            )}
-          </div>
+          <AmostraDeAtletas
+            atletas={aceitos
+              .filter((a) => a.cartao)
+              .map((a) => ({ ...a.cartao!, role: undefined }))}
+            total={aceitos.length}
+            limite={8}
+          />
         ) : null}
       </CaixaDoPerfil>
 

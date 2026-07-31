@@ -15,8 +15,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Faixa as FaixaVisual } from "@/components/Faixa";
 import { CaixaDoPerfil } from "@/components/CaixaDoPerfil";
+import { AmostraDeAtletas } from "@/components/ListaDeAtletas";
 import { SeloDaPessoa, SeloVerificado } from "@/components/SeloVerificado";
-import { usePerfilPublico, useParcerias } from "@/lib/social-storage";
+import {
+  usePerfilPublico,
+  useParcerias,
+  useResumoParceiros,
+} from "@/lib/social-storage";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/atleta/$handle")({
@@ -38,6 +43,11 @@ function AtletaPage() {
   const { perfil, destaques, parceiros, naoExiste, ready } =
     usePerfilPublico(handle);
   const { convidar, todas } = useParcerias();
+  const { itens: resumo } = useResumoParceiros();
+  // O placar só faz sentido — e só é mostrado — entre quem já é parceiro.
+  const placar = perfil?.eMeuParceiro
+    ? resumo.find((r) => r.partnerId === perfil.userId)
+    : undefined;
 
   const jaTemVinculo =
     perfil && todas.some((p) => p.parceria.outroId === perfil.userId);
@@ -154,6 +164,50 @@ function AtletaPage() {
               ))}
           </div>
 
+          {/* ===== Entre vocês dois ===== */}
+          {placar && placar.sessoes > 0 && (
+            <Card className="border-primary/40 bg-primary/5">
+              <CardContent className="p-4">
+                <div className="mb-3 flex items-center gap-2">
+                  <Swords className="h-4 w-4 text-primary" />
+                  <h2 className="text-sm font-bold">Entre vocês</h2>
+                </div>
+                <div className="grid grid-cols-3 gap-2 text-center">
+                  <div className="rounded-xl bg-secondary/60 py-2">
+                    <p className="text-lg font-black leading-none">
+                      {placar.rolls}
+                    </p>
+                    <p className="mt-0.5 text-[10px] text-muted-foreground">
+                      rolas
+                    </p>
+                  </div>
+                  <div className="rounded-xl bg-secondary/60 py-2">
+                    <p className="text-lg font-black leading-none text-primary">
+                      {placar.subsFor}
+                    </p>
+                    <p className="mt-0.5 text-[10px] text-muted-foreground">
+                      você finalizou
+                    </p>
+                  </div>
+                  <div className="rounded-xl bg-secondary/60 py-2">
+                    <p className="text-lg font-black leading-none text-destructive">
+                      {placar.subsAgainst}
+                    </p>
+                    <p className="mt-0.5 text-[10px] text-muted-foreground">
+                      ele finalizou
+                    </p>
+                  </div>
+                </div>
+                <p className="mt-2 text-center text-[11px] text-muted-foreground">
+                  {placar.sessoes}{" "}
+                  {placar.sessoes === 1 ? "treino juntos" : "treinos juntos"}
+                  {placar.pendentes > 0 &&
+                    ` · ${placar.pendentes} esperando confirmação`}
+                </p>
+              </CardContent>
+            </Card>
+          )}
+
           {/* ===== Lutas ===== */}
           <Card className="border-border/60 bg-card/70">
             <CardContent className="p-4">
@@ -260,29 +314,24 @@ function AtletaPage() {
           <CaixaDoPerfil
             titulo="Parceiros de rola"
             icone={<Users className="h-4 w-4" />}
+            verTodos={
+              perfil.parceiros > 8
+                ? {
+                    para: `/atleta/${perfil.handle}/parceiros`,
+                    rotulo: `Ver todos os ${perfil.parceiros}`,
+                  }
+                : undefined
+            }
             i={2}
             contagem={perfil.parceiros ? String(perfil.parceiros) : undefined}
             vazio="Ainda não tem parceiros."
           >
             {parceiros.length ? (
-              <div className="flex flex-wrap gap-2">
-                {parceiros.map((p) => (
-                  <Link
-                    key={p.userId}
-                    to="/atleta/$handle"
-                    params={{ handle: p.handle }}
-                    className="tap flex items-center gap-2 rounded-xl border border-border/50 bg-secondary/40 px-2.5 py-1.5 active:scale-95"
-                  >
-                    <span className="text-xs font-semibold">{p.nickname}</span>
-                    <FaixaVisual
-                      belt={p.belt}
-                      degrees={p.degrees}
-                      compacta
-                      comTexto={false}
-                    />
-                  </Link>
-                ))}
-              </div>
+              <AmostraDeAtletas
+                atletas={parceiros}
+                total={perfil.parceiros}
+                limite={8}
+              />
             ) : null}
           </CaixaDoPerfil>
 

@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -671,6 +672,7 @@ export function usePerfilPublico(handle: string | undefined) {
     queryFn: async (): Promise<CartaoPublico[]> => {
       const { data, error } = await supabase.rpc("parceiros_publicos" as never, {
         p_user: uid,
+        p_limite: 8,
       } as never);
       if (error) throw error;
       return ((data ?? []) as unknown as LinhaCartao[]).map(paraCartao);
@@ -758,6 +760,7 @@ export function usePerfilEquipe(slug: string | undefined) {
     queryFn: async (): Promise<AtletaDaEquipe[]> => {
       const { data, error } = await supabase.rpc("atletas_da_equipe" as never, {
         p_team: id,
+        p_limite: 8,
       } as never);
       if (error) throw error;
       return ((data ?? []) as unknown as Record<string, unknown>[]).map(paraAtleta);
@@ -771,4 +774,68 @@ export function usePerfilEquipe(slug: string | undefined) {
     atletas: atletas.data ?? [],
     ready: equipe.isSuccess,
   };
+}
+
+
+/* ------------------------------------------------------------------ */
+/* Listas completas, carregadas por página                             */
+/* ------------------------------------------------------------------ */
+
+const PAGINA = 30;
+
+/**
+ * Lista paginada. Em vez de acumular páginas em estado — que dá problema de
+ * ordem entre efeitos — a consulta é uma só, com o limite crescendo. O React
+ * Query guarda cada tamanho em cache, então "Ver mais" reaproveita o que já
+ * veio e só busca o excedente.
+ */
+function useListaPaginada(
+  chave: string,
+  rpc: string,
+  argumento: Record<string, unknown> | null,
+) {
+  const [limite, setLimite] = useState(PAGINA);
+  const alvo = JSON.stringify(argumento);
+
+  // Trocou de pessoa ou de academia: volta para a primeira página
+  useEffect(() => setLimite(PAGINA), [alvo]);
+
+  const query = useQuery({
+    queryKey: [chave, alvo, limite],
+    enabled: argumento !== null,
+    placeholderData: (anterior) => anterior,
+    queryFn: async (): Promise<AtletaDaEquipe[]> => {
+      const { data, error } = await supabase.rpc(rpc as never, {
+        ...argumento,
+        p_limite: limite,
+        p_offset: 0,
+      } as never);
+      if (error) throw error;
+      return ((data ?? []) as unknown as Record<string, unknown>[]).map(paraAtleta);
+    },
+  });
+
+  const itens = query.data ?? [];
+  return {
+    itens,
+    temMais: itens.length >= limite,
+    carregando: query.isFetching,
+    carregarMais: () => setLimite((n) => n + PAGINA),
+  };
+}
+
+export function useListaDeParceiros(userId: string | undefined) {
+  return useListaPaginada(
+    "lista_parceiros",
+    "parceiros_publicos",
+    userId ? { p_user: userId } : null,
+  );
+}
+
+export function useListaDeAtletas(teamId: string | undefined) {
+  return useListaPaginada(
+    "lista_atletas",
+    "atletas_da_equipe",
+    teamId ? { p_team: teamId } : null,
+  );
 }

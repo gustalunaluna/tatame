@@ -217,9 +217,13 @@ function AcademiaPage() {
               <Atleta key={a.userId} a={a} i={i} />
             ))}
             {equipe.alunos > atletas.length && (
-              <p className="text-center text-[11px] text-muted-foreground">
-                e mais {equipe.alunos - atletas.length}
-              </p>
+              <Link
+                to="/academia/$slug/atletas"
+                params={{ slug: equipe.slug }}
+                className="tap block rounded-2xl border border-primary/40 bg-primary/5 py-3 text-center text-sm font-bold text-primary active:scale-[0.99]"
+              >
+                Ver todos os {equipe.alunos} atletas
+              </Link>
             )}
           </section>
         </>

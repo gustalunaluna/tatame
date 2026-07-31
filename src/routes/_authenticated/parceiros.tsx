@@ -3,6 +3,8 @@ import { useState } from "react";
 import {
   AtSign,
   Check,
+  ChevronDown,
+  Mail,
   Search,
   Swords,
   UserPlus,
@@ -285,77 +287,88 @@ function Confirmacoes() {
 
 function Convites() {
   const { recebidos, enviados, responder } = useParcerias();
-  if (!recebidos.length && !enviados.length) return null;
+  const total = recebidos.length + enviados.length;
+  if (!total) return null;
 
   return (
-    <section className="space-y-3">
-      <h2 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
-        Convites
-      </h2>
+    <details className="reveal group overflow-hidden rounded-2xl border border-border/60 bg-card/50">
+      <summary className="tap flex cursor-pointer select-none items-center gap-2 px-4 py-3 active:opacity-70 [&::-webkit-details-marker]:hidden">
+        <Mail className="h-4 w-4 shrink-0 text-primary" />
+        <span className="min-w-0 flex-1 text-sm font-bold">
+          Convites
+          {recebidos.length > 0 && (
+            <span className="ml-1.5 rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-black text-primary-foreground">
+              {recebidos.length}
+            </span>
+          )}
+        </span>
+        <span className="shrink-0 text-[11px] text-muted-foreground">
+          {recebidos.length} recebido{recebidos.length === 1 ? "" : "s"} ·{" "}
+          {enviados.length} enviado{enviados.length === 1 ? "" : "s"}
+        </span>
+        <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" />
+      </summary>
 
-      {recebidos.map(({ parceria, cartao }, i) => (
-        <CartaoAtleta
-          key={parceria.id}
-          i={i}
-          atleta={
-            cartao ?? {
-              nickname: "Atleta",
-              handle: "",
-              belt: "Branca",
-              degrees: 0,
+      <div className="space-y-2 border-t border-border/50 p-3">
+        {recebidos.map(({ parceria, cartao }, i) => (
+          <CartaoAtleta
+            key={parceria.id}
+            i={i}
+            atleta={
+              cartao ?? { nickname: "Atleta", handle: "", belt: "Branca", degrees: 0 }
             }
-          }
-          detalhe={
-            <p className="mt-1 text-[11px] text-primary">
-              quer treinar com você
-            </p>
-          }
-          acao={
-            <div className="flex gap-1.5">
-              <Button
-                size="icon"
-                aria-label="Aceitar"
-                onClick={async () => {
-                  if (await responder(parceria.id, true))
-                    toast.success("Parceria firmada.");
-                }}
-              >
-                <Check className="h-4 w-4" />
-              </Button>
-              <Button
-                size="icon"
-                variant="outline"
-                aria-label="Recusar"
-                onClick={() => responder(parceria.id, false)}
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-          }
-        />
-      ))}
+            detalhe={
+              <p className="mt-1 text-[11px] text-primary">quer treinar com você</p>
+            }
+            acao={
+              <div className="flex gap-1.5">
+                <Button
+                  size="icon"
+                  aria-label="Aceitar"
+                  onClick={async () => {
+                    if (await responder(parceria.id, true))
+                      toast.success("Parceria firmada.");
+                  }}
+                >
+                  <Check className="h-4 w-4" />
+                </Button>
+                <Button
+                  size="icon"
+                  variant="outline"
+                  aria-label="Recusar"
+                  onClick={() => responder(parceria.id, false)}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            }
+          />
+        ))}
 
-      {enviados.map(({ parceria, cartao }, i) => (
-        <CartaoAtleta
-          key={parceria.id}
-          i={i}
-          className="opacity-70"
-          atleta={
-            cartao ?? {
-              nickname: "Atleta",
-              handle: "",
-              belt: "Branca",
-              degrees: 0,
-            }
-          }
-          detalhe={
-            <p className="mt-1 text-[11px] text-muted-foreground">
-              aguardando resposta
+        {enviados.length > 0 && (
+          <>
+            <p className="pt-1 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+              Que você enviou
             </p>
-          }
-        />
-      ))}
-    </section>
+            {enviados.map(({ parceria, cartao }, i) => (
+              <CartaoAtleta
+                key={parceria.id}
+                i={i}
+                className="opacity-70"
+                atleta={
+                  cartao ?? { nickname: "Atleta", handle: "", belt: "Branca", degrees: 0 }
+                }
+                detalhe={
+                  <p className="mt-1 text-[11px] text-muted-foreground">
+                    aguardando resposta
+                  </p>
+                }
+              />
+            ))}
+          </>
+        )}
+      </div>
+    </details>
   );
 }
 
@@ -396,60 +409,16 @@ function Placar() {
     );
   }
 
-  // quem finalizou mais vezes: o maior saldo a favor
-  const carrasco = [...itens]
-    .filter((p) => p.subsAgainst > 0)
-    .sort((a, b) => b.subsAgainst - a.subsAgainst)[0];
-  const freguês = [...itens]
-    .filter((p) => p.subsFor > 0)
-    .sort((a, b) => b.subsFor - a.subsFor)[0];
-
   return (
     <section className="space-y-3">
       <h2 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
         Seus parceiros ({lista.length})
       </h2>
 
-      {(carrasco || freguês) && (
-        <div className="grid grid-cols-2 gap-2">
-          {carrasco && (
-            <Card className="border-destructive/40 bg-destructive/5">
-              <CardContent className="p-3">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-destructive">
-                  Te pega mais
-                </p>
-                <p className="mt-1 truncate text-sm font-black">
-                  {carrasco.partnerName}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {carrasco.subsAgainst}x em você
-                </p>
-              </CardContent>
-            </Card>
-          )}
-          {freguês && (
-            <Card className="border-primary/40 bg-primary/5">
-              <CardContent className="p-3">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-primary">
-                  Você pega mais
-                </p>
-                <p className="mt-1 truncate text-sm font-black">
-                  {freguês.partnerName}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {freguês.subsFor}x nele
-                </p>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-      )}
-
       {lista.map((p, i) => {
         const cartao = aceitos.find(
           (a) => a.parceria.outroId === p.partnerId,
         )?.cartao;
-        const saldo = p.subsFor - p.subsAgainst;
         return (
           <Card
             key={p.partnerId ?? p.partnerName}
@@ -482,54 +451,12 @@ function Placar() {
                       : ""}
                   </p>
                 </div>
-                <span
-                  className={cn(
-                    "shrink-0 rounded-full px-2.5 py-1 text-xs font-black",
-                    saldo > 0
-                      ? "bg-primary text-primary-foreground"
-                      : saldo < 0
-                        ? "bg-destructive text-destructive-foreground"
-                        : "bg-secondary text-muted-foreground",
-                  )}
-                >
-                  {saldo > 0 ? `+${saldo}` : saldo}
-                </span>
               </div>
 
-              {p.sessoes === 0 && p.pendentes === 0 ? (
-                <p className="mt-3 rounded-xl bg-secondary/40 px-3 py-2 text-center text-xs text-muted-foreground">
-                  Ainda não treinaram juntos. Adicione ele ao registrar um treino.
-                </p>
-              ) : (
-              <div className="mt-3 grid grid-cols-3 gap-2 text-center">
-                <div className="rounded-xl bg-secondary/60 py-2">
-                  <p className="text-lg font-black leading-none">{p.rolls}</p>
-                  <p className="mt-0.5 text-[10px] text-muted-foreground">
-                    rolas
-                  </p>
-                </div>
-                <div className="rounded-xl bg-secondary/60 py-2">
-                  <p className="text-lg font-black leading-none text-primary">
-                    {p.subsFor}
-                  </p>
-                  <p className="mt-0.5 text-[10px] text-muted-foreground">
-                    você finalizou
-                  </p>
-                </div>
-                <div className="rounded-xl bg-secondary/60 py-2">
-                  <p className="text-lg font-black leading-none text-destructive">
-                    {p.subsAgainst}
-                  </p>
-                  <p className="mt-0.5 text-[10px] text-muted-foreground">
-                    ele finalizou
-                  </p>
-                </div>
-              </div>
-              )}
-
-              {p.sessoes > 0 && (
               <p className="mt-2 text-[11px] text-muted-foreground">
-                {p.sessoes} {p.sessoes === 1 ? "treino juntos" : "treinos juntos"}
+                {p.sessoes === 0
+                  ? "Ainda não treinaram juntos"
+                  : `${p.sessoes} ${p.sessoes === 1 ? "treino juntos" : "treinos juntos"} · ${p.rolls} ${p.rolls === 1 ? "rola" : "rolas"}`}
                 {p.pendentes > 0 && (
                   <span className="text-primary">
                     {" "}
@@ -537,7 +464,6 @@ function Placar() {
                   </span>
                 )}
               </p>
-              )}
 
               {p.partnerId && (
                 <Confirmar
@@ -577,7 +503,7 @@ function ParceirosPage() {
   return (
     <PageShell
       title="Parceiros"
-      subtitle="Com quem você roda e como está o placar."
+      subtitle="Quem treina com você."
     >
       <MeuArroba />
       {ready && handle && (
