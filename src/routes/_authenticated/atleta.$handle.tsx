@@ -69,7 +69,15 @@ function GraduacaoDoPerfil({ handle }: { handle: string }) {
  * As até-três medalhas que a pessoa escolheu mostrar. Acima disso, o link leva
  * à lista inteira — o perfil é vitrine, não arquivo.
  */
-function MedalhasDoPerfil({ handle, nome }: { handle: string; nome: string }) {
+function MedalhasDoPerfil({
+  handle,
+  nome,
+  posicao,
+}: {
+  handle: string;
+  nome: string;
+  posicao: number;
+}) {
   const { resumo } = useResumoMedalhasDoAtleta(handle);
   const { medalhas } = useMedalhasDoAtleta(handle, true);
 
@@ -79,7 +87,7 @@ function MedalhasDoPerfil({ handle, nome }: { handle: string; nome: string }) {
     <CaixaDoPerfil
       titulo="Medalhas"
       icone={<Medal className="h-4 w-4" />}
-      i={3}
+      i={posicao}
       contagem={`${resumo.ouro}🥇 ${resumo.prata}🥈 ${resumo.bronze}🥉`}
       verTodos={
         resumo.total > medalhas.length
@@ -125,6 +133,11 @@ function AtletaPage() {
 
   const jaTemVinculo =
     perfil && todas.some((p) => p.parceria.outroId === perfil.userId);
+
+  // A ordem das caixas segue a escolha da pessoa: fixou medalha, o pódio abre
+  // o perfil, antes de equipe e mestre.
+  const { medalhas: emDestaque } = useMedalhasDoAtleta(handle, true);
+  const podioNoTopo = emDestaque.length > 0;
 
   const totalLutas = (perfil?.fightsWon ?? 0) + (perfil?.fightsLost ?? 0);
   const aproveitamento = totalLutas
@@ -315,13 +328,22 @@ function AtletaPage() {
             </CardContent>
           </Card>
 
+          {/* ===== O pódio abre o perfil, quando a pessoa escolheu um ===== */}
+          {podioNoTopo && (
+            <MedalhasDoPerfil
+              handle={perfil.handle}
+              nome={perfil.nickname}
+              posicao={0}
+            />
+          )}
+
           {/* ===== Equipe e mestre, lado a lado ===== */}
           <div className="grid grid-cols-2 gap-3">
             <CaixaDoPerfil
               titulo="Equipe"
               icone={<Shield className="h-4 w-4" />}
               para={perfil.teamSlug ? `/academia/${perfil.teamSlug}` : undefined}
-              i={0}
+              i={podioNoTopo ? 1 : 0}
               contagem={perfil.teamStatus === "aprovada" ? "oficial" : undefined}
               vazio="Não informou."
             >
@@ -360,7 +382,7 @@ function AtletaPage() {
               para={
                 perfil.masterHandle ? `/atleta/${perfil.masterHandle}` : undefined
               }
-              i={1}
+              i={podioNoTopo ? 2 : 1}
               vazio="Não informou."
             >
               {perfil.masterNickname || perfil.master ? (
@@ -396,7 +418,7 @@ function AtletaPage() {
                   }
                 : undefined
             }
-            i={2}
+            i={podioNoTopo ? 3 : 2}
             contagem={perfil.parceiros ? String(perfil.parceiros) : undefined}
             vazio="Ainda não tem parceiros."
           >
@@ -409,8 +431,14 @@ function AtletaPage() {
             ) : null}
           </CaixaDoPerfil>
 
-          {/* ===== Medalhas em destaque ===== */}
-          <MedalhasDoPerfil handle={perfil.handle} nome={perfil.nickname} />
+          {/* ===== Medalhas: aqui embaixo só quando não abriram o perfil ===== */}
+          {!podioNoTopo && (
+            <MedalhasDoPerfil
+              handle={perfil.handle}
+              nome={perfil.nickname}
+              posicao={4}
+            />
+          )}
 
           {/* ===== Como ele chegou na faixa que tem ===== */}
           <GraduacaoDoPerfil handle={perfil.handle} />

@@ -314,8 +314,13 @@ function MinhaAcademia() {
 /**
  * As medalhas em destaque do próprio perfil. Até três, escolhidas por quem
  * ganhou — quem tem mais que isso vê a lista completa em outra tela.
+ *
+ * `posicao` existe porque esta caixa troca de lugar: quem tem medalha em
+ * destaque a vê no topo, antes de equipe e mestre, porque foi o que a pessoa
+ * escolheu mostrar primeiro. Quem não tem deixa o pódio no fim, onde ele vira
+ * convite em vez de espaço vazio na abertura do perfil.
  */
-function MinhasMedalhas() {
+function MinhasMedalhas({ posicao }: { posicao: number }) {
   const { handle } = useMeuHandle();
   const { criar } = useMinhasMedalhas(handle);
   const { resumo } = useResumoMedalhasDoAtleta(handle);
@@ -325,7 +330,7 @@ function MinhasMedalhas() {
     <CaixaDoPerfil
       titulo="Medalhas"
       icone={<Medal className="h-4 w-4" />}
-      i={4}
+      i={posicao}
       contagem={resumo.total ? String(resumo.total) : undefined}
       verTodos={
         resumo.total
@@ -404,6 +409,11 @@ function MinhaGraduacao() {
 }
 
 function CaixasDoPerfil() {
+  const { handle: meuHandle } = useMeuHandle();
+  // Decide a ordem das caixas: com medalha em destaque, o pódio abre o perfil.
+  const { medalhas: emDestaque } = useMedalhasDoAtleta(meuHandle, true);
+  const podioNoTopo = emDestaque.length > 0;
+
   const { perfil } = usePerfil();
   const { minhaEquipe, equipes, vinculos } = useEquipes();
   const { aceitos } = useParcerias();
@@ -418,6 +428,10 @@ function CaixasDoPerfil() {
 
   return (
     <div className="space-y-3">
+      {/* O pódio vem primeiro quando há medalha em destaque: foi a pessoa que
+          escolheu aquelas três, e escolha de vitrine merece o topo. */}
+      {podioNoTopo && <MinhasMedalhas posicao={0} />}
+
       {/* Equipe e Mestre lado a lado, como no modelo */}
       <div className="grid grid-cols-2 gap-3">
         <CaixaDoPerfil
@@ -426,7 +440,7 @@ function CaixasDoPerfil() {
           para={
             equipe?.status === "aprovada" ? `/academia/${equipe.slug}` : "/equipe"
           }
-          i={0}
+          i={podioNoTopo ? 1 : 0}
           contagem={equipe?.status === "aprovada" ? "oficial" : undefined}
           vazio="Toque para escolher."
         >
@@ -461,7 +475,7 @@ function CaixasDoPerfil() {
           titulo="Mestre"
           icone={<GraduationCap className="h-4 w-4" />}
           para="/equipe"
-          i={1}
+          i={podioNoTopo ? 2 : 1}
           vazio="Toque para indicar."
         >
           {perfil?.master ? (
@@ -482,7 +496,7 @@ function CaixasDoPerfil() {
         titulo="Parceiros de rola"
         icone={<Users className="h-4 w-4" />}
         verTodos={{ para: "/parceiros", rotulo: "Ver todos" }}
-        i={2}
+        i={podioNoTopo ? 3 : 2}
         contagem={aceitos.length ? String(aceitos.length) : undefined}
         vazio="Nenhum parceiro ainda. Adicione pelo @ da pessoa."
       >
@@ -497,7 +511,8 @@ function CaixasDoPerfil() {
         ) : null}
       </CaixaDoPerfil>
 
-      <MinhasMedalhas />
+      {/* Sem medalha em destaque, o pódio fica aqui embaixo — como convite. */}
+      {!podioNoTopo && <MinhasMedalhas posicao={4} />}
 
       <MinhaGraduacao />
 
@@ -505,7 +520,7 @@ function CaixasDoPerfil() {
         titulo="Conquistas"
         icone={<Trophy className="h-4 w-4" />}
         para="/conquistas"
-        i={3}
+        i={6}
         contagem={total ? `${unlocked}/${total}` : undefined}
       >
         {total ? (
