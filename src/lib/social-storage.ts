@@ -4,6 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Faixa } from "./bjj-types";
 import type {
   CartaoPublico,
+  DestaquePublico,
+  PerfilPublico,
   Equipe,
   MembroEquipe,
   PapelMembro,
@@ -562,5 +564,97 @@ export function useMembrosDaEquipe(teamId: string | undefined) {
     ativos: itens.filter((m) => m.status === "ativo"),
     pendentes: itens.filter((m) => m.status === "pendente"),
     ready: query.isSuccess,
+  };
+}
+
+
+/* ------------------------------------------------------------------ */
+/* Perfil de outra pessoa                                              */
+/* ------------------------------------------------------------------ */
+
+/**
+ * O mesmo perfil, visto de fora. Quem decide o que sai é o banco: diário,
+ * metas, plano, pontos fracos e a data de nascimento exata ficam de fora —
+ * só a idade sai.
+ */
+export function usePerfilPublico(handle: string | undefined) {
+  const limpo = (handle ?? "").trim().toLowerCase().replace(/^@+/, "");
+
+  const perfil = useQuery({
+    queryKey: ["perfil_publico", limpo],
+    enabled: limpo.length >= 3,
+    queryFn: async (): Promise<PerfilPublico | null> => {
+      const { data, error } = await supabase.rpc("perfil_publico" as never, {
+        p_handle: limpo,
+      } as never);
+      if (error) throw error;
+      const linhas = (data ?? []) as unknown as Record<string, unknown>[];
+      if (!linhas.length) return null;
+      const r = linhas[0];
+      return {
+        userId: r.user_id as string,
+        handle: (r.handle as string) ?? "",
+        nickname: (r.nickname as string) || (r.handle as string) || "Atleta",
+        bio: (r.bio as string) ?? "",
+        belt: ((r.belt as string) ?? "Branca") as PerfilPublico["belt"],
+        degrees: (r.degrees as number) ?? 0,
+        photoUrl: (r.photo_url as string) ?? "",
+        verificado: Boolean(r.verificado),
+        idade: (r.idade as number) ?? null,
+        gym: (r.gym as string) ?? "",
+        master: (r.master as string) ?? "",
+        teamId: (r.team_id as string) ?? null,
+        teamName: (r.team_name as string) ?? "",
+        teamCrest: (r.team_crest as string) ?? "",
+        teamStatus: (r.team_status as string) ?? "",
+        fightsWon: (r.fights_won as number) ?? 0,
+        fightsLost: (r.fights_lost as number) ?? 0,
+        treinos: Number(r.treinos ?? 0),
+        parceiros: Number(r.parceiros ?? 0),
+        conquistasTotal: Number(r.conquistas_total ?? 0),
+        conquistasFeitas: Number(r.conquistas_feitas ?? 0),
+        souEu: Boolean(r.sou_eu),
+        eMeuParceiro: Boolean(r.e_meu_parceiro),
+      };
+    },
+  });
+
+  const uid = perfil.data?.userId;
+
+  const destaques = useQuery({
+    queryKey: ["destaques_publicos", uid],
+    enabled: !!uid,
+    queryFn: async (): Promise<DestaquePublico[]> => {
+      const { data, error } = await supabase.rpc("destaques_publicos" as never, {
+        p_user: uid,
+      } as never);
+      if (error) throw error;
+      return ((data ?? []) as unknown as Record<string, unknown>[]).map((r) => ({
+        id: r.id as string,
+        title: r.title as string,
+        tier: r.tier as string,
+        unlocked: Boolean(r.unlocked),
+      }));
+    },
+  });
+
+  const parceiros = useQuery({
+    queryKey: ["parceiros_publicos", uid],
+    enabled: !!uid,
+    queryFn: async (): Promise<CartaoPublico[]> => {
+      const { data, error } = await supabase.rpc("parceiros_publicos" as never, {
+        p_user: uid,
+      } as never);
+      if (error) throw error;
+      return ((data ?? []) as unknown as LinhaCartao[]).map(paraCartao);
+    },
+  });
+
+  return {
+    perfil: perfil.data ?? null,
+    naoExiste: perfil.isSuccess && !perfil.data,
+    destaques: destaques.data ?? [],
+    parceiros: parceiros.data ?? [],
+    ready: perfil.isSuccess,
   };
 }

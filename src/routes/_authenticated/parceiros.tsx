@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import {
   AtSign,
@@ -459,7 +459,17 @@ function Placar() {
             <CardContent className="p-4">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="truncate font-bold">{p.partnerName}</p>
+                  {cartao ? (
+                    <Link
+                      to="/atleta/$handle"
+                      params={{ handle: cartao.handle }}
+                      className="tap block active:scale-[0.98]"
+                    >
+                      <p className="truncate font-bold">{p.partnerName}</p>
+                    </Link>
+                  ) : (
+                    <p className="truncate font-bold">{p.partnerName}</p>
+                  )}
                   <p className="text-[11px] text-muted-foreground">
                     {cartao ? `@${cartao.handle}` : "não usa o app"}
                     {p.ultimoTreino

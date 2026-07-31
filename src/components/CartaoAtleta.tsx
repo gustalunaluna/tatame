@@ -1,5 +1,6 @@
 import type { CSSProperties, ReactNode } from "react";
 import { Faixa } from "@/components/Faixa";
+import { Link } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
 import type { CartaoPublico } from "@/lib/social-types";
 
@@ -55,12 +56,22 @@ export function CartaoAtleta({
       )}
 
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-bold">{atleta.nickname}</p>
-        {atleta.handle && (
-          <p className="truncate text-[11px] text-muted-foreground">
-            @{atleta.handle}
-            {atleta.gym ? ` · ${atleta.gym}` : ""}
-          </p>
+        {/* O nome leva ao perfil da pessoa. Só quando ela tem @ — sem @ não
+            existe perfil público para abrir. */}
+        {atleta.handle ? (
+          <Link
+            to="/atleta/$handle"
+            params={{ handle: atleta.handle }}
+            className="tap block active:scale-[0.98]"
+          >
+            <p className="truncate text-sm font-bold">{atleta.nickname}</p>
+            <p className="truncate text-[11px] text-muted-foreground">
+              @{atleta.handle}
+              {atleta.gym ? ` · ${atleta.gym}` : ""}
+            </p>
+          </Link>
+        ) : (
+          <p className="truncate text-sm font-bold">{atleta.nickname}</p>
         )}
         <Faixa
           belt={atleta.belt}

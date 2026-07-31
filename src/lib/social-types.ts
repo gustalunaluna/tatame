@@ -121,3 +121,37 @@ export function erroDoHandle(handle: string): string | null {
   }
   return null;
 }
+
+/** O perfil de outra pessoa, como o banco o serve */
+export interface PerfilPublico {
+  userId: string;
+  handle: string;
+  nickname: string;
+  bio: string;
+  belt: Faixa;
+  degrees: number;
+  photoUrl: string;
+  verificado: boolean;
+  idade: number | null;
+  gym: string;
+  master: string;
+  teamId: string | null;
+  teamName: string;
+  teamCrest: string;
+  teamStatus: string;
+  fightsWon: number;
+  fightsLost: number;
+  treinos: number;
+  parceiros: number;
+  conquistasTotal: number;
+  conquistasFeitas: number;
+  souEu: boolean;
+  eMeuParceiro: boolean;
+}
+
+export interface DestaquePublico {
+  id: string;
+  title: string;
+  tier: string;
+  unlocked: boolean;
+}
