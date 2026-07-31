@@ -144,6 +144,34 @@ async function ensureSeeded(userId: string) {
   if (erroMarca) throw erroMarca;
 }
 
+/**
+ * As conquistas vêm de um catálogo compartilhado, e não do seed acima: até
+ * agora elas só existiam para a conta que rodou o seed manual, e qualquer
+ * conta criada pelo app abria a tela de Conquistas com 0 de 0. Fica fora de
+ * `ensureSeeded` de propósito — quem já tem `seeded = true` também precisa
+ * receber as que faltam.
+ */
+async function garantirConquistas() {
+  const { error } = await supabase.rpc("semear_conquistas" as never);
+  if (error) throw error;
+}
+
+/**
+ * Recalcula o que dá para medir sozinho: volume, horas, sequência, parceiros
+ * por faixa, estudo e graduação. Conquista aberta na mão não fecha de volta —
+ * o banco só soma. Devolve quantas abriram agora.
+ */
+export async function recalcularConquistas(): Promise<number> {
+  const { data, error } = await supabase.rpc("recalcular_conquistas" as never);
+  if (error) {
+    // Não vira aviso na tela: é trabalho de fundo, e falhar aqui não impede
+    // ninguém de treinar nem de registrar.
+    console.error("[Tatame] Falha ao recalcular conquistas:", error);
+    return 0;
+  }
+  return Number(data ?? 0);
+}
+
 export function useEnsureSeeded() {
   const [ready, setReady] = useState(false);
   useEffect(() => {
@@ -153,7 +181,11 @@ export function useEnsureSeeded() {
         const id = await getUserId();
         // Sem sessão não há o que semear — mas `ready` precisa virar true do
         // mesmo jeito, senão quem espera por ele fica travado para sempre.
-        if (id) await ensureSeeded(id);
+        if (id) {
+          await ensureSeeded(id);
+          await garantirConquistas();
+          await recalcularConquistas();
+        }
       } catch (erro) {
         console.error("[Tatame] Falha ao preparar os dados iniciais:", erro);
         toast.error(
@@ -195,7 +227,23 @@ export function useTrainings() {
     },
   });
 
-  const invalidate = () => qc.invalidateQueries({ queryKey: ["trainings"] });
+  // Mexeu no diário, mexeu nas conquistas: volume, horas, sequência e rolas
+  // saem todos daqui. O recálculo roda no banco e só então as telas de
+  // conquista são invalidadas, senão elas releriam os números velhos.
+  const invalidate = async () => {
+    qc.invalidateQueries({ queryKey: ["trainings"] });
+    const abriram = await recalcularConquistas();
+    qc.invalidateQueries({ queryKey: ["achievements"] });
+    qc.invalidateQueries({ queryKey: ["achievements_stats"] });
+    qc.invalidateQueries({ queryKey: ["achievements_featured"] });
+    if (abriram > 0) {
+      toast.success(
+        abriram === 1
+          ? "Você desbloqueou 1 conquista."
+          : `Você desbloqueou ${abriram} conquistas.`,
+      );
+    }
+  };
 
   const addMut = useMutation({
     mutationFn: async (t: Omit<Training, "id">) => {

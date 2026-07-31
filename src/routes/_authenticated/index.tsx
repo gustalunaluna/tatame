@@ -24,11 +24,11 @@ import {
   useEnsureSeeded,
   useGoalStart,
   usePerfil,
-  usePlan,
   useTrainings,
   useHydrated,
 } from "@/lib/bjj-storage";
-import { DIAS_AZUL } from "@/lib/bjj-types";
+import { useCicloAtual, useMetas, diasAte } from "@/lib/plano-storage";
+import { nivelPorHoras, horasEmTexto } from "@/lib/nivel";
 import { useCountUp } from "@/lib/motion";
 
 export const Route = createFileRoute("/_authenticated/")({
@@ -71,7 +71,8 @@ function Home() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { items: trainings } = useTrainings();
-  const { weeks } = usePlan();
+  const { ciclo, itens: itensDoCiclo, execucao, ready: cicloPronto } = useCicloAtual();
+  const { ativas: metasAtivas } = useMetas();
   const { start } = useGoalStart();
   const { perfil } = usePerfil();
   const conquistas = useAchievementStats();
@@ -89,20 +90,47 @@ function Home() {
   const thisMonth = trainings.filter((t) => t.date.startsWith(monthKey)).length;
   const streakDays = streak(trainings.map((t) => t.date));
   const totalTrainings = trainings.length;
-  const level = Math.max(1, Math.floor(totalTrainings / 5) + 1);
-  const levelProgress = ((totalTrainings % 5) / 5) * 100;
 
-  const totalItems = weeks.reduce((n, w) => n + w.items.length, 0);
-  const doneItems = weeks.reduce(
-    (n, w) => n + w.items.filter((i) => i.done).length,
-    0,
-  );
-  const planPct = totalItems ? Math.round((doneItems / totalItems) * 100) : 0;
-  const currentWeek = weeks.find((w) => w.items.some((i) => !i.done)) ?? weeks[0];
+  // O level vem das horas de tatame, não da contagem de aberturas do app.
+  const minutosTotais = trainings.reduce((n, t) => n + (t.durationMin || 0), 0);
+  const nivel = nivelPorHoras(minutosTotais);
+
+  // O plano do mês: a semana em curso é a primeira que ainda tem item aberto.
+  const semanaAtual =
+    itensDoCiclo.find((i) => i.feito < (i.alvo || 1))?.semana ??
+    itensDoCiclo[0]?.semana ??
+    1;
+  const focoDaSemana =
+    itensDoCiclo.find((i) => i.semana === semanaAtual && i.foco)?.foco ?? "";
+  const itensDaSemana = itensDoCiclo.filter((i) => i.semana === semanaAtual);
+  const feitosDaSemana = itensDaSemana.filter(
+    (i) => i.feito >= (i.alvo || 1),
+  ).length;
 
   const startDate = new Date(start);
   const daysTraining = Math.max(0, daysBetween(startDate, now));
-  const azulPct = Math.min(100, Math.round((daysTraining / DIAS_AZUL) * 100));
+
+  // A meta em destaque é a graduação com prazo mais próximo; sem ela, a
+  // primeira meta ativa qualquer. Nada de faixa azul cravada no código.
+  const metaDestaque =
+    metasAtivas.find((m) => m.kind === "graduacao" && m.targetDate) ??
+    metasAtivas[0] ??
+    null;
+  const diasRestantesMeta = diasAte(metaDestaque?.targetDate ?? null);
+  const metaPct =
+    metaDestaque?.kind === "graduacao" && diasRestantesMeta != null
+      ? Math.min(
+          100,
+          Math.round(
+            (daysTraining / (daysTraining + Math.max(0, diasRestantesMeta))) * 100,
+          ),
+        )
+      : metaDestaque?.kind === "volume" && metaDestaque.targetNumber
+        ? Math.min(
+            100,
+            Math.round((totalTrainings / metaDestaque.targetNumber) * 100),
+          )
+        : null;
 
   const unlockedAch = conquistas.unlocked;
   const totalAch = conquistas.total;
@@ -190,26 +218,26 @@ function Home() {
             <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />
           </Link>
 
-          {/* Level */}
+          {/* Level — horas de tatame, que é como o jiu-jitsu mede de verdade */}
           <div className="mt-4 border-t border-border/50 pt-3">
             <div className="flex items-end justify-between">
               <p className="text-[10px] font-bold uppercase tracking-widest text-primary">
-                Level {level}
+                Level {nivel.level}
               </p>
               <p className="text-sm font-black tabular-nums">
-                {hydrated ? totalAnimado : "—"}{" "}
+                {hydrated ? horasEmTexto(nivel.horas) : "—"}{" "}
                 <span className="text-[10px] font-semibold text-muted-foreground">
-                  treinos
+                  no tatame
                 </span>
               </p>
             </div>
             <Bar
-              value={levelProgress}
+              value={nivel.progresso}
               className="mt-2 h-1.5"
-              label={`Progresso para o level ${level + 1}`}
+              label={`Progresso para o level ${nivel.level + 1}`}
             />
             <p className="mt-1 text-[10px] text-muted-foreground">
-              {5 - (totalTrainings % 5)} treinos para o próximo level
+              {nivel.faltam}h para o level {nivel.level + 1}
             </p>
           </div>
 
@@ -314,45 +342,82 @@ function Home() {
         </div>
       </Link>
 
-      {/* Week focus */}
-      <Card className="border-border/50 bg-card/70">
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                Foco da semana {currentWeek?.week ?? 1}
-              </p>
-              <p className="mt-1 font-bold">{currentWeek?.focus}</p>
+      {/* O plano do mês — o de verdade, o mesmo que a tela Plano mostra */}
+      {ciclo ? (
+        <Card className="border-border/50 bg-card/70">
+          <CardContent className="p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                  Semana {semanaAtual} · {ciclo.titulo}
+                </p>
+                <p className="mt-1 truncate font-bold">
+                  {focoDaSemana || "Plano do mês em andamento"}
+                </p>
+              </div>
+              <Link
+                to="/plano"
+                className="shrink-0 text-xs font-bold text-primary underline-offset-4 hover:underline"
+              >
+                Ver plano
+              </Link>
             </div>
-            <Link
-              to="/plano"
-              className="text-xs font-bold text-primary underline-offset-4 hover:underline"
-            >
-              Ver plano
-            </Link>
-          </div>
-          <Progress value={planPct} className="mt-3 h-1.5" />
-          <p className="mt-1 text-[10px] text-muted-foreground">
-            {doneItems}/{totalItems} itens ({planPct}%)
-          </p>
-        </CardContent>
-      </Card>
+            <Progress value={execucao} className="mt-3 h-1.5" />
+            <p className="mt-1 text-[10px] text-muted-foreground">
+              {feitosDaSemana}/{itensDaSemana.length} desta semana · {execucao}% do mês
+            </p>
+          </CardContent>
+        </Card>
+      ) : (
+        cicloPronto && (
+          <Link
+            to="/plano"
+            className="tap block rounded-2xl border border-dashed border-primary/40 bg-transparent p-4 active:scale-[0.99]"
+          >
+            <p className="text-sm font-bold text-primary">Montar o plano do mês</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Escolha o que quer melhorar e o app monta as quatro semanas.
+            </p>
+          </Link>
+        )
+      )}
 
-      <Card className="border-border/50 bg-card/70">
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Target className="h-4 w-4 text-primary" />
-              <p className="font-bold">Faixa Azul em 1 ano</p>
+      {/* A meta que a pessoa escolheu — não uma cravada no código */}
+      {metaDestaque ? (
+        <Card className="border-border/50 bg-card/70">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex min-w-0 items-center gap-2">
+                <Target className="h-4 w-4 shrink-0 text-primary" />
+                <p className="truncate font-bold">{metaDestaque.title}</p>
+              </div>
+              {metaPct != null && (
+                <span className="shrink-0 text-xs font-black text-primary">
+                  {metaPct}%
+                </span>
+              )}
             </div>
-            <span className="text-xs font-black text-primary">{azulPct}%</span>
-          </div>
-          <Progress className="mt-3 h-1.5" value={azulPct} />
-          <p className="mt-1 text-[10px] text-muted-foreground">
-            {daysTraining} de {DIAS_AZUL} dias
+            {metaPct != null && <Progress className="mt-3 h-1.5" value={metaPct} />}
+            <p className="mt-1 text-[10px] text-muted-foreground">
+              {diasRestantesMeta != null
+                ? diasRestantesMeta >= 0
+                  ? `${daysTraining} dias no tatame · faltam ${diasRestantesMeta}`
+                  : `${daysTraining} dias no tatame · o prazo passou`
+                : `${daysTraining} dias no tatame`}
+            </p>
+          </CardContent>
+        </Card>
+      ) : (
+        <Link
+          to="/metas"
+          className="tap block rounded-2xl border border-dashed border-primary/40 bg-transparent p-4 active:scale-[0.99]"
+        >
+          <p className="text-sm font-bold text-primary">Definir uma meta</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            Faixa azul, pódio num campeonato, um número de treinos no ano.
           </p>
-        </CardContent>
-      </Card>
+        </Link>
+      )}
 
       <section>
         <div className="mb-2 flex items-center justify-between">
