@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import cores from "@/design/tokens.json";
 import type { Faixa } from "./bjj-types";
 
@@ -51,3 +52,23 @@ export const CORES_MEDALHA = {
   prata: oklch(cores.cor.podio.prata.valor),
   bronze: oklch(cores.cor.podio.bronze.valor),
 };
+
+/**
+ * Estilo para vestir um TRECHO da tela com outra faixa — o cartão de uma meta
+ * de graduação, uma prévia, um comparativo.
+ *
+ * Precisa devolver `--primary` junto, e não só `--faixa`: `--primary: var(--faixa)`
+ * é declarado uma vez no `:root` e o que desce para os filhos é o valor JÁ
+ * resolvido. Trocar só `--faixa` num filho não recalcula `--primary` — o
+ * cartão da meta ficava com a cor da faixa atual mesmo tendo a variável certa.
+ */
+export function estiloDaFaixa(faixa: Faixa | undefined | null) {
+  const acento = acentoDaFaixa(faixa);
+  return {
+    "--faixa": acento,
+    "--faixa-contraste": textoSobreAcento(faixa),
+    "--primary": acento,
+    "--primary-foreground": textoSobreAcento(faixa),
+    "--ring": acento,
+  } as CSSProperties;
+}

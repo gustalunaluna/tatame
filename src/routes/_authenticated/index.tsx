@@ -19,6 +19,8 @@ import {
 } from "@/lib/bjj-storage";
 import { useCicloAtual, useMetas, diasAte } from "@/lib/plano-storage";
 import { nivelPorHoras, horasEmTexto } from "@/lib/nivel";
+import { RotaDeGraduacao } from "@/components/RotaDeGraduacao";
+import { estiloDaFaixa } from "@/lib/faixa-cores";
 import { useCountUp } from "@/lib/motion";
 
 export const Route = createFileRoute("/_authenticated/")({
@@ -372,9 +374,17 @@ function Home() {
         )
       )}
 
-      {/* A meta que a pessoa escolheu — não uma cravada no código */}
+      {/* A meta que a pessoa escolheu — não uma cravada no código. Quando é de
+          graduação, o cartão veste a cor da faixa-alvo. */}
       {metaDestaque ? (
-        <Card className="border-border/50 bg-card/70">
+        <Card
+          style={
+            metaDestaque.kind === "graduacao" && metaDestaque.targetBelt
+              ? estiloDaFaixa(metaDestaque.targetBelt)
+              : undefined
+          }
+          className="border-border/50 bg-card/70"
+        >
           <CardContent className="p-4">
             <div className="flex items-center justify-between gap-3">
               <div className="flex min-w-0 items-center gap-2">
@@ -387,6 +397,20 @@ function Home() {
                 </span>
               )}
             </div>
+            {metaDestaque.kind === "graduacao" &&
+              metaDestaque.targetBelt &&
+              perfil && (
+                <RotaDeGraduacao
+                  className="mt-3"
+                  compacta
+                  comTitulo={false}
+                  de={{ belt: perfil.belt, degrees: perfil.degrees }}
+                  para={{
+                    belt: metaDestaque.targetBelt,
+                    degrees: metaDestaque.targetDegrees ?? 0,
+                  }}
+                />
+              )}
             {metaPct != null && <Progress className="mt-3 h-1.5" value={metaPct} />}
             <p className="mt-1 text-[10px] text-muted-foreground">
               {diasRestantesMeta != null

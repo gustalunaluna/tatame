@@ -53,6 +53,50 @@ em que se está com pressa.
 
 ---
 
+## 🏗️ Estrutura
+
+```
+src/
+  design/     tokens.json (fonte única) · tokens.css (gerado) · icones.ts
+  components/ compartilhados entre telas
+  routes/     uma tela por arquivo, code-split automático
+  lib/        acesso a dados por assunto (bjj, social, plano, medalhas, graduação)
+  integrations/supabase/
+scripts/      gerar-tokens · orcamento
+testes/       rodar.mjs + as suítes de navegador
+supabase/     migrations (numeradas) · conteudo · testes SQL
+```
+
+### Comandos
+
+```bash
+npm run verificar     # design + tipos + build + orçamento + testes. É o que a CI roda.
+npm test              # só as suítes de navegador (sobe e derruba o servidor sozinho)
+npm test -- medalhas  # só as que casam com o filtro
+npm run orcamento     # peso do caminho crítico
+npm run tokens        # regenera o CSS a partir dos tokens
+```
+
+### Peso
+
+`npm run orcamento` mede o **gzip do caminho crítico** — o que o celular baixa
+antes de ver a primeira tela — e falha acima de 220 kB.
+
+Hoje: **202 kB crítico**, 207 kB sob demanda. O gráfico de evolução (104 kB) só
+carrega na tela que o usa.
+
+As dependências ficam num pedaço separado do código do app. Isso custou ~7 kB
+no primeiro acesso e economiza muito do segundo em diante: publicar uma
+correção de tela rebaixa 29 kB em vez de 184 kB. Para um app que se abre todo
+dia, a troca compensa — mas é uma troca, não um ganho puro.
+
+**Cuidado medido:** mandar todo o `node_modules` para um pedaço "vendor" parece
+óbvio e é pior. Arrasta para o caminho crítico dependências que o Rollup tinha
+colocado, com razão, dentro das rotas preguiçosas — subiu de 195 para 235 kB.
+Só entra em `deps` o que é preciso antes da primeira tela.
+
+---
+
 ## 🚀 Passo a passo para colocar no ar
 
 ### 1. Criar o banco (Supabase — grátis)

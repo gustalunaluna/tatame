@@ -11,12 +11,15 @@ export function Faixa({
   degrees,
   compacta = false,
   comTexto = true,
+  cheia = false,
   className,
 }: {
   belt: TipoFaixa;
   degrees: number;
   compacta?: boolean;
   comTexto?: boolean;
+  /** Ocupa a largura disponível, em vez do tamanho fixo de cartão. */
+  cheia?: boolean;
   className?: string;
 }) {
   const graus = Math.max(0, Math.min(4, degrees));
@@ -26,7 +29,8 @@ export function Faixa({
       <div
         className={cn(
           "relative overflow-hidden rounded-sm border border-white/15",
-          compacta ? "h-3.5 w-20" : "h-5 w-28",
+          compacta ? "h-3.5" : "h-5",
+          cheia ? "w-full" : compacta ? "w-20" : "w-28",
         )}
         role="img"
         aria-label={`Faixa ${belt}${graus ? ` com ${graus} grau${graus > 1 ? "s" : ""}` : ""}`}

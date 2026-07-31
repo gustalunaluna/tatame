@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Suspense, lazy, useState } from "react";
+import { Suspense, lazy, useState, type CSSProperties } from "react";
 import { Icone } from "@/design/icones";
+import { RotaDeGraduacao } from "@/components/RotaDeGraduacao";
+import { estiloDaFaixa } from "@/lib/faixa-cores";
 import { toast } from "sonner";
 import { PageShell } from "@/components/PageShell";
 import { Card, CardContent } from "@/components/ui/card";
@@ -23,7 +25,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useGoalStart, useWeakPoints, useTrainings, useHydrated } from "@/lib/bjj-storage";
+import {
+  useGoalStart,
+  useWeakPoints,
+  useTrainings,
+  useHydrated,
+  usePerfil,
+} from "@/lib/bjj-storage";
+import { useEquipes } from "@/lib/social-storage";
 import { useMetas, useCicloAtual, diasAte, type Meta, type TipoMeta } from "@/lib/plano-storage";
 import { FAIXAS, type Faixa } from "@/lib/bjj-types";
 import { Confirmar } from "@/components/Confirmar";
@@ -207,10 +216,14 @@ function CartaoMeta({
   meta,
   diasDeTatame,
   treinosNoPeriodo,
+  faixaAtual,
+  brasao,
 }: {
   meta: Meta;
   diasDeTatame: number;
   treinosNoPeriodo: number;
+  faixaAtual?: { belt: Faixa; degrees: number };
+  brasao?: string;
 }) {
   const { salvar, apagar } = useMetas();
   const restam = diasAte(meta.targetDate);
@@ -227,8 +240,19 @@ function CartaoMeta({
     detalhe = `${treinosNoPeriodo}/${meta.targetNumber} treinos`;
   }
 
+  // A meta de graduação veste a cor da faixa que se quer alcançar, não a da
+  // faixa atual: o cartão inteiro já é uma prévia de onde você quer chegar.
+  // `--faixa` é sobrescrita só aqui dentro — o resto do app segue como está.
+  const corDoAlvo =
+    meta.kind === "graduacao" && meta.targetBelt
+      ? estiloDaFaixa(meta.targetBelt)
+      : undefined;
+
   return (
-    <Card className="border-primary/30 bg-gradient-to-br from-primary/15 to-transparent">
+    <Card
+      style={corDoAlvo}
+      className="border-primary/30 bg-gradient-to-br from-primary/15 to-transparent"
+    >
       <CardContent className="p-4">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
@@ -252,6 +276,17 @@ function CartaoMeta({
             <Icone.meta className="h-6 w-6 shrink-0 text-primary" />
           )}
         </div>
+
+        {/* De onde estou para onde quero chegar, como no cartaz da academia. */}
+        {meta.kind === "graduacao" && meta.targetBelt && faixaAtual && (
+          <div className="mt-4">
+            <RotaDeGraduacao
+              de={faixaAtual}
+              para={{ belt: meta.targetBelt, degrees: meta.targetDegrees ?? 0 }}
+              brasao={brasao}
+            />
+          </div>
+        )}
 
         {pct != null && (
           <div className="mt-3">
@@ -362,6 +397,9 @@ function MetasPage() {
   const { items: treinos } = useTrainings();
   const { start, set: setStart } = useGoalStart();
   const { ciclo, execucao } = useCicloAtual();
+  const { perfil } = usePerfil();
+  const { minhaEquipe } = useEquipes();
+  const brasao = (minhaEquipe as { crestUrl?: string } | undefined)?.crestUrl;
 
   const inicio = new Date(start + "T00:00:00");
   const dias = Math.max(
@@ -406,6 +444,10 @@ function MetasPage() {
           meta={m}
           diasDeTatame={dias}
           treinosNoPeriodo={treinos.length}
+          faixaAtual={
+            perfil ? { belt: perfil.belt, degrees: perfil.degrees } : undefined
+          }
+          brasao={brasao}
         />
       ))}
 

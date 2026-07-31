@@ -1,0 +1,36 @@
+name: verificar
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+
+      # Barato e rápido primeiro: se o sistema de design foi furado ou os tipos
+      # não fecham, não vale gastar cinco minutos subindo navegador.
+      - run: npm run verificar:design
+      - run: npx tsc --noEmit
+
+      - run: npm run build
+      - run: npm run orcamento
+
+      - run: npx playwright install --with-deps chromium
+      - run: npm test
+
+      # Quando um teste de tela falha, a captura vale mais que o log.
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: telas
+          path: telas/
+          retention-days: 7

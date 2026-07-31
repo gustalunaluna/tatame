@@ -8,7 +8,10 @@
     "preview": "vite preview",
     "tokens": "node scripts/gerar-tokens.mjs",
     "verificar:design": "node verificar-design.mjs && node verificar-contraste.mjs",
-    "prebuild": "node scripts/gerar-tokens.mjs"
+    "prebuild": "node scripts/gerar-tokens.mjs",
+    "test": "node testes/rodar.mjs",
+    "verificar": "npm run verificar:design && tsc --noEmit && npm run build && npm run orcamento && npm test",
+    "orcamento": "node scripts/orcamento.mjs"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",
