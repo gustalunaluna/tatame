@@ -34,7 +34,7 @@ function mensagemDoErro(erro: unknown): string {
 
 function aoFalhar(oque: string) {
   return (erro: unknown) => {
-    console.error(`[Tatame] Falha ao ${oque}:`, erro);
+    console.error(`[Ponteira] Falha ao ${oque}:`, erro);
     toast.error(`Não deu para ${oque}: ${mensagemDoErro(erro)}`);
   };
 }

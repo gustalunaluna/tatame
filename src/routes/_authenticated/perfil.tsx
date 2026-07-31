@@ -67,7 +67,7 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/_authenticated/perfil")({
   head: () => ({
     meta: [
-      { title: "Perfil — Tatame" },
+      { title: "Perfil — Ponteira" },
       { name: "description", content: "Seu perfil de atleta: faixa, mestre, lutas e conquistas em destaque." },
     ],
   }),

@@ -1,16 +1,31 @@
 {
-  "name": "Tatame — Diário de BJJ",
-  "short_name": "Tatame",
-  "description": "Aplicativo pessoal de Jiu-Jitsu: diário de treino, técnicas, plano e metas.",
+  "name": "Ponteira — seu jiu-jitsu, registrado",
+  "short_name": "Ponteira",
+  "description": "Diário de treino, graduações, medalhas e parceiros de rola. A cor do app é a sua faixa.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#0a0a0a",
-  "theme_color": "#0a0a0a",
+  "background_color": "#1c1c20",
+  "theme_color": "#1c1c20",
   "icons": [
-    { "src": "/icon-512.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    {
+      "src": "/icon-512.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
   ]
 }

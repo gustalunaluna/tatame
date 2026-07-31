@@ -13,7 +13,7 @@ import { useMinhasGraduacoes } from "@/lib/graduacao-storage";
 export const Route = createFileRoute("/_authenticated/minhas-graduacoes")({
   head: () => ({
     meta: [
-      { title: "Minhas graduações — Tatame" },
+      { title: "Minhas graduações — Ponteira" },
       {
         name: "description",
         content: "A escada de faixas e graus, com quem entregou cada uma.",

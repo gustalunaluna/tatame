@@ -100,7 +100,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   head: () => ({
     meta: [
-      { title: "Tatame — Diário de BJJ" },
+      { title: "Ponteira — seu jiu-jitsu, registrado" },
       {
         name: "description",
         content:

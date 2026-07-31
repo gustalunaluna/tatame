@@ -125,7 +125,7 @@ export function BottomNav() {
             >
               <div>
                 <p className="text-[10px] font-black uppercase tracking-[0.25em] text-primary">
-                  Tatame
+                  Ponteira
                 </p>
                 <p className="text-sm font-bold">Menu</p>
               </div>

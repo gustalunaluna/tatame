@@ -24,7 +24,7 @@ import {
 export const Route = createFileRoute("/_authenticated/plano")({
   head: () => ({
     meta: [
-      { title: "Plano do mês — Tatame" },
+      { title: "Plano do mês — Ponteira" },
       {
         name: "description",
         content: "Seu plano de evolução do mês: um objetivo, quatro semanas.",

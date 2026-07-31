@@ -1,16 +1,6 @@
 import { cn } from "@/lib/utils";
 import type { Faixa as TipoFaixa } from "@/lib/bjj-types";
-
-/** Cor da faixa, como no kimono */
-const CORES: Record<TipoFaixa, string> = {
-  Branca: "bg-white",
-  Azul: "bg-blue-500",
-  Roxa: "bg-purple-500",
-  Marrom: "bg-amber-800",
-  Preta: "bg-neutral-900",
-  Coral: "bg-gradient-to-r from-red-600 to-neutral-900",
-  Vermelha: "bg-red-600",
-};
+import { tecidoDaFaixa } from "@/lib/faixa-cores";
 
 /**
  * Representação visual da faixa: a cor, a ponteira preta e os graus.
@@ -41,7 +31,21 @@ export function Faixa({
         role="img"
         aria-label={`Faixa ${belt}${graus ? ` com ${graus} grau${graus > 1 ? "s" : ""}` : ""}`}
       >
-        <div className={cn("h-full w-full", CORES[belt] ?? "bg-white")} />
+        {/* O tecido vem da mesma paleta que o acento do app — uma fonte só.
+            A coral é a única com duas cores, então continua sendo degradê. */}
+        {belt === "Coral" ? (
+          <div
+            className="h-full w-full"
+            style={{
+              background: `linear-gradient(90deg, ${tecidoDaFaixa("Coral")} 0%, ${tecidoDaFaixa("Preta")} 100%)`,
+            }}
+          />
+        ) : (
+          <div
+            className="h-full w-full"
+            style={{ background: tecidoDaFaixa(belt) }}
+          />
+        )}
         <div
           className={cn(
             "absolute right-0 top-0 flex h-full items-center bg-neutral-900",

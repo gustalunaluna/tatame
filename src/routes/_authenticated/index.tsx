@@ -34,7 +34,7 @@ import { useCountUp } from "@/lib/motion";
 export const Route = createFileRoute("/_authenticated/")({
   head: () => ({
     meta: [
-      { title: "Início — Tatame" },
+      { title: "Início — Ponteira" },
       { name: "description", content: "Resumo gamificado do seu treino de Jiu-Jitsu." },
     ],
   }),

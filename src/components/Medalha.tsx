@@ -11,21 +11,21 @@ import type { Colocacao, Medalha, MedalhaDaEquipe } from "@/lib/medalhas-storage
  */
 const CORES: Record<Colocacao, { anel: string; texto: string; fundo: string; nome: string }> = {
   ouro: {
-    anel: "ring-amber-400/50",
-    texto: "text-amber-300",
-    fundo: "bg-amber-400/10",
+    anel: "ring-ouro/50",
+    texto: "text-ouro",
+    fundo: "bg-ouro/10",
     nome: "Ouro",
   },
   prata: {
-    anel: "ring-slate-300/50",
-    texto: "text-slate-200",
-    fundo: "bg-slate-300/10",
+    anel: "ring-prata/50",
+    texto: "text-prata",
+    fundo: "bg-prata/10",
     nome: "Prata",
   },
   bronze: {
-    anel: "ring-orange-600/50",
-    texto: "text-orange-400",
-    fundo: "bg-orange-600/10",
+    anel: "ring-bronze/50",
+    texto: "text-bronze",
+    fundo: "bg-bronze/10",
     nome: "Bronze",
   },
 };

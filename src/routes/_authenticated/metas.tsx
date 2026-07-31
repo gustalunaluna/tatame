@@ -34,7 +34,7 @@ const GraficoEvolucao = lazy(() => import("@/components/GraficoEvolucao"));
 export const Route = createFileRoute("/_authenticated/metas")({
   head: () => ({
     meta: [
-      { title: "Metas — Tatame" },
+      { title: "Metas — Ponteira" },
       {
         name: "description",
         content: "Suas metas de longo prazo: graduação, competição e volume de treino.",
@@ -330,7 +330,7 @@ function Pontos({ kind }: { kind: "fraco" | "forte" }) {
                     "shrink-0 rounded-full px-2 py-0.5 text-xs font-bold",
                     kind === "fraco"
                       ? "bg-primary/15 text-primary"
-                      : "bg-gold/15 text-gold",
+                      : "bg-ouro/15 text-ouro",
                   )}
                 >
                   {w.score}/5

@@ -35,7 +35,7 @@ import type { Training, TrainingType } from "@/lib/bjj-types";
 export const Route = createFileRoute("/_authenticated/diario")({
   head: () => ({
     meta: [
-      { title: "Diário — Tatame" },
+      { title: "Diário — Ponteira" },
       { name: "description", content: "Registre cada treino: Gi/No-Gi, rolos, técnicas e sensações." },
     ],
   }),
@@ -79,7 +79,7 @@ function DiaryPage() {
                 } catch (erro) {
                   // O treino já está salvo; só os parceiros falharam. Dizer isso
                   // é mais útil do que um sucesso genérico ou um erro genérico.
-                  console.error("[Tatame] Falha ao salvar os parceiros:", erro);
+                  console.error("[Ponteira] Falha ao salvar os parceiros:", erro);
                   toast.error("Treino salvo, mas os parceiros não. Edite depois.");
                   return;
                 }
@@ -235,7 +235,7 @@ function DiaryPage() {
               try {
                 await salvarParceirosDoTreino(alvo.id, parceiros);
               } catch (erro) {
-                console.error("[Tatame] Falha ao salvar os parceiros:", erro);
+                console.error("[Ponteira] Falha ao salvar os parceiros:", erro);
                 toast.error("Treino salvo, mas os parceiros não.");
                 return;
               }

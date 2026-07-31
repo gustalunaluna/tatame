@@ -16,7 +16,7 @@ import type { Achievement } from "@/lib/bjj-types";
 export const Route = createFileRoute("/_authenticated/conquistas")({
   head: () => ({
     meta: [
-      { title: "Conquistas — Tatame" },
+      { title: "Conquistas — Ponteira" },
       {
         name: "description",
         content: "Sua jornada da faixa branca à vermelha: conquistas por faixa.",

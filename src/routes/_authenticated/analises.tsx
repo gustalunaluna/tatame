@@ -9,7 +9,7 @@ import type { Analysis } from "@/lib/bjj-types";
 export const Route = createFileRoute("/_authenticated/analises")({
   head: () => ({
     meta: [
-      { title: "Análises — Tatame" },
+      { title: "Análises — Ponteira" },
       { name: "description", content: "Análises do treinador e evolução do atleta ao longo do tempo." },
     ],
   }),

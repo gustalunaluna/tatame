@@ -42,7 +42,7 @@ function mensagemDoErro(erro: unknown): string {
 function aoFalhar(oque: string) {
   return (erro: unknown) => {
     const msg = mensagemDoErro(erro);
-    console.error(`[Tatame] Falha ao ${oque}:`, erro);
+    console.error(`[Ponteira] Falha ao ${oque}:`, erro);
     toast.error(`Não deu para ${oque}: ${msg}`);
   };
 }
@@ -166,7 +166,7 @@ export async function recalcularConquistas(): Promise<number> {
   if (error) {
     // Não vira aviso na tela: é trabalho de fundo, e falhar aqui não impede
     // ninguém de treinar nem de registrar.
-    console.error("[Tatame] Falha ao recalcular conquistas:", error);
+    console.error("[Ponteira] Falha ao recalcular conquistas:", error);
     return 0;
   }
   return Number(data ?? 0);
@@ -187,7 +187,7 @@ export function useEnsureSeeded() {
           await recalcularConquistas();
         }
       } catch (erro) {
-        console.error("[Tatame] Falha ao preparar os dados iniciais:", erro);
+        console.error("[Ponteira] Falha ao preparar os dados iniciais:", erro);
         toast.error(
           "Não deu para preparar seus dados iniciais. Recarregue a página.",
         );

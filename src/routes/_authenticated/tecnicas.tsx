@@ -48,7 +48,7 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/_authenticated/tecnicas")({
   head: () => ({
     meta: [
-      { title: "Técnicas — Tatame" },
+      { title: "Técnicas — Ponteira" },
       { name: "description", content: "Biblioteca de técnicas de Jiu-Jitsu com nota de domínio." },
     ],
   }),

@@ -17,7 +17,7 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/_authenticated/minhas-medalhas")({
   head: () => ({
     meta: [
-      { title: "Minhas medalhas — Tatame" },
+      { title: "Minhas medalhas — Ponteira" },
       {
         name: "description",
         content: "Campeonatos, colocações e as três que aparecem no seu perfil.",

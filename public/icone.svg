@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img"
+     aria-label="Ponteira — a barra preta da faixa com quatro graus">
+  <!-- Fundo escuro, o mesmo do app: é ele que faz o tecido claro saltar.
+       A primeira versão tinha fundo de palha e o tecido sumia nele. -->
+  <rect width="512" height="512" rx="112" fill="#1c1c20"/>
+
+  <!-- A faixa atravessa o ícone inteiro: ela não começa nem termina aqui.
+       A parte clara é o tecido; a escura é a ponteira, onde os graus moram —
+       e é o nome do app. -->
+  <g>
+    <rect x="0" y="182" width="512" height="148" fill="#efe6ce"/>
+    <rect x="252" y="182" width="260" height="148" fill="#0e0e11"/>
+
+    <!-- Contorno claro: sem ele a ponteira preta se dissolve no fundo preto. -->
+    <path d="M0 182 h512 M0 330 h512" stroke="#efe6ce" stroke-width="6"/>
+    <path d="M509 182 v148" stroke="#efe6ce" stroke-width="6"/>
+
+    <!-- Os quatro graus, em fita branca. -->
+    <g fill="#ffffff">
+      <rect x="288" y="206" width="26" height="100" rx="4"/>
+      <rect x="338" y="206" width="26" height="100" rx="4"/>
+      <rect x="388" y="206" width="26" height="100" rx="4"/>
+      <rect x="438" y="206" width="26" height="100" rx="4"/>
+    </g>
+
+    <!-- Costura: é o que faz ler como tecido, e não como barra de progresso. -->
+    <rect x="0" y="196" width="252" height="3" fill="#0e0e11" opacity="0.16"/>
+    <rect x="0" y="313" width="252" height="3" fill="#0e0e11" opacity="0.16"/>
+  </g>
+</svg>

@@ -1,11 +1,24 @@
-# 🥋 Tatame — Diário de BJJ
+# 🥋 Ponteira — seu jiu-jitsu, registrado
 
-App pessoal de Jiu-Jitsu: diário de treino, biblioteca de técnicas, análises do treinador,
-plano de 8 semanas, metas e **+1.000 conquistas** gamificadas (da faixa branca à vermelha),
-com barras de progresso.
+**Ponteira** é a barra preta da faixa, onde os graus são colados. É onde o
+jiu-jitsu registra progresso — daí o nome.
 
-Versão independente (migrada do Lovable): **Vite + React + TanStack Router + Tailwind v4 +
-Supabase**, pronta para deploy na **Vercel**. PWA mobile-first (instalável na tela inicial).
+Diário de treino, parceiros de rola, medalhas de campeonato, histórico de
+graduação (com quem entregou cada grau), plano mensal por faixa e grau, metas
+de longo prazo e +1.000 conquistas — da branca à vermelha.
+
+**A cor do app é a sua faixa.** Um faixa branca abre um app cor de palha; um
+roxa abre um app roxo; um preta, o vermelho da ponteira. A cor muda no dia da
+graduação. É a única paleta que o jiu-jitsu já traz pronta e que ninguém
+precisa aprender — e é conquistada, não escolhida. O pódio (ouro, prata,
+bronze) é a exceção deliberada: essas três cores todo mundo lê sem legenda.
+
+A paleta mora em `src/lib/cores.json` e é conferida por script:
+`node verificar-contraste.mjs` reprova qualquer cor abaixo de 4,5:1 como texto,
+ou perto demais de outra para se distinguir.
+
+Vite + React + TanStack Router + Tailwind v4 + Supabase, pronto para a Vercel.
+PWA mobile-first, instalável na tela inicial.
 
 ---
 

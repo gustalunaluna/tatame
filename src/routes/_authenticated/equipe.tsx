@@ -23,7 +23,7 @@ import type { Equipe } from "@/lib/social-types";
 export const Route = createFileRoute("/_authenticated/equipe")({
   head: () => ({
     meta: [
-      { title: "Equipe — Tatame" },
+      { title: "Equipe — Ponteira" },
       {
         name: "description",
         content: "Sua equipe, os companheiros de academia e o cadastro de novas equipes.",

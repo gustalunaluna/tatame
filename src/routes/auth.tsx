@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Entrar — Tatame" },
+      { title: "Entrar — Ponteira" },
       { name: "description", content: "Entre no seu diário de Jiu-Jitsu." },
     ],
   }),
@@ -57,7 +57,7 @@ function AuthPage() {
   return (
     <div className="topo-seguro lados-seguros mx-auto flex min-h-dvh w-full max-w-md flex-col justify-center pb-[calc(2.5rem+var(--safe-b))]">
       <div className="mb-8 text-center">
-        <p className="text-xs font-bold uppercase tracking-[0.3em] text-primary">Tatame</p>
+        <p className="text-xs font-bold uppercase tracking-[0.3em] text-primary">Ponteira</p>
         <h1 className="mt-2 text-3xl font-black">Oss, guerreiro.</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           {mode === "login" ? "Entra pra continuar sua jornada." : "Cria sua conta e sobe no tatame."}

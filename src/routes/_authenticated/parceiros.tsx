@@ -32,7 +32,7 @@ import { erroDoHandle, normalizarHandle } from "@/lib/social-types";
 export const Route = createFileRoute("/_authenticated/parceiros")({
   head: () => ({
     meta: [
-      { title: "Parceiros — Tatame" },
+      { title: "Parceiros — Ponteira" },
       {
         name: "description",
         content: "Seus parceiros de treino, o placar entre vocês e os convites.",
