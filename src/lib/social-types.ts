@@ -204,6 +204,10 @@ export interface AtletaDaEquipe {
   photoUrl: string;
   role?: string;
   verificado: boolean;
+  /** Preenchido quando a lista vem de uma equipe — usado no selo de aluno. */
+  equipeOficial?: boolean;
+  /** Nome da academia, quando a lista é de alunos de um mestre. */
+  teamNome?: string;
 }
 
 export interface DestaquePublico {

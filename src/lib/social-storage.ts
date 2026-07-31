@@ -740,6 +740,8 @@ const paraAtleta = (r: Record<string, unknown>): AtletaDaEquipe => ({
   photoUrl: (r.photo_url as string) ?? "",
   role: (r.role as string) ?? undefined,
   verificado: Boolean(r.verificado),
+  equipeOficial: r.equipe_oficial === undefined ? undefined : Boolean(r.equipe_oficial),
+  teamNome: (r.team_nome as string) ?? undefined,
 });
 
 /** A vitrine da academia — institucional, aberta a qualquer pessoa logada. */
@@ -876,4 +878,43 @@ export function useListaDeAtletas(teamId: string | undefined) {
     "atletas_da_equipe",
     teamId ? { p_team: teamId } : null,
   );
+}
+
+/**
+ * Os alunos de um mestre.
+ *
+ * "Aluno" aqui não é campo digitado: é membro ativo de uma equipe que a pessoa
+ * comanda. É a mesma relação que o app já usa no sentido contrário — o mestre
+ * de alguém é o dono da equipe dela — só que lida de trás para frente.
+ */
+export function useAlunosDoMestre(handle: string | undefined) {
+  return useListaPaginada(
+    "alunos_do_mestre",
+    "alunos_do_mestre",
+    handle ? { p_handle: handle } : null,
+  );
+}
+
+/** Se a pessoa comanda alguma equipe, e quantos alunos tem. */
+export function useResumoDeMestre(handle: string | null | undefined) {
+  const query = useQuery({
+    queryKey: ["resumo_de_mestre", handle],
+    enabled: !!handle,
+    queryFn: async (): Promise<{ eMestre: boolean; alunos: number; equipes: number }> => {
+      const { data, error } = await supabase
+        .rpc("resumo_de_mestre" as never, { p_handle: handle } as never)
+        .single();
+      if (error) throw error;
+      const r = (data ?? {}) as Record<string, unknown>;
+      return {
+        eMestre: Boolean(r.e_mestre),
+        alunos: Number(r.alunos ?? 0),
+        equipes: Number(r.equipes ?? 0),
+      };
+    },
+  });
+  return {
+    ...(query.data ?? { eMestre: false, alunos: 0, equipes: 0 }),
+    ready: query.isSuccess,
+  };
 }

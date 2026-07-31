@@ -13,6 +13,8 @@ import {
   usePerfilPublico,
   useParcerias,
   useResumoParceiros,
+  useAlunosDoMestre,
+  useResumoDeMestre,
 } from "@/lib/social-storage";
 import {
   useMedalhasDoAtleta,
@@ -51,6 +53,40 @@ function GraduacaoDoPerfil({ handle }: { handle: string }) {
           />
         ))}
       </div>
+    </CaixaDoPerfil>
+  );
+}
+
+/**
+ * Os alunos, quando a pessoa comanda uma academia.
+ *
+ * Fica ao lado de "Parceiros de rola" de propósito: são duas relações
+ * diferentes e um mestre tem as duas. Parceiro é com quem ele rola; aluno é
+ * quem ele gradua. Juntar as duas numa lista só apagaria a diferença que mais
+ * importa no perfil de um professor.
+ */
+function AlunosDoPerfil({ handle, nome }: { handle: string; nome: string }) {
+  const { eMestre, alunos } = useResumoDeMestre(handle);
+  const { itens } = useAlunosDoMestre(eMestre ? handle : undefined);
+
+  if (!eMestre) return null;
+
+  return (
+    <CaixaDoPerfil
+      titulo="Alunos"
+      icone={<Icone.graduacao className="h-4 w-4" />}
+      i={3}
+      contagem={alunos ? String(alunos) : undefined}
+      verTodos={
+        alunos > 8
+          ? { para: `/atleta/${handle}/alunos`, rotulo: `Ver todos os ${alunos}` }
+          : undefined
+      }
+      vazio={`${nome} ainda não tem alunos na academia.`}
+    >
+      {itens.length ? (
+        <AmostraDeAtletas atletas={itens} total={alunos} limite={8} />
+      ) : null}
     </CaixaDoPerfil>
   );
 }
@@ -420,6 +456,9 @@ function AtletaPage() {
               />
             ) : null}
           </CaixaDoPerfil>
+
+          {/* ===== Alunos, se ela comanda uma academia ===== */}
+          <AlunosDoPerfil handle={perfil.handle} nome={perfil.nickname} />
 
           {/* ===== Medalhas: aqui embaixo só quando não abriram o perfil ===== */}
           {!podioNoTopo && (
