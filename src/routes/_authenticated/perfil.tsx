@@ -14,7 +14,9 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { PageShell } from "@/components/PageShell";
+import { Link } from "@tanstack/react-router";
 import { CaixaDoPerfil } from "@/components/CaixaDoPerfil";
+import { SeloVerificado } from "@/components/SeloVerificado";
 import { useEquipes, useMeuHandle, useParcerias } from "@/lib/social-storage";
 import { useAchievementStats } from "@/lib/bjj-storage";
 import { Faixa as FaixaVisual } from "@/components/Faixa";
@@ -154,6 +156,7 @@ function PerfilPage() {
               {handle && (
                 <p className="mt-1.5 text-sm font-semibold text-primary">@{handle}</p>
               )}
+              <MinhaAcademia />
             </div>
           </div>
 
@@ -272,6 +275,27 @@ function PerfilPage() {
  * As quatro ligações do atleta, cada uma abrindo a tela cheia ao toque.
  * Antes cada uma dessas era uma aba própria na barra de baixo.
  */
+/** A academia logo abaixo do @, com o selo e levando ao perfil dela. */
+function MinhaAcademia() {
+  const { minhaEquipe } = useEquipes();
+  const { perfil } = usePerfil();
+  if (minhaEquipe?.status === "aprovada") {
+    return (
+      <Link
+        to="/academia/$slug"
+        params={{ slug: minhaEquipe.slug }}
+        className="tap mt-1 flex items-center gap-1 text-sm text-muted-foreground active:scale-[0.98]"
+      >
+        <span className="truncate">{minhaEquipe.name}</span>
+        <SeloVerificado tipo="equipe" className="h-3.5 w-3.5" />
+      </Link>
+    );
+  }
+  return perfil?.gym ? (
+    <p className="mt-1 truncate text-sm text-muted-foreground">{perfil.gym}</p>
+  ) : null;
+}
+
 function CaixasDoPerfil() {
   const { perfil } = usePerfil();
   const { minhaEquipe, equipes, vinculos } = useEquipes();
@@ -292,7 +316,9 @@ function CaixasDoPerfil() {
         <CaixaDoPerfil
           titulo="Equipe"
           icone={<Shield className="h-4 w-4" />}
-          para="/equipe"
+          para={
+            equipe?.status === "aprovada" ? `/academia/${equipe.slug}` : "/equipe"
+          }
           i={0}
           contagem={equipe?.status === "aprovada" ? "oficial" : undefined}
           vazio="Toque para escolher."
@@ -311,8 +337,11 @@ function CaixasDoPerfil() {
                   <Shield className="h-6 w-6 text-muted-foreground" />
                 </div>
               )}
-              <p className="line-clamp-2 text-xs font-bold leading-tight">
-                {equipe?.name ?? perfil?.gym}
+              <p className="flex items-center justify-center gap-1 text-xs font-bold leading-tight">
+                <span className="line-clamp-2">{equipe?.name ?? perfil?.gym}</span>
+                {equipe?.status === "aprovada" && (
+                  <SeloVerificado tipo="equipe" className="h-3.5 w-3.5" />
+                )}
               </p>
               {!equipe && (
                 <p className="text-[10px] text-muted-foreground">declarada</p>

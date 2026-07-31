@@ -74,6 +74,11 @@ export interface ParceiroDoTreino {
 export interface RascunhoParceiro {
   partnerId: string | null;
   partnerName: string;
+  /**
+   * A faixa dele NAQUELE dia. Só é digitada para parceiro escrito à mão —
+   * para quem tem conta, o banco copia do perfil no momento do registro.
+   */
+  partnerBelt: Faixa | null;
   rolls: number;
   subsFor: number;
   subsAgainst: number;
@@ -144,6 +149,9 @@ export interface PerfilPublico {
   teamName: string;
   teamCrest: string;
   teamStatus: string;
+  teamSlug: string;
+  masterHandle: string;
+  masterNickname: string;
   fightsWon: number;
   fightsLost: number;
   treinos: number;
@@ -152,6 +160,37 @@ export interface PerfilPublico {
   conquistasFeitas: number;
   souEu: boolean;
   eMeuParceiro: boolean;
+}
+
+export interface PerfilEquipe {
+  id: string;
+  name: string;
+  slug: string;
+  city: string;
+  master: string;
+  crestUrl: string;
+  criadaEm: string | null;
+  alunos: number;
+  faixasPretas: number;
+  competidores: number;
+  /** metas de competição que os atletas marcaram como conquistadas */
+  titulos: number;
+  vitorias: number;
+  derrotas: number;
+  souMembro: boolean;
+  souDono: boolean;
+  meuStatus: string;
+}
+
+export interface AtletaDaEquipe {
+  userId: string;
+  handle: string;
+  nickname: string;
+  belt: Faixa;
+  degrees: number;
+  photoUrl: string;
+  role?: string;
+  verificado: boolean;
 }
 
 export interface DestaquePublico {

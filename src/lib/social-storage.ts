@@ -3,8 +3,10 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import type { Faixa } from "./bjj-types";
 import type {
+  AtletaDaEquipe,
   CartaoPublico,
   DestaquePublico,
+  PerfilEquipe,
   PerfilPublico,
   Equipe,
   MembroEquipe,
@@ -380,6 +382,9 @@ export async function salvarParceirosDoTreino(
       owner_id: eu,
       partner_id: l.partnerId,
       partner_name: l.partnerId ? "" : l.partnerName.trim(),
+      // Só mandamos a faixa do parceiro sem conta: para quem tem conta, um
+      // gatilho no banco copia a faixa real do perfil dele.
+      partner_belt: l.partnerId ? null : l.partnerBelt,
       rolls: l.rolls,
       subs_for: l.subsFor,
       subs_against: l.subsAgainst,
@@ -626,6 +631,9 @@ export function usePerfilPublico(handle: string | undefined) {
         teamName: (r.team_name as string) ?? "",
         teamCrest: (r.team_crest as string) ?? "",
         teamStatus: (r.team_status as string) ?? "",
+        teamSlug: (r.team_slug as string) ?? "",
+        masterHandle: (r.master_handle as string) ?? "",
+        masterNickname: (r.master_nickname as string) ?? "",
         fightsWon: (r.fights_won as number) ?? 0,
         fightsLost: (r.fights_lost as number) ?? 0,
         treinos: Number(r.treinos ?? 0),
@@ -675,5 +683,92 @@ export function usePerfilPublico(handle: string | undefined) {
     destaques: destaques.data ?? [],
     parceiros: parceiros.data ?? [],
     ready: perfil.isSuccess,
+  };
+}
+
+
+/* ------------------------------------------------------------------ */
+/* Perfil da academia                                                  */
+/* ------------------------------------------------------------------ */
+
+const paraAtleta = (r: Record<string, unknown>): AtletaDaEquipe => ({
+  userId: r.user_id as string,
+  handle: (r.handle as string) ?? "",
+  nickname: (r.nickname as string) || (r.handle as string) || "Atleta",
+  belt: ((r.belt as string) ?? "Branca") as AtletaDaEquipe["belt"],
+  degrees: (r.degrees as number) ?? 0,
+  photoUrl: (r.photo_url as string) ?? "",
+  role: (r.role as string) ?? undefined,
+  verificado: Boolean(r.verificado),
+});
+
+/** A vitrine da academia — institucional, aberta a qualquer pessoa logada. */
+export function usePerfilEquipe(slug: string | undefined) {
+  const limpo = (slug ?? "").trim().toLowerCase();
+
+  const equipe = useQuery({
+    queryKey: ["perfil_equipe", limpo],
+    enabled: limpo.length >= 2,
+    queryFn: async (): Promise<PerfilEquipe | null> => {
+      const { data, error } = await supabase.rpc("perfil_equipe" as never, {
+        p_slug: limpo,
+      } as never);
+      if (error) throw error;
+      const linhas = (data ?? []) as unknown as Record<string, unknown>[];
+      if (!linhas.length) return null;
+      const r = linhas[0];
+      return {
+        id: r.id as string,
+        name: r.name as string,
+        slug: r.slug as string,
+        city: (r.city as string) ?? "",
+        master: (r.master as string) ?? "",
+        crestUrl: (r.crest_url as string) ?? "",
+        criadaEm: (r.criada_em as string) ?? null,
+        alunos: Number(r.alunos ?? 0),
+        faixasPretas: Number(r.faixas_pretas ?? 0),
+        competidores: Number(r.competidores ?? 0),
+        titulos: Number(r.titulos ?? 0),
+        vitorias: Number(r.vitorias ?? 0),
+        derrotas: Number(r.derrotas ?? 0),
+        souMembro: Boolean(r.sou_membro),
+        souDono: Boolean(r.sou_dono),
+        meuStatus: (r.meu_status as string) ?? "",
+      };
+    },
+  });
+
+  const id = equipe.data?.id;
+
+  const graduados = useQuery({
+    queryKey: ["graduados_equipe", id],
+    enabled: !!id,
+    queryFn: async (): Promise<AtletaDaEquipe[]> => {
+      const { data, error } = await supabase.rpc("graduados_da_equipe" as never, {
+        p_team: id,
+      } as never);
+      if (error) throw error;
+      return ((data ?? []) as unknown as Record<string, unknown>[]).map(paraAtleta);
+    },
+  });
+
+  const atletas = useQuery({
+    queryKey: ["atletas_equipe", id],
+    enabled: !!id,
+    queryFn: async (): Promise<AtletaDaEquipe[]> => {
+      const { data, error } = await supabase.rpc("atletas_da_equipe" as never, {
+        p_team: id,
+      } as never);
+      if (error) throw error;
+      return ((data ?? []) as unknown as Record<string, unknown>[]).map(paraAtleta);
+    },
+  });
+
+  return {
+    equipe: equipe.data ?? null,
+    naoExiste: equipe.isSuccess && !equipe.data,
+    graduados: graduados.data ?? [],
+    atletas: atletas.data ?? [],
+    ready: equipe.isSuccess,
   };
 }

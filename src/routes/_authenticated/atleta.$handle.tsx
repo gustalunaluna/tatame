@@ -107,6 +107,22 @@ function AtletaPage() {
                 <p className="mt-1.5 text-sm font-semibold text-primary">
                   @{perfil.handle}
                 </p>
+                {perfil.teamSlug ? (
+                  <Link
+                    to="/academia/$slug"
+                    params={{ slug: perfil.teamSlug }}
+                    className="tap mt-1 flex items-center gap-1 text-sm text-muted-foreground active:scale-[0.98]"
+                  >
+                    <span className="truncate">{perfil.teamName}</span>
+                    <SeloVerificado tipo="equipe" className="h-3.5 w-3.5" />
+                  </Link>
+                ) : (
+                  perfil.gym && (
+                    <p className="mt-1 truncate text-sm text-muted-foreground">
+                      {perfil.gym}
+                    </p>
+                  )
+                )}
               </div>
             </div>
 
@@ -176,6 +192,7 @@ function AtletaPage() {
             <CaixaDoPerfil
               titulo="Equipe"
               icone={<Shield className="h-4 w-4" />}
+              para={perfil.teamSlug ? `/academia/${perfil.teamSlug}` : undefined}
               i={0}
               contagem={perfil.teamStatus === "aprovada" ? "oficial" : undefined}
               vazio="Não informou."
@@ -212,18 +229,28 @@ function AtletaPage() {
             <CaixaDoPerfil
               titulo="Mestre"
               icone={<GraduationCap className="h-4 w-4" />}
+              para={
+                perfil.masterHandle ? `/atleta/${perfil.masterHandle}` : undefined
+              }
               i={1}
               vazio="Não informou."
             >
-              {perfil.master ? (
+              {perfil.masterNickname || perfil.master ? (
                 <div className="flex flex-col items-center gap-2 text-center">
                   <div className="grid h-12 w-12 place-items-center rounded-xl bg-secondary">
                     <GraduationCap className="h-6 w-6 text-muted-foreground" />
                   </div>
-                  <p className="line-clamp-2 text-xs font-bold leading-tight">
-                    {perfil.master}
+                  <p className="flex items-center justify-center gap-1 text-xs font-bold leading-tight">
+                    <span className="line-clamp-2">
+                      {perfil.masterNickname || perfil.master}
+                    </span>
+                    {perfil.masterHandle && (
+                      <SeloVerificado tipo="mestre" className="h-3.5 w-3.5" />
+                    )}
                   </p>
-                  <p className="text-[10px] text-muted-foreground">declarado</p>
+                  <p className="text-[10px] text-muted-foreground">
+                    {perfil.masterHandle ? "da academia" : "declarado"}
+                  </p>
                 </div>
               ) : null}
             </CaixaDoPerfil>

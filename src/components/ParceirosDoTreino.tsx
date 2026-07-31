@@ -11,9 +11,11 @@ import {
 } from "@/components/ui/select";
 import { useParcerias } from "@/lib/social-storage";
 import type { RascunhoParceiro } from "@/lib/social-types";
+import { FAIXAS, type Faixa } from "@/lib/bjj-types";
 import { cn } from "@/lib/utils";
 
 const NAO_CADASTRADO = "__livre__";
+const SEM_FAIXA = "__sem_faixa__";
 
 /** Contador de +/- com alvo de toque grande — é usado com o dedo suado. */
 function Contador({
@@ -91,7 +93,14 @@ export function ParceirosDoTreino({
   const adicionar = () =>
     aoMudar([
       ...linhas,
-      { partnerId: null, partnerName: "", rolls: 1, subsFor: 0, subsAgainst: 0 },
+      {
+        partnerId: null,
+        partnerName: "",
+        partnerBelt: null,
+        rolls: 1,
+        subsFor: 0,
+        subsAgainst: 0,
+      },
     ]);
 
   return (
@@ -153,15 +162,42 @@ export function ParceirosDoTreino({
                 ) : null}
 
                 {!l.partnerId && (
-                  <Input
-                    value={l.partnerName}
-                    onChange={(e) =>
-                      atualizar(i, { partnerName: e.target.value })
-                    }
-                    placeholder="Nome do parceiro"
-                    className={cn(ready && aceitos.length > 0 && "mt-2")}
-                    aria-label={`Nome do parceiro ${i + 1}`}
-                  />
+                  <>
+                    <Input
+                      value={l.partnerName}
+                      onChange={(e) =>
+                        atualizar(i, { partnerName: e.target.value })
+                      }
+                      placeholder="Nome do parceiro"
+                      className={cn(ready && aceitos.length > 0 && "mt-2")}
+                      aria-label={`Nome do parceiro ${i + 1}`}
+                    />
+                    {/* Quem não tem conta não tem faixa em lugar nenhum — se
+                        não perguntar aqui, o dado se perde para sempre. */}
+                    <Select
+                      value={l.partnerBelt ?? SEM_FAIXA}
+                      onValueChange={(v) =>
+                        atualizar(i, {
+                          partnerBelt: v === SEM_FAIXA ? null : (v as Faixa),
+                        })
+                      }
+                    >
+                      <SelectTrigger
+                        className="mt-2"
+                        aria-label={`Faixa do parceiro ${i + 1}`}
+                      >
+                        <SelectValue placeholder="Faixa dele" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={SEM_FAIXA}>Faixa: não sei</SelectItem>
+                        {FAIXAS.map((f) => (
+                          <SelectItem key={f} value={f}>
+                            Faixa {f}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </>
                 )}
               </div>
 
