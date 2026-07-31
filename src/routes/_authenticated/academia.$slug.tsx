@@ -1,10 +1,12 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import type { CSSProperties } from "react";
-import { ArrowLeft, MapPin, Shield, Trophy, Users } from "lucide-react";
+import { ArrowLeft, MapPin, Medal, Shield, Trophy, Users } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Faixa as FaixaVisual } from "@/components/Faixa";
+import { PlacarDeMedalhas } from "@/components/Medalha";
 import { SeloDaPessoa, SeloVerificado } from "@/components/SeloVerificado";
 import { usePerfilEquipe } from "@/lib/social-storage";
+import { useResumoMedalhasDaEquipe } from "@/lib/medalhas-storage";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/academia/$slug")({
@@ -107,6 +109,7 @@ function AcademiaPage() {
   const { slug } = Route.useParams();
   const navigate = useNavigate();
   const { equipe, graduados, atletas, naoExiste, ready } = usePerfilEquipe(slug);
+  const { resumo: medalhas } = useResumoMedalhasDaEquipe(slug);
 
   return (
     <div className="topo-seguro rodape-seguro lados-seguros mx-auto flex min-h-dvh w-full max-w-md flex-col gap-5">
@@ -170,6 +173,46 @@ function AcademiaPage() {
             </CardContent>
           </Card>
 
+          {/* ===== O quadro de medalhas ===== */}
+          {/* Aqui não se escolhem três, como no perfil de uma pessoa: numa
+              academia com dezenas de alunos a pergunta é quanto ela ganha, e a
+              resposta é o total por colocação. */}
+          <section>
+            <h2 className="mb-2 flex items-center gap-2 text-sm font-semibold uppercase tracking-widest text-muted-foreground">
+              <Medal className="h-4 w-4 text-primary" />
+              Quadro de medalhas
+            </h2>
+            <PlacarDeMedalhas
+              ouro={medalhas.ouro}
+              prata={medalhas.prata}
+              bronze={medalhas.bronze}
+            />
+            {medalhas.total > 0 ? (
+              <>
+                <p className="mt-2 text-[11px] text-muted-foreground">
+                  {medalhas.total}{" "}
+                  {medalhas.total === 1 ? "medalha" : "medalhas"} de{" "}
+                  {medalhas.atletas}{" "}
+                  {medalhas.atletas === 1 ? "atleta" : "atletas"} em{" "}
+                  {medalhas.eventos}{" "}
+                  {medalhas.eventos === 1 ? "campeonato" : "campeonatos"}.
+                </p>
+                <Link
+                  to="/academia/$slug/medalhas"
+                  params={{ slug: equipe.slug }}
+                  className="tap mt-2 block rounded-2xl border border-primary/40 bg-primary/5 py-3 text-center text-sm font-bold text-primary active:scale-[0.99]"
+                >
+                  Ver todos os pódios e quem ganhou
+                </Link>
+              </>
+            ) : (
+              <p className="mt-2 text-[11px] text-muted-foreground">
+                Nenhuma medalha ainda. Elas aparecem aqui quando um atleta
+                registra o pódio e aponta esta academia.
+              </p>
+            )}
+          </section>
+
           {/* ===== Os números da academia ===== */}
           <section>
             <h2 className="mb-2 text-sm font-semibold uppercase tracking-widest text-muted-foreground">
@@ -179,13 +222,11 @@ function AcademiaPage() {
               <Numero valor={equipe.alunos} rotulo="alunos" destaque />
               <Numero valor={equipe.faixasPretas} rotulo="faixas pretas" />
               <Numero valor={equipe.competidores} rotulo="competidores" />
-              <Numero valor={equipe.titulos} rotulo="campeonatos" destaque />
-              <Numero valor={equipe.vitorias} rotulo="vitórias" />
-              <Numero valor={equipe.derrotas} rotulo="derrotas" />
             </div>
             <p className="mt-2 text-[11px] text-muted-foreground">
-              Campeonatos, vitórias e derrotas são o que os próprios atletas
-              registram no perfil. O app não confirma resultado de competição.
+              Competidor é quem tem medalha registrada aqui. O app não confirma
+              resultado de competição — quem responde por cada medalha é o
+              atleta cujo nome está nela.
             </p>
           </section>
 

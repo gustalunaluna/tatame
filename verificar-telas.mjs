@@ -112,7 +112,7 @@ await pagina.route(`https://${REF}.supabase.co/**`, async (rota) => {
   return json([]);
 });
 
-const telas = ["/", "/diario", "/tecnicas", "/analises", "/plano", "/metas", "/conquistas", "/parceiros", "/equipe", "/perfil"];
+const telas = ["/", "/diario", "/tecnicas", "/analises", "/plano", "/metas", "/conquistas", "/parceiros", "/equipe", "/perfil", "/minhas-medalhas"];
 const resultado = [];
 
 for (const tela of telas) {

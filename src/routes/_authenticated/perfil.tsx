@@ -4,7 +4,9 @@ import {
   Camera,
   Check,
   GraduationCap,
+  Medal,
   Pencil,
+  Plus,
   Shield,
   Star,
   Swords,
@@ -19,6 +21,13 @@ import { CaixaDoPerfil } from "@/components/CaixaDoPerfil";
 import { AmostraDeAtletas } from "@/components/ListaDeAtletas";
 import { SeloVerificado } from "@/components/SeloVerificado";
 import { useEquipes, useMeuHandle, useParcerias } from "@/lib/social-storage";
+import { MedalhaEmDestaque } from "@/components/Medalha";
+import { CadastrarMedalha } from "@/components/CadastrarMedalha";
+import {
+  useMedalhasDoAtleta,
+  useMinhasMedalhas,
+  useResumoMedalhasDoAtleta,
+} from "@/lib/medalhas-storage";
 import { useAchievementStats } from "@/lib/bjj-storage";
 import { Faixa as FaixaVisual } from "@/components/Faixa";
 import { Button } from "@/components/ui/button";
@@ -297,6 +306,55 @@ function MinhaAcademia() {
   ) : null;
 }
 
+/**
+ * As medalhas em destaque do próprio perfil. Até três, escolhidas por quem
+ * ganhou — quem tem mais que isso vê a lista completa em outra tela.
+ */
+function MinhasMedalhas() {
+  const { handle } = useMeuHandle();
+  const { criar } = useMinhasMedalhas(handle);
+  const { resumo } = useResumoMedalhasDoAtleta(handle);
+  const { medalhas } = useMedalhasDoAtleta(handle, true);
+
+  return (
+    <CaixaDoPerfil
+      titulo="Medalhas"
+      icone={<Medal className="h-4 w-4" />}
+      i={4}
+      contagem={resumo.total ? String(resumo.total) : undefined}
+      verTodos={
+        resumo.total
+          ? { para: "/minhas-medalhas", rotulo: "Ver todas e escolher destaques" }
+          : undefined
+      }
+      vazio="Nenhuma medalha registrada."
+    >
+      {medalhas.length ? (
+        <div className="flex gap-2">
+          {medalhas.map((m, i) => (
+            <MedalhaEmDestaque key={m.id} m={m} i={i} />
+          ))}
+        </div>
+      ) : resumo.total ? (
+        <p className="text-center text-xs text-muted-foreground">
+          Você tem {resumo.total}{" "}
+          {resumo.total === 1 ? "medalha" : "medalhas"}, mas nenhuma em
+          destaque. Escolha até três para aparecerem aqui.
+        </p>
+      ) : (
+        <CadastrarMedalha
+          aoSalvar={criar}
+          gatilho={
+            <Button variant="outline" size="sm" className="w-full gap-1">
+              <Plus className="h-4 w-4" /> Registrar medalha
+            </Button>
+          }
+        />
+      )}
+    </CaixaDoPerfil>
+  );
+}
+
 function CaixasDoPerfil() {
   const { perfil } = usePerfil();
   const { minhaEquipe, equipes, vinculos } = useEquipes();
@@ -390,6 +448,8 @@ function CaixasDoPerfil() {
           />
         ) : null}
       </CaixaDoPerfil>
+
+      <MinhasMedalhas />
 
       <CaixaDoPerfil
         titulo="Conquistas"

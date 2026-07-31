@@ -3,6 +3,7 @@ import type { CSSProperties } from "react";
 import {
   ArrowLeft,
   GraduationCap,
+  Medal,
   Shield,
   Swords,
   Trophy,
@@ -16,17 +17,59 @@ import { Button } from "@/components/ui/button";
 import { Faixa as FaixaVisual } from "@/components/Faixa";
 import { CaixaDoPerfil } from "@/components/CaixaDoPerfil";
 import { AmostraDeAtletas } from "@/components/ListaDeAtletas";
+import { MedalhaEmDestaque } from "@/components/Medalha";
 import { SeloDaPessoa, SeloVerificado } from "@/components/SeloVerificado";
 import {
   usePerfilPublico,
   useParcerias,
   useResumoParceiros,
 } from "@/lib/social-storage";
+import {
+  useMedalhasDoAtleta,
+  useResumoMedalhasDoAtleta,
+} from "@/lib/medalhas-storage";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/atleta/$handle")({
   component: AtletaPage,
 });
+
+/**
+ * As até-três medalhas que a pessoa escolheu mostrar. Acima disso, o link leva
+ * à lista inteira — o perfil é vitrine, não arquivo.
+ */
+function MedalhasDoPerfil({ handle, nome }: { handle: string; nome: string }) {
+  const { resumo } = useResumoMedalhasDoAtleta(handle);
+  const { medalhas } = useMedalhasDoAtleta(handle, true);
+
+  if (!resumo.total) return null;
+
+  return (
+    <CaixaDoPerfil
+      titulo="Medalhas"
+      icone={<Medal className="h-4 w-4" />}
+      i={3}
+      contagem={`${resumo.ouro}🥇 ${resumo.prata}🥈 ${resumo.bronze}🥉`}
+      verTodos={
+        resumo.total > medalhas.length
+          ? {
+              para: `/atleta/${handle}/medalhas`,
+              rotulo: `Ver todas as ${resumo.total}`,
+            }
+          : undefined
+      }
+      vazio={`${nome} tem ${resumo.total} ${resumo.total === 1 ? "medalha" : "medalhas"}, mas não fixou nenhuma aqui.`}
+    >
+      {medalhas.length ? (
+        <div className="flex gap-2">
+          {medalhas.map((m, i) => (
+            <MedalhaEmDestaque key={m.id} m={m} i={i} />
+          ))}
+        </div>
+      ) : null}
+    </CaixaDoPerfil>
+  );
+}
 
 function iniciais(nome: string) {
   return nome
@@ -334,6 +377,9 @@ function AtletaPage() {
               />
             ) : null}
           </CaixaDoPerfil>
+
+          {/* ===== Medalhas em destaque ===== */}
+          <MedalhasDoPerfil handle={perfil.handle} nome={perfil.nickname} />
 
           {/* ===== Conquistas em destaque ===== */}
           <section>
