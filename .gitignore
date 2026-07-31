@@ -5,3 +5,6 @@ dist
 !.env.production
 src/routeTree.gen.ts
 capturas-mobile
+
+# capturas geradas por verificar-contas-reais.mjs
+telas/

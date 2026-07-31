@@ -1,0 +1,63 @@
+{
+ "perfil_publico": {"user_id":"adb95505-0edb-47c2-b840-2b0debbe1693","handle":"joaozinho","nickname":"Joãozinho","bio":"","belt":"Branca","degrees":2,"photo_url":"https://api.dicebear.com/9.x/adventurer/svg?seed=joaozinho&backgroundColor=1e1e1e&radius=12","verificado":false,"idade":null,"gym":"Academia Teste","master":"Mestre Silva","team_id":"9052f34a-cef4-4669-a1fc-bbe522947201","team_name":"Academia Teste","team_crest":"https://api.dicebear.com/9.x/shapes/svg?seed=academia-teste&backgroundColor=1a1a1a","team_status":"aprovada","team_slug":"academia-teste","master_handle":"mestre.silva","master_nickname":"Mestre Silva","fights_won":0,"fights_lost":0,"treinos":39,"parceiros":22,"conquistas_total":1006,"conquistas_feitas":40,"sou_eu":false,"e_meu_parceiro":true},
+
+ "medalhas_destaque": [
+  {"id":"e522f94f-3abd-4caf-a2ba-2748c2e562a3","colocacao":"ouro","evento":"Campeonato Paranaense 2026","categoria":"Adulto Azul Médio","federacao":"CBJJ","modalidade":"Gi","data":"2026-05-10","absoluto":false,"destaque":true,"team_slug":"academia-teste","team_nome":"Academia Teste","team_crest":"https://api.dicebear.com/9.x/shapes/svg?seed=academia-teste&backgroundColor=1a1a1a","sou_dono":false},
+  {"id":"269ba689-e193-4542-a545-e4240492d19d","colocacao":"prata","evento":"Copa Curitiba 2026","categoria":"Adulto Azul Médio","federacao":"CBJJ","modalidade":"Gi","data":"2026-03-15","absoluto":false,"destaque":true,"team_slug":"academia-teste","team_nome":"Academia Teste","team_crest":"https://api.dicebear.com/9.x/shapes/svg?seed=academia-teste&backgroundColor=1a1a1a","sou_dono":false},
+  {"id":"03323fbf-0cda-4997-9668-84188bf1610d","colocacao":"bronze","evento":"Open Sul 2025","categoria":"Adulto Branca Médio","federacao":"CBJJ","modalidade":"Gi","data":"2025-11-02","absoluto":false,"destaque":true,"team_slug":"academia-teste","team_nome":"Academia Teste","team_crest":"https://api.dicebear.com/9.x/shapes/svg?seed=academia-teste&backgroundColor=1a1a1a","sou_dono":false}
+ ],
+
+ "medalhas_todas": [
+  {"id":"e522f94f-3abd-4caf-a2ba-2748c2e562a3","colocacao":"ouro","evento":"Campeonato Paranaense 2026","categoria":"Adulto Azul Médio","federacao":"CBJJ","modalidade":"Gi","data":"2026-05-10","absoluto":false,"destaque":true,"team_slug":"academia-teste","team_nome":"Academia Teste","team_crest":"","sou_dono":false},
+  {"id":"269ba689-e193-4542-a545-e4240492d19d","colocacao":"prata","evento":"Copa Curitiba 2026","categoria":"Adulto Azul Médio","federacao":"CBJJ","modalidade":"Gi","data":"2026-03-15","absoluto":false,"destaque":true,"team_slug":"academia-teste","team_nome":"Academia Teste","team_crest":"","sou_dono":false},
+  {"id":"03323fbf-0cda-4997-9668-84188bf1610d","colocacao":"bronze","evento":"Open Sul 2025","categoria":"Adulto Branca Médio","federacao":"CBJJ","modalidade":"Gi","data":"2025-11-02","absoluto":false,"destaque":true,"team_slug":"academia-teste","team_nome":"Academia Teste","team_crest":"","sou_dono":false},
+  {"id":"3403bbac-569c-467a-8832-9821f85b6e10","colocacao":"ouro","evento":"Seletiva Estadual 2025","categoria":"Adulto Branca Médio","federacao":"CBJJ","modalidade":"Gi","data":"2025-08-20","absoluto":false,"destaque":false,"team_slug":"academia-teste","team_nome":"Academia Teste","team_crest":"","sou_dono":false}
+ ],
+
+ "resumo_medalhas": {"ouro":2,"prata":1,"bronze":1,"total":4},
+
+ "graduacoes": [
+  {"id":"74dc9188-f977-4b06-87ce-83651e9a2f33","belt":"Branca","degrees":2,"data":"2024-07-19","nota":"Depois da primeira competição","mestre_nome":"Mestre Silva","mestre_handle":"mestre.silva","mestre_verificado":true,"team_slug":"academia-teste","team_nome":"Academia Teste","team_crest":"","sou_dono":false},
+  {"id":"e6d3f52c-dfa4-4ae8-808c-3b203a44340e","belt":"Branca","degrees":1,"data":"2023-09-15","nota":"Cerimônia de fim de semestre","mestre_nome":"Mestre Silva","mestre_handle":"mestre.silva","mestre_verificado":true,"team_slug":"academia-teste","team_nome":"Academia Teste","team_crest":"","sou_dono":false},
+  {"id":"44f43ce3-a9b7-4587-9c2a-9dbe4a53c1c6","belt":"Branca","degrees":0,"data":"2023-02-06","nota":"Primeiro dia de aula","mestre_nome":"Mestre Silva","mestre_handle":"mestre.silva","mestre_verificado":true,"team_slug":"academia-teste","team_nome":"Academia Teste","team_crest":"","sou_dono":false}
+ ],
+
+ "destaques": [],
+
+ "parceiros": [
+  {"user_id":"3a1c826e-a924-45ec-a5ae-60af058a216f","handle":"bruno.teste","nickname":"Bruno","belt":"Branca","degrees":1,"photo_url":"","verificado":false,"equipe_oficial":false},
+  {"user_id":"2e86b054-8d46-4702-9abd-d2f753441211","handle":"camila.teste","nickname":"Camila","belt":"Branca","degrees":2,"photo_url":"","verificado":false,"equipe_oficial":true},
+  {"user_id":"ad5a517d-ab17-4376-abb7-b72bfc3bde17","handle":"diego.teste","nickname":"Diego","belt":"Azul","degrees":3,"photo_url":"","verificado":false,"equipe_oficial":false},
+  {"user_id":"85b64110-ed89-4e43-b01e-2186b71d5fd4","handle":"eduarda.teste","nickname":"Eduarda","belt":"Branca","degrees":4,"photo_url":"","verificado":false,"equipe_oficial":true},
+  {"user_id":"bbb3ee4f-eee4-4ebb-af67-72f6b867c9c3","handle":"felipe.teste","nickname":"Felipe","belt":"Roxa","degrees":0,"photo_url":"","verificado":false,"equipe_oficial":false},
+  {"user_id":"a9ff345a-cc07-4c59-ae7c-05c8dc184a8a","handle":"gabriela.teste","nickname":"Gabriela","belt":"Azul","degrees":1,"photo_url":"","verificado":false,"equipe_oficial":true},
+  {"user_id":"ea610c02-ebd1-4b7c-93ef-57bffdba8793","handle":"gustavo","nickname":"Gustavo","belt":"Branca","degrees":3,"photo_url":"","verificado":true,"equipe_oficial":true},
+  {"user_id":"51032926-092b-4a8b-a851-bc3087e3a88d","handle":"henrique.teste","nickname":"Henrique","belt":"Branca","degrees":2,"photo_url":"","verificado":false,"equipe_oficial":false}
+ ],
+
+ "equipe": {"id":"9052f34a-cef4-4669-a1fc-bbe522947201","name":"Academia Teste","slug":"academia-teste","city":"Curitiba","master":"Mestre Silva","crest_url":"","status":"aprovada","criada_em":"2026-07-30","alunos":13,"faixas_pretas":2,"competidores":8,"titulos":10,"vitorias":0,"derrotas":0,"sou_membro":false,"sou_dono":false,"meu_status":""},
+
+ "resumo_medalhas_equipe": {"ouro":10,"prata":5,"bronze":4,"total":19,"atletas":8,"eventos":13},
+
+ "medalhas_equipe": [
+  {"id":"e522f94f","colocacao":"ouro","evento":"Campeonato Paranaense 2026","categoria":"Adulto Azul Médio","federacao":"CBJJ","modalidade":"Gi","data":"2026-05-10","absoluto":false,"atleta_handle":"joaozinho","atleta_nome":"Joãozinho","atleta_foto":"","atleta_faixa":"Branca","atleta_graus":2,"posso_ocultar":false},
+  {"id":"9ff6265e","colocacao":"ouro","evento":"Campeonato Brasileiro 2026","categoria":"Adulto Roxa Leve","federacao":"CBJJ","modalidade":"Gi","data":"2026-04-18","absoluto":false,"atleta_handle":"mariana.teste","atleta_nome":"Mariana","atleta_foto":"","atleta_faixa":"Roxa","atleta_graus":2,"posso_ocultar":false},
+  {"id":"2f15d8ef","colocacao":"ouro","evento":"Copa Curitiba 2026","categoria":"Adulto Roxa Leve","federacao":"FPJJ","modalidade":"Gi","data":"2026-03-15","absoluto":true,"atleta_handle":"mariana.teste","atleta_nome":"Mariana","atleta_foto":"","atleta_faixa":"Roxa","atleta_graus":2,"posso_ocultar":false},
+  {"id":"036865af","colocacao":"bronze","evento":"Copa Curitiba 2026","categoria":"Adulto Branca Pesado","federacao":"FPJJ","modalidade":"Gi","data":"2026-03-15","absoluto":false,"atleta_handle":"thiago.teste","atleta_nome":"Thiago","atleta_foto":"","atleta_faixa":"Branca","atleta_graus":3,"posso_ocultar":false},
+  {"id":"1c26138e","colocacao":"bronze","evento":"Copa Curitiba 2026","categoria":"Adulto Azul Médio","federacao":"FPJJ","modalidade":"Gi","data":"2026-03-15","absoluto":false,"atleta_handle":"otavio.teste","atleta_nome":"Otavio","atleta_foto":"","atleta_faixa":"Azul","atleta_graus":4,"posso_ocultar":false},
+  {"id":"7ec35bf7","colocacao":"ouro","evento":"Copa Curitiba 2026","categoria":"Adulto Azul Pena","federacao":"FPJJ","modalidade":"Gi","data":"2026-03-15","absoluto":false,"atleta_handle":"maria.bjj","atleta_nome":"Maria","atleta_foto":"","atleta_faixa":"Azul","atleta_graus":1,"posso_ocultar":false},
+  {"id":"269ba689","colocacao":"prata","evento":"Copa Curitiba 2026","categoria":"Adulto Azul Médio","federacao":"CBJJ","modalidade":"Gi","data":"2026-03-15","absoluto":false,"atleta_handle":"joaozinho","atleta_nome":"Joãozinho","atleta_foto":"","atleta_faixa":"Branca","atleta_graus":2,"posso_ocultar":false},
+  {"id":"963a3bb8","colocacao":"ouro","evento":"Interno Academia Teste 2025","categoria":"Adulto Azul Médio","federacao":"","modalidade":"Gi","data":"2025-12-14","absoluto":false,"atleta_handle":"otavio.teste","atleta_nome":"Otavio","atleta_foto":"","atleta_faixa":"Azul","atleta_graus":4,"posso_ocultar":false},
+  {"id":"03323fbf","colocacao":"bronze","evento":"Open Sul 2025","categoria":"Adulto Branca Médio","federacao":"CBJJ","modalidade":"Gi","data":"2025-11-02","absoluto":false,"atleta_handle":"joaozinho","atleta_nome":"Joãozinho","atleta_foto":"","atleta_faixa":"Branca","atleta_graus":2,"posso_ocultar":false},
+  {"id":"acecacf4","colocacao":"prata","evento":"Sul-Brasileiro 2025","categoria":"Adulto Azul Leve","federacao":"CBJJ","modalidade":"Gi","data":"2025-09-21","absoluto":false,"atleta_handle":"yasmin.teste","atleta_nome":"Yasmin","atleta_foto":"","atleta_faixa":"Azul","atleta_graus":0,"posso_ocultar":false},
+  {"id":"db6437c7","colocacao":"prata","evento":"Sul-Brasileiro 2025","categoria":"Adulto Roxa Leve","federacao":"CBJJ","modalidade":"No-Gi","data":"2025-09-21","absoluto":false,"atleta_handle":"mariana.teste","atleta_nome":"Mariana","atleta_foto":"","atleta_faixa":"Roxa","atleta_graus":2,"posso_ocultar":false},
+  {"id":"ddaa06e7","colocacao":"ouro","evento":"Master Worlds 2025","categoria":"Master 2 Preta Médio","federacao":"IBJJF","modalidade":"Gi","data":"2025-08-30","absoluto":false,"atleta_handle":"rafael.teste","atleta_nome":"Rafael","atleta_foto":"","atleta_faixa":"Preta","atleta_graus":1,"posso_ocultar":false},
+  {"id":"3403bbac","colocacao":"ouro","evento":"Seletiva Estadual 2025","categoria":"Adulto Branca Médio","federacao":"CBJJ","modalidade":"Gi","data":"2025-08-20","absoluto":false,"atleta_handle":"joaozinho","atleta_nome":"Joãozinho","atleta_foto":"","atleta_faixa":"Branca","atleta_graus":2,"posso_ocultar":false},
+  {"id":"8125339e","colocacao":"prata","evento":"Paranaense 2025","categoria":"Adulto Azul Pena","federacao":"FPJJ","modalidade":"Gi","data":"2025-06-08","absoluto":false,"atleta_handle":"maria.bjj","atleta_nome":"Maria","atleta_foto":"","atleta_faixa":"Azul","atleta_graus":1,"posso_ocultar":false},
+  {"id":"5d127d34","colocacao":"ouro","evento":"Paranaense 2025","categoria":"Adulto Roxa Leve","federacao":"FPJJ","modalidade":"Gi","data":"2025-06-08","absoluto":false,"atleta_handle":"mariana.teste","atleta_nome":"Mariana","atleta_foto":"","atleta_faixa":"Roxa","atleta_graus":2,"posso_ocultar":false},
+  {"id":"9e9a321e","colocacao":"bronze","evento":"Pan Americano 2025","categoria":"Adulto Preta Médio","federacao":"IBJJF","modalidade":"Gi","data":"2025-03-22","absoluto":false,"atleta_handle":"rafael.teste","atleta_nome":"Rafael","atleta_foto":"","atleta_faixa":"Preta","atleta_graus":1,"posso_ocultar":false},
+  {"id":"fdae39dd","colocacao":"ouro","evento":"Brasileiro No-Gi 2024","categoria":"Adulto Preta Médio","federacao":"CBJJ","modalidade":"No-Gi","data":"2024-11-10","absoluto":false,"atleta_handle":"rafael.teste","atleta_nome":"Rafael","atleta_foto":"","atleta_faixa":"Preta","atleta_graus":1,"posso_ocultar":false},
+  {"id":"51929243","colocacao":"ouro","evento":"Master Worlds 2024","categoria":"Master 4 Preta Pesado","federacao":"IBJJF","modalidade":"Gi","data":"2024-08-31","absoluto":false,"atleta_handle":"mestre.silva","atleta_nome":"Mestre Silva","atleta_foto":"","atleta_faixa":"Preta","atleta_graus":2,"posso_ocultar":false},
+  {"id":"cb971e44","colocacao":"prata","evento":"Brasileiro 2023","categoria":"Master 3 Preta Pesado","federacao":"CBJJ","modalidade":"Gi","data":"2023-05-20","absoluto":false,"atleta_handle":"mestre.silva","atleta_nome":"Mestre Silva","atleta_foto":"","atleta_faixa":"Preta","atleta_graus":2,"posso_ocultar":false}
+ ]
+}
