@@ -1,19 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
-import {
-  BookOpen,
-  ClipboardList,
-  Home,
-  Menu,
-  Dumbbell,
-  FileText,
-  TrendingUp,
-  Trophy,
-  User,
-  Users,
-  Shield,
-  X,
-} from "lucide-react";
+import { Icone } from "@/design/icones";
 import { cn } from "@/lib/utils";
 
 /**
@@ -23,34 +10,34 @@ import { cn } from "@/lib/utils";
  * ficam no Diário, junto dos treinos que as originaram.
  */
 const ATALHOS = [
-  { to: "/", label: "Início", icon: Home },
-  { to: "/diario", label: "Diário", icon: Dumbbell },
-  { to: "/tecnicas", label: "Técnicas", icon: BookOpen },
-  { to: "/metas", label: "Evolução", icon: TrendingUp },
-  { to: "/perfil", label: "Perfil", icon: User },
+  { to: "/", label: "Início", icon: Icone.inicio },
+  { to: "/diario", label: "Diário", icon: Icone.treino },
+  { to: "/tecnicas", label: "Técnicas", icon: Icone.tecnica },
+  { to: "/metas", label: "Evolução", icon: Icone.evolucao },
+  { to: "/perfil", label: "Perfil", icon: Icone.perfil },
 ] as const;
 
 /** Tudo que existe, com o que cada tela realmente faz */
 const MENU = [
-  { to: "/", label: "Início", icon: Home,
+  { to: "/", label: "Início", icon: Icone.inicio,
     desc: "Como você está hoje: sequência, semana e o próximo passo" },
-  { to: "/diario", label: "Diário", icon: Dumbbell,
+  { to: "/diario", label: "Diário", icon: Icone.treino,
     desc: "Registrar o treino de hoje e reler os anteriores" },
-  { to: "/analises", label: "Análises", icon: FileText,
+  { to: "/analises", label: "Análises", icon: Icone.analise,
     desc: "A leitura do treinador sobre a sua evolução" },
-  { to: "/tecnicas", label: "Técnicas", icon: BookOpen,
+  { to: "/tecnicas", label: "Técnicas", icon: Icone.tecnica,
     desc: "Sua biblioteca de posições, com a nota de domínio de cada uma" },
-  { to: "/metas", label: "Evolução", icon: TrendingUp,
+  { to: "/metas", label: "Evolução", icon: Icone.evolucao,
     desc: "Aonde você quer chegar e como está o caminho" },
-  { to: "/plano", label: "Plano do mês", icon: ClipboardList,
+  { to: "/plano", label: "Plano do mês", icon: Icone.listaDeTecnicas,
     desc: "Um objetivo, quatro semanas, para a sua faixa" },
-  { to: "/perfil", label: "Perfil", icon: User,
+  { to: "/perfil", label: "Perfil", icon: Icone.perfil,
     desc: "Seu cartão: faixa, equipe, mestre, parceiros e conquistas" },
-  { to: "/parceiros", label: "Parceiros de rola", icon: Users,
+  { to: "/parceiros", label: "Parceiros de rola", icon: Icone.parceiro,
     desc: "Quem treina com você e há quanto tempo" },
-  { to: "/equipe", label: "Equipe", icon: Shield,
+  { to: "/equipe", label: "Equipe", icon: Icone.equipe,
     desc: "Sua academia e quem treina nela" },
-  { to: "/conquistas", label: "Conquistas", icon: Trophy,
+  { to: "/conquistas", label: "Conquistas", icon: Icone.conquista,
     desc: "Da faixa branca à vermelha, o que você já desbloqueou" },
 ] as const;
 
@@ -102,7 +89,7 @@ export function BottomNav() {
 
   return (
     <>
-      {/* ===== Menu lateral ===== */}
+      {/* ===== Icone.menu lateral ===== */}
       {aberto && (
         <div className="fixed inset-0 h-dvh" style={{ zIndex: "var(--z-overlay)" }}>
           <button
@@ -134,7 +121,7 @@ export function BottomNav() {
                 aria-label="Fechar"
                 className="tap grid h-11 w-11 place-items-center rounded-full border border-border/60 text-muted-foreground transition hover:text-foreground active:scale-95"
               >
-                <X className="h-4 w-4" />
+                <Icone.fechar className="h-4 w-4" />
               </button>
             </div>
 
@@ -233,7 +220,7 @@ export function BottomNav() {
                 aberto ? "text-primary" : "text-muted-foreground hover:text-foreground",
               )}
             >
-              <Menu className={cn("h-5 w-5", aberto && "drop-shadow-[0_0_8px_var(--primary)]")} />
+              <Icone.menu className={cn("h-5 w-5", aberto && "drop-shadow-[0_0_8px_var(--primary)]")} />
               <span>Menu</span>
             </button>
           </li>

@@ -1,4 +1,4 @@
-import cores from "./cores.json";
+import cores from "@/design/tokens.json";
 import type { Faixa } from "./bjj-types";
 
 /**
@@ -13,8 +13,8 @@ import type { Faixa } from "./bjj-types";
  * diferente do que um roxa abre, e ele muda no dia da graduação. Nenhum outro
  * esporte permite isso: a cor é conquistada, não escolhida.
  *
- * Os valores vivem em `cores.json` porque `verificar-contraste.mjs` lê o mesmo
- * arquivo — a paleta é conferida por script, não por opinião.
+ * Os valores vivem em `design/tokens.json`, que é a fonte única do visual:
+ * o CSS é gerado dele e o verificador de contraste lê o mesmo arquivo.
  */
 
 // O JSON entra como `number[]`, e o TypeScript não sabe que são sempre três.
@@ -25,7 +25,7 @@ const oklch = (v: number[]) => `oklch(${v[0]} ${v[1]} ${v[2]})`;
 const FAIXAS: Record<
   string,
   { acento: number[]; tecido: number[]; rotulo: string }
-> = cores.faixas;
+> = cores.cor.faixa;
 
 /** O acento da faixa, em CSS. É o que vira `--primary`. */
 export function acentoDaFaixa(faixa: Faixa | undefined | null): string {
@@ -43,11 +43,11 @@ export function tecidoDaFaixa(faixa: Faixa | undefined | null): string {
  */
 export function textoSobreAcento(faixa: Faixa | undefined | null): string {
   const [l] = (FAIXAS[faixa ?? "Branca"] ?? FAIXAS.Branca).acento;
-  return l > 0.72 ? oklch(cores.base.fundo) : "oklch(0.99 0 0)";
+  return l > 0.72 ? oklch(cores.cor.base.fundo.valor) : "oklch(0.99 0 0)";
 }
 
 export const CORES_MEDALHA = {
-  ouro: oklch(cores.medalhas.ouro),
-  prata: oklch(cores.medalhas.prata),
-  bronze: oklch(cores.medalhas.bronze),
+  ouro: oklch(cores.cor.podio.ouro.valor),
+  prata: oklch(cores.cor.podio.prata.valor),
+  bronze: oklch(cores.cor.podio.bronze.valor),
 };

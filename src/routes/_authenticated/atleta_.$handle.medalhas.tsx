@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, Medal } from "lucide-react";
+import { Icone } from "@/design/icones";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { LinhaDeMedalha, PlacarDeMedalhas } from "@/components/Medalha";
@@ -26,12 +26,12 @@ function MedalhasDoAtletaPage() {
         onClick={() => navigate({ to: "/atleta/$handle", params: { handle } })}
         className="tap -ml-1 flex w-fit items-center gap-1.5 text-sm text-muted-foreground active:scale-95"
       >
-        <ArrowLeft className="h-4 w-4" /> Voltar ao perfil
+        <Icone.voltar className="h-4 w-4" /> Voltar ao perfil
       </button>
 
       <div>
         <h1 className="flex items-center gap-2 text-2xl font-black">
-          <Medal className="h-6 w-6 text-primary" />
+          <Icone.medalha className="h-6 w-6 text-primary" />
           Medalhas
         </h1>
         <p className="mt-0.5 text-sm text-muted-foreground">

@@ -1,16 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import {
-  AtSign,
-  Check,
-  ChevronDown,
-  Mail,
-  Search,
-  Swords,
-  UserPlus,
-  Users,
-  X,
-} from "lucide-react";
+import { Icone } from "@/design/icones";
 import { toast } from "sonner";
 import { PageShell } from "@/components/PageShell";
 import { CartaoAtleta } from "@/components/CartaoAtleta";
@@ -96,7 +86,7 @@ function MeuArroba() {
             Seu @
           </Label>
           <div className="relative">
-            <AtSign className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Icone.arroba className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               id="handle"
               value={valor}
@@ -164,7 +154,7 @@ function Buscar() {
       </h2>
 
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Icone.buscar className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
           value={termo}
           onChange={(e) => setTermo(e.target.value)}
@@ -212,7 +202,7 @@ function Buscar() {
                   }
                 }}
               >
-                <UserPlus className="h-4 w-4" /> Convidar
+                <Icone.adicionarParceiro className="h-4 w-4" /> Convidar
               </Button>
             )
           }
@@ -231,7 +221,7 @@ function Confirmacoes() {
   return (
     <section className="space-y-3">
       <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-widest text-primary">
-        <Swords className="h-4 w-4" />
+        <Icone.rola className="h-4 w-4" />
         Esperando você ({itens.length})
       </h2>
       <p className="text-xs text-muted-foreground">
@@ -270,7 +260,7 @@ function Confirmacoes() {
                   if (await responder(r.id, true)) toast.success("Confirmado.");
                 }}
               >
-                <Check className="h-4 w-4" /> Confere
+                <Icone.confirmar className="h-4 w-4" /> Confere
               </Button>
               <Button
                 size="sm"
@@ -281,7 +271,7 @@ function Confirmacoes() {
                     toast("Marcado como contestado. Não entra no placar.");
                 }}
               >
-                <X className="h-4 w-4" /> Não foi assim
+                <Icone.fechar className="h-4 w-4" /> Não foi assim
               </Button>
             </div>
           </CardContent>
@@ -301,7 +291,7 @@ function Convites() {
   return (
     <details className="reveal group overflow-hidden rounded-2xl border border-border/60 bg-card/50">
       <summary className="tap flex cursor-pointer select-none items-center gap-2 px-4 py-3 active:opacity-70 [&::-webkit-details-marker]:hidden">
-        <Mail className="h-4 w-4 shrink-0 text-primary" />
+        <Icone.email className="h-4 w-4 shrink-0 text-primary" />
         <span className="min-w-0 flex-1 text-sm font-bold">
           Convites
           {recebidos.length > 0 && (
@@ -314,7 +304,7 @@ function Convites() {
           {recebidos.length} recebido{recebidos.length === 1 ? "" : "s"} ·{" "}
           {enviados.length} enviado{enviados.length === 1 ? "" : "s"}
         </span>
-        <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" />
+        <Icone.expandir className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" />
       </summary>
 
       <div className="space-y-2 border-t border-border/50 p-3">
@@ -338,7 +328,7 @@ function Convites() {
                       toast.success("Parceria firmada.");
                   }}
                 >
-                  <Check className="h-4 w-4" />
+                  <Icone.confirmar className="h-4 w-4" />
                 </Button>
                 <Button
                   size="icon"
@@ -346,7 +336,7 @@ function Convites() {
                   aria-label="Recusar"
                   onClick={() => responder(parceria.id, false)}
                 >
-                  <X className="h-4 w-4" />
+                  <Icone.fechar className="h-4 w-4" />
                 </Button>
               </div>
             }
@@ -408,7 +398,7 @@ function Placar() {
     return (
       <Card className="border-dashed border-border/60 bg-transparent">
         <CardContent className="p-6 text-center text-sm text-muted-foreground">
-          <Users className="mx-auto mb-2 h-6 w-6 text-primary" />
+          <Icone.parceiro className="mx-auto mb-2 h-6 w-6 text-primary" />
           Nenhum parceiro ainda.
           <br />
           Busque pelo @ da pessoa e mande o convite.

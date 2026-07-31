@@ -1,4 +1,5 @@
 @import "tailwindcss" source(none);
+@import "./design/tokens.css";
 @source "../src";
 @import "tw-animate-css";
 
@@ -49,72 +50,9 @@
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
-/* Escuro por padrão. O acento não é uma cor de marca: é a faixa de quem está
-   logado — ver src/lib/faixa-cores.ts. O valor abaixo é só o ponto de partida
-   (faixa branca), sobrescrito em :root pelo app assim que o perfil carrega. */
-:root {
-  --radius: 1rem;
-
-  /* Base neutra e bem escura: é ela que faz as cores de faixa cantarem. */
-  --background: oklch(0.13 0.006 250);
-  --foreground: oklch(0.97 0.004 250);
-  --card: oklch(0.185 0.008 250);
-  --card-foreground: oklch(0.97 0.004 250);
-  --popover: oklch(0.155 0.007 250);
-  --popover-foreground: oklch(0.97 0.004 250);
-  --secondary: oklch(0.235 0.008 250);
-  --secondary-foreground: oklch(0.97 0.004 250);
-  --muted: oklch(0.215 0.008 250);
-  --muted-foreground: oklch(0.70 0.015 250);
-  --border: oklch(0.27 0.008 250);
-  --input: oklch(0.27 0.008 250);
-  --destructive: oklch(0.62 0.22 27);
-  --destructive-foreground: oklch(0.99 0.005 250);
-
-  /* A faixa. Trocado em tempo de execução pelo componente CorDaFaixa. */
-  --faixa: oklch(0.88 0.075 92);
-  --faixa-contraste: oklch(0.13 0.006 250);
-
-  --primary: var(--faixa);
-  --primary-foreground: var(--faixa-contraste);
-  --accent: color-mix(in oklab, var(--faixa) 22%, var(--card));
-  --accent-foreground: var(--foreground);
-  --ring: var(--faixa);
-
-  /* Pódio: ouro, prata e bronze são as três cores que todo mundo já lê sem
-     legenda. São a exceção deliberada — não seguem a faixa. */
-  --ouro: oklch(0.82 0.14 85);
-  --prata: oklch(0.83 0.02 250);
-  --bronze: oklch(0.66 0.12 50);
-
-  --chart-1: var(--faixa);
-  --chart-2: oklch(0.72 0.13 220);
-  --chart-3: oklch(0.70 0.14 300);
-  --chart-4: oklch(0.78 0.12 85);
-  --chart-5: oklch(0.68 0.14 160);
-
-  --sidebar: oklch(0.155 0.007 250);
-  --sidebar-foreground: oklch(0.97 0.004 250);
-  --sidebar-primary: var(--faixa);
-  --sidebar-primary-foreground: var(--faixa-contraste);
-  --sidebar-accent: oklch(0.235 0.008 250);
-  --sidebar-accent-foreground: oklch(0.97 0.004 250);
-  --sidebar-border: oklch(0.27 0.008 250);
-  --sidebar-ring: var(--faixa);
-}
-
-/* A troca de faixa é um acontecimento: o app inteiro muda de cor junto. */
-@media (prefers-reduced-motion: no-preference) {
-  :root {
-    transition: --faixa 600ms var(--ease-out-expo, ease-out);
-  }
-}
-
-@property --faixa {
-  syntax: "<color>";
-  inherits: true;
-  initial-value: oklch(0.88 0.075 92);
-}
+/* O tema inteiro — cor, raio, movimento e camadas — vem de design/tokens.css,
+   que é GERADO a partir de design/tokens.json. Para mudar qualquer valor,
+   edite o JSON e rode `npm run tokens`. Nada de cor escrita à mão aqui. */
 
 @layer base {
   * {
@@ -199,27 +137,8 @@
 }
 
 /* ============================================================
-   MOTION — tokens, camadas e keyframes
+   MOTION — só os keyframes. As durações, curvas e camadas vêm dos tokens.
    ============================================================ */
-:root {
-  /* Easing: saída exponencial, sem bounce */
-  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
-  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
-
-  /* Durações: resposta / entrada */
-  --t-tap: 90ms;
-  --t-fast: 160ms;
-  --t-base: 260ms;
-  --t-enter: 420ms;
-  --t-bar: 900ms;
-
-  /* Camadas (escala semântica, sem números soltos) */
-  --z-nav: 40;
-  --z-overlay: 50;
-  --z-panel: 51;
-  --z-toast: 60;
-}
 
 @keyframes rise {
   from { opacity: 0; transform: translate3d(0, 10px, 0); }

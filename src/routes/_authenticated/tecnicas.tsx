@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { ExternalLink, Pencil, Plus, Search, Star, Trash2 } from "lucide-react";
+import { Icone } from "@/design/icones";
 import { toast } from "sonner";
 
 /**
@@ -77,7 +77,7 @@ function TechniquesPage() {
         <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setEditing(null); }}>
           <DialogTrigger asChild>
             <Button size="sm" className="gap-1" onClick={() => setEditing(null)}>
-              <Plus className="h-4 w-4" /> Nova
+              <Icone.adicionar className="h-4 w-4" /> Nova
             </Button>
           </DialogTrigger>
           <TechniqueDialog
@@ -97,7 +97,7 @@ function TechniquesPage() {
       }
     >
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Icone.buscar className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input className="pl-9" placeholder="Buscar técnica…" value={q} onChange={(e) => setQ(e.target.value)} />
       </div>
 
@@ -143,7 +143,7 @@ function TechniquesPage() {
                     className="rounded-md p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground"
                     aria-label="Editar"
                   >
-                    <Pencil className="h-4 w-4" />
+                    <Icone.editar className="h-4 w-4" />
                   </button>
                   <button
                     onClick={() => {
@@ -166,7 +166,7 @@ function TechniquesPage() {
                     className="rounded-md p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
                     aria-label="Remover"
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <Icone.apagar className="h-4 w-4" />
                   </button>
                 </div>
               </div>
@@ -185,7 +185,7 @@ function TechniquesPage() {
                     rel="noreferrer"
                     className="inline-flex items-center gap-1 text-xs font-semibold text-primary"
                   >
-                    Vídeo <ExternalLink className="h-3 w-3" />
+                    Vídeo <Icone.externo className="h-3 w-3" />
                   </a>
                 )}
               </div>
@@ -207,7 +207,7 @@ function MasteryStars({ value, onChange }: { value: number; onChange: (v: number
           aria-label={`Domínio ${n}`}
           className="p-0.5"
         >
-          <Star
+          <Icone.destaque
             className={cn(
               "h-4 w-4 transition-[fill,stroke,transform] duration-200 ease-[var(--ease-out-quart)]",
               n <= value ? "fill-gold stroke-gold" : "stroke-muted-foreground",

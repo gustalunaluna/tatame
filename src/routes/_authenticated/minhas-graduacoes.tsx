@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { GraduationCap, Plus } from "lucide-react";
+import { Icone } from "@/design/icones";
 import { PageShell } from "@/components/PageShell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -36,7 +36,7 @@ function MinhasGraduacoesPage() {
           aoSalvar={criar}
           gatilho={
             <Button size="sm" className="gap-1">
-              <Plus className="h-4 w-4" /> Nova
+              <Icone.adicionar className="h-4 w-4" /> Nova
             </Button>
           }
         />
@@ -45,7 +45,7 @@ function MinhasGraduacoesPage() {
       {ready && graduacoes.length === 0 && (
         <Card className="border-dashed border-border/60 bg-transparent">
           <CardContent className="p-6 text-center text-sm text-muted-foreground">
-            <GraduationCap className="mx-auto mb-2 h-5 w-5 text-primary" />
+            <Icone.graduacao className="mx-auto mb-2 h-5 w-5 text-primary" />
             Nenhuma graduação registrada. Vale a pena guardar: daqui a dez anos
             você vai lembrar da faixa, mas talvez não da data nem de quem
             amarrou.

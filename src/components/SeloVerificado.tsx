@@ -1,4 +1,4 @@
-import { BadgeCheck, ShieldCheck } from "lucide-react";
+import { Icone } from "@/design/icones";
 import { cn } from "@/lib/utils";
 
 export type TipoSelo = "mestre" | "aluno" | "equipe";
@@ -22,10 +22,11 @@ export function SeloVerificado({
   className?: string;
 }) {
   const { rotulo, cor } = SELOS[tipo];
-  const Icone = tipo === "equipe" ? ShieldCheck : BadgeCheck;
+  // `Desenho`, e não `Icone`: o registro de ícones já ocupa esse nome no escopo.
+  const Desenho = tipo === "equipe" ? Icone.seloEquipe : Icone.seloPessoa;
   return (
     <span title={rotulo} className={cn("inline-flex shrink-0", cor, className)}>
-      <Icone className="h-full w-full" aria-hidden="true" />
+      <Desenho className="h-full w-full" aria-hidden="true" />
       <span className="sr-only">{rotulo}</span>
     </span>
   );

@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useDeferredValue, useMemo, useState, type CSSProperties } from "react";
-import { Check, ChevronDown, Lock, Search, Trophy } from "lucide-react";
+import { Icone } from "@/design/icones";
 import { PageShell } from "@/components/PageShell";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -69,7 +69,7 @@ function AchievementRow({ a, i = 0 }: { a: Achievement; i?: number }) {
             : "bg-muted text-muted-foreground",
         )}
       >
-        {a.unlocked ? <Trophy className="pop-in h-5 w-5" /> : <Lock className="h-5 w-5" />}
+        {a.unlocked ? <Icone.conquista className="pop-in h-5 w-5" /> : <Icone.privado className="h-5 w-5" />}
       </div>
       <div className="min-w-0 flex-1">
         <div className="flex items-center justify-between gap-2">
@@ -83,7 +83,7 @@ function AchievementRow({ a, i = 0 }: { a: Achievement; i?: number }) {
           </p>
           {a.unlocked && (
             <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-primary/20 px-2 py-0.5 text-[10px] font-bold text-primary">
-              <Check className="h-3 w-3" />
+              <Icone.confirmar className="h-3 w-3" />
               {formatDate(a.unlockedDate)}
             </span>
           )}
@@ -191,7 +191,7 @@ function ConquistasPage() {
               </p>
             </div>
             <div className="grid h-16 w-16 place-items-center rounded-2xl bg-primary text-primary-foreground shadow-[0_0_24px_-4px_var(--primary)]">
-              <Trophy className="h-8 w-8" />
+              <Icone.conquista className="h-8 w-8" />
             </div>
           </div>
           <Progress value={pct} className="mt-4 h-2" />
@@ -199,7 +199,7 @@ function ConquistasPage() {
       </Card>
 
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Icone.buscar className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <input
           className="h-9 w-full rounded-md border border-input bg-transparent pl-9 pr-3 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
           placeholder="Buscar conquista…"
@@ -228,7 +228,7 @@ function ConquistasPage() {
       {ready && total === 0 && (
         <Card className="border-dashed border-border/60 bg-transparent">
           <CardContent className="p-6 text-center text-sm text-muted-foreground">
-            <Trophy className="mx-auto mb-2 h-6 w-6 text-primary" />
+            <Icone.conquista className="mx-auto mb-2 h-6 w-6 text-primary" />
             Nenhuma conquista cadastrada ainda.
             <br />
             Rode o seed do banco — o caminho até a vermelha começa aqui.
@@ -266,7 +266,7 @@ function ConquistasPage() {
                   </div>
                   <span className="flex items-center gap-1 text-xs font-bold text-primary">
                     {tierPct}%
-                    <ChevronDown className="h-4 w-4 transition-transform group-open:rotate-180" />
+                    <Icone.expandir className="h-4 w-4 transition-transform group-open:rotate-180" />
                   </span>
                 </div>
                 <Bar value={tierPct} label={`Faixa ${tier}: ${tierPct}% concluída`} />

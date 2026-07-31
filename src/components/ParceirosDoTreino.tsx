@@ -1,4 +1,4 @@
-import { Minus, Plus, UserPlus, X } from "lucide-react";
+import { Icone } from "@/design/icones";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -41,7 +41,7 @@ function Contador({
           onClick={() => aoMudar(Math.max(0, valor - 1))}
           className="tap grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-border/60 text-muted-foreground active:scale-90"
         >
-          <Minus className="h-3.5 w-3.5" />
+          <Icone.remover className="h-3.5 w-3.5" />
         </button>
         <span
           aria-live="polite"
@@ -59,7 +59,7 @@ function Contador({
           onClick={() => aoMudar(Math.min(100, valor + 1))}
           className="tap grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-border/60 text-muted-foreground active:scale-90"
         >
-          <Plus className="h-3.5 w-3.5" />
+          <Icone.adicionar className="h-3.5 w-3.5" />
         </button>
       </div>
     </div>
@@ -207,7 +207,7 @@ export function ParceirosDoTreino({
                 aria-label="Tirar este parceiro"
                 className="tap grid h-11 w-11 shrink-0 place-items-center rounded-lg text-muted-foreground active:scale-90"
               >
-                <X className="h-4 w-4" />
+                <Icone.fechar className="h-4 w-4" />
               </button>
             </div>
 
@@ -247,7 +247,7 @@ export function ParceirosDoTreino({
         className="w-full gap-1.5"
         onClick={adicionar}
       >
-        <UserPlus className="h-4 w-4" />
+        <Icone.adicionarParceiro className="h-4 w-4" />
         {linhas.length ? "Mais um parceiro" : "Adicionar parceiro"}
       </Button>
 

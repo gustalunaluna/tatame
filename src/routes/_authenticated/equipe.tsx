@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Check, Clock, Plus, Search, Shield, X } from "lucide-react";
+import { Icone } from "@/design/icones";
 import { toast } from "sonner";
 import { PageShell } from "@/components/PageShell";
 import { CartaoAtleta } from "@/components/CartaoAtleta";
@@ -47,7 +47,7 @@ function PedirCadastro() {
     <Dialog open={aberto} onOpenChange={setAberto}>
       <DialogTrigger asChild>
         <Button variant="outline" className="w-full gap-2">
-          <Plus className="h-4 w-4" /> Pedir cadastro de uma equipe
+          <Icone.adicionar className="h-4 w-4" /> Pedir cadastro de uma equipe
         </Button>
       </DialogTrigger>
       <DialogContent>
@@ -138,12 +138,12 @@ function MinhaEquipe({ equipe }: { equipe: Equipe }) {
                   .join(" · ")}
               </p>
             </div>
-            <Shield className="h-8 w-8 shrink-0 text-primary" />
+            <Icone.equipe className="h-8 w-8 shrink-0 text-primary" />
           </div>
 
           {equipe.status === "pendente" && (
             <p className="mt-3 flex items-center gap-1.5 rounded-lg bg-secondary px-2.5 py-1.5 text-xs text-muted-foreground">
-              <Clock className="h-3.5 w-3.5" />
+              <Icone.horario className="h-3.5 w-3.5" />
               Aguardando aprovação — só você enxerga por enquanto.
             </p>
           )}
@@ -175,7 +175,7 @@ function MinhaEquipe({ equipe }: { equipe: Equipe }) {
                         toast.success(`${m.nickname} entrou na equipe.`);
                     }}
                   >
-                    <Check className="h-4 w-4" />
+                    <Icone.confirmar className="h-4 w-4" />
                   </Button>
                   <Button
                     size="icon"
@@ -183,7 +183,7 @@ function MinhaEquipe({ equipe }: { equipe: Equipe }) {
                     aria-label={`Recusar ${m.nickname}`}
                     onClick={() => decidir(equipe.id, m.userId, false)}
                   >
-                    <X className="h-4 w-4" />
+                    <Icone.fechar className="h-4 w-4" />
                   </Button>
                 </div>
               }
@@ -287,7 +287,7 @@ function ProcurarEquipe() {
   return (
     <div className="space-y-3">
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Icone.buscar className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
           value={termo}
           onChange={(e) => setTermo(e.target.value)}
@@ -300,7 +300,7 @@ function ProcurarEquipe() {
       {ready && aprovadas.length === 0 && (
         <Card className="border-dashed border-border/60 bg-transparent">
           <CardContent className="p-6 text-center text-sm text-muted-foreground">
-            <Shield className="mx-auto mb-2 h-6 w-6 text-primary" />
+            <Icone.equipe className="mx-auto mb-2 h-6 w-6 text-primary" />
             Nenhuma equipe cadastrada ainda.
             <br />
             Peça o cadastro da sua abaixo.

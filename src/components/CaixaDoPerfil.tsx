@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { ChevronRight } from "lucide-react";
+import { Icone } from "@/design/icones";
 import type { CSSProperties, ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
@@ -49,7 +49,7 @@ export function CaixaDoPerfil({
         </span>
       )}
       {(para || aoTocar) && (
-        <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+        <Icone.avancar className="h-4 w-4 shrink-0 text-muted-foreground" />
       )}
     </div>
   );
@@ -77,7 +77,7 @@ export function CaixaDoPerfil({
             className="tap mt-3 flex items-center justify-center gap-1 rounded-xl border border-primary/40 bg-primary/5 py-2 text-xs font-bold text-primary active:scale-[0.98]"
           >
             {verTodos.rotulo}
-            <ChevronRight className="h-3.5 w-3.5" />
+            <Icone.avancar className="h-3.5 w-3.5" />
           </Link>
         )}
       </div>

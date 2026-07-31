@@ -1,17 +1,7 @@
 import type { CSSProperties } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import {
-  CalendarDays,
-  ChevronRight,
-  Dumbbell,
-  Flame,
-  LogOut,
-  Plus,
-  Target,
-  Trophy,
-  User,
-} from "lucide-react";
+import { Icone } from "@/design/icones";
 import { PageShell } from "@/components/PageShell";
 import { Faixa } from "@/components/Faixa";
 import { Card, CardContent } from "@/components/ui/card";
@@ -171,7 +161,7 @@ function Home() {
           aria-label="Sair"
           className="grid h-9 w-9 place-items-center rounded-full border border-border/60 bg-card/60 text-muted-foreground transition hover:text-foreground"
         >
-          <LogOut className="h-4 w-4" />
+          <Icone.sair className="h-4 w-4" />
         </button>
       }
     >
@@ -189,7 +179,7 @@ function Home() {
                   className="h-full w-full object-cover"
                 />
               ) : (
-                <User className="h-7 w-7 text-muted-foreground" />
+                <Icone.perfil className="h-7 w-7 text-muted-foreground" />
               )}
             </div>
 
@@ -215,7 +205,7 @@ function Home() {
               </p>
             </div>
 
-            <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />
+            <Icone.avancar className="h-5 w-5 shrink-0 text-muted-foreground" />
           </Link>
 
           {/* Level — horas de tatame, que é como o jiu-jitsu mede de verdade */}
@@ -279,7 +269,7 @@ function Home() {
         to="/diario"
         className="tap flex items-center justify-center gap-2 rounded-xl border border-primary/40 bg-primary/10 px-4 py-2.5 text-sm font-bold text-primary hover:bg-primary/15 active:scale-[0.98]"
       >
-        <Plus className="h-4 w-4" />
+        <Icone.adicionar className="h-4 w-4" />
         Registrar treino
       </Link>
 
@@ -288,7 +278,7 @@ function Home() {
         <Card className="border-border/50 bg-card/60">
           <CardContent className="p-3">
             <div className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-              <Flame className="h-3.5 w-3.5 text-primary" /> Sequência
+              <Icone.sequencia className="h-3.5 w-3.5 text-primary" /> Sequência
             </div>
             <p className="mt-1 text-2xl font-black text-primary tabular-nums">
               {hydrated ? streakAnimado : "—"}
@@ -299,7 +289,7 @@ function Home() {
         <Card className="border-border/50 bg-card/60">
           <CardContent className="p-3">
             <div className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-              <CalendarDays className="h-3.5 w-3.5 text-primary" /> Mês
+              <Icone.plano className="h-3.5 w-3.5 text-primary" /> Mês
             </div>
             <p className="mt-1 text-2xl font-black tabular-nums">
               {hydrated ? mesAnimado : "—"}
@@ -310,7 +300,7 @@ function Home() {
         <Card className="border-border/50 bg-card/60">
           <CardContent className="p-3">
             <div className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-              <Dumbbell className="h-3.5 w-3.5 text-primary" /> Total
+              <Icone.treino className="h-3.5 w-3.5 text-primary" /> Total
             </div>
             <p className="mt-1 text-2xl font-black tabular-nums">
               {hydrated ? totalAnimado : "—"}
@@ -327,7 +317,7 @@ function Home() {
       >
         <div className="flex items-center gap-3">
           <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-primary/15 text-primary">
-            <Trophy className="h-5 w-5" />
+            <Icone.conquista className="h-5 w-5" />
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center justify-between">
@@ -388,7 +378,7 @@ function Home() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between gap-3">
               <div className="flex min-w-0 items-center gap-2">
-                <Target className="h-4 w-4 shrink-0 text-primary" />
+                <Icone.meta className="h-4 w-4 shrink-0 text-primary" />
                 <p className="truncate font-bold">{metaDestaque.title}</p>
               </div>
               {metaPct != null && (
@@ -431,7 +421,7 @@ function Home() {
         {hydrated && last.length === 0 && (
           <Card className="border-dashed border-border/60 bg-transparent">
             <CardContent className="p-5 text-center text-sm text-muted-foreground">
-              <Dumbbell className="mx-auto mb-2 h-5 w-5 text-primary" />
+              <Icone.treino className="mx-auto mb-2 h-5 w-5 text-primary" />
               Nenhum treino ainda. O primeiro round é agora.
             </CardContent>
           </Card>

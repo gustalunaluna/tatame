@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { TrendingUp, CalendarDays, ChevronDown } from "lucide-react";
+import { Icone } from "@/design/icones";
 import { PageShell } from "@/components/PageShell";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAnalyses } from "@/lib/bjj-storage";
@@ -37,7 +37,7 @@ function AnaliseCard({ a, aberta, i }: { a: Analysis; aberta: boolean; i: number
         <summary className="tap cursor-pointer list-none p-4 hover:bg-secondary/40 active:bg-secondary/60 [&::-webkit-details-marker]:hidden">
           <div className="flex items-start gap-3">
             <span className="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-primary/15 text-primary">
-              <CalendarDays className="h-4 w-4" />
+              <Icone.plano className="h-4 w-4" />
             </span>
             <div className="min-w-0 flex-1">
               <p className="text-[11px] font-bold uppercase tracking-wider text-primary">
@@ -51,7 +51,7 @@ function AnaliseCard({ a, aberta, i }: { a: Analysis; aberta: boolean; i: number
                 Toque para fechar
               </p>
             </div>
-            <ChevronDown className="mt-1 h-4 w-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" />
+            <Icone.expandir className="mt-1 h-4 w-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" />
           </div>
         </summary>
         <CardContent className="border-t border-border/50 p-4 pt-3">
@@ -75,7 +75,7 @@ function AnalisesPage() {
         <CardContent className="flex items-center justify-between gap-3 p-4">
           <div className="flex items-center gap-3">
             <div className="rounded-lg bg-primary/15 p-2 text-primary">
-              <TrendingUp className="h-5 w-5" />
+              <Icone.evolucao className="h-5 w-5" />
             </div>
             <div>
               <p className="text-[11px] uppercase tracking-wider text-muted-foreground">

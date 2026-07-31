@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Medal, Plus, Star, Trash2 } from "lucide-react";
+import { Icone } from "@/design/icones";
 import { toast } from "sonner";
 import { PageShell } from "@/components/PageShell";
 import { Button } from "@/components/ui/button";
@@ -50,7 +50,7 @@ function MinhasMedalhasPage() {
           aoSalvar={criar}
           gatilho={
             <Button size="sm" className="gap-1">
-              <Plus className="h-4 w-4" /> Nova
+              <Icone.adicionar className="h-4 w-4" /> Nova
             </Button>
           }
         />
@@ -72,7 +72,7 @@ function MinhasMedalhasPage() {
       {ready && medalhas.length === 0 && (
         <Card className="border-dashed border-border/60 bg-transparent">
           <CardContent className="p-6 text-center text-sm text-muted-foreground">
-            <Medal className="mx-auto mb-2 h-5 w-5 text-primary" />
+            <Icone.medalha className="mx-auto mb-2 h-5 w-5 text-primary" />
             Nenhuma medalha ainda. Quando subir no pódio, registre aqui — e
             escolha a academia que você estava representando.
           </CardContent>
@@ -110,7 +110,7 @@ function MinhasMedalhasPage() {
                       : "text-muted-foreground hover:text-foreground",
                   )}
                 >
-                  <Star
+                  <Icone.destaque
                     className={cn("h-4 w-4", m.destaque && "fill-current")}
                   />
                 </button>
@@ -121,7 +121,7 @@ function MinhasMedalhasPage() {
                       aria-label={`Apagar a medalha de ${m.evento}`}
                       className="tap rounded-lg p-2 text-muted-foreground hover:text-destructive active:scale-90"
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Icone.apagar className="h-4 w-4" />
                     </button>
                   }
                   titulo="Apagar esta medalha?"

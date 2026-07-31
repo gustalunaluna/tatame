@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, Users } from "lucide-react";
+import { Icone } from "@/design/icones";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { LinhaDeAtleta } from "@/components/ListaDeAtletas";
@@ -23,12 +23,12 @@ function AtletasDaAcademiaPage() {
         onClick={() => navigate({ to: "/academia/$slug", params: { slug } })}
         className="tap -ml-1 flex w-fit items-center gap-1.5 text-sm text-muted-foreground active:scale-95"
       >
-        <ArrowLeft className="h-4 w-4" /> Voltar à academia
+        <Icone.voltar className="h-4 w-4" /> Voltar à academia
       </button>
 
       <div>
         <h1 className="flex items-center gap-2 text-2xl font-black">
-          <Users className="h-6 w-6 text-primary" />
+          <Icone.parceiro className="h-6 w-6 text-primary" />
           No tatame
         </h1>
         <p className="mt-0.5 text-sm text-muted-foreground">

@@ -7,7 +7,7 @@
 //
 // Também confere que o acento da faixa branca não se confunde com a cor do
 // texto comum: se ele for quase igual, "destaque" deixa de destacar.
-import cores from "./src/lib/cores.json" with { type: "json" };
+import tokens from "./src/design/tokens.json" with { type: "json" };
 
 /* --- OKLCH -> sRGB ------------------------------------------------------ */
 function oklchParaRgb([L, C, h]) {
@@ -52,7 +52,14 @@ function distancia([L1, C1, h1], [L2, C2, h2]) {
 }
 
 /* --- verificação -------------------------------------------------------- */
-const { base, faixas, medalhas } = cores;
+// Reduz a estrutura dos tokens ao que este script precisa comparar.
+const base = Object.fromEntries(
+  Object.entries(tokens.cor.base).map(([k, v]) => [k, v.valor]),
+);
+const faixas = tokens.cor.faixa;
+const medalhas = Object.fromEntries(
+  Object.entries(tokens.cor.podio).map(([k, v]) => [k, v.valor]),
+);
 const PISO_TEXTO = 4.5;
 const PISO_DISTINCAO = 0.06; // abaixo disto, duas cores viram a mesma a olho nu
 

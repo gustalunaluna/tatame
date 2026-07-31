@@ -1,6 +1,6 @@
 import { useState, type CSSProperties } from "react";
 import { Link } from "@tanstack/react-router";
-import { Plus, Trash2 } from "lucide-react";
+import { Icone } from "@/design/icones";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -94,7 +94,7 @@ export function LinhaDeGraduacao({
                   aria-label={`Apagar ${nomeDaGraduacao(g)}`}
                   className="tap shrink-0 rounded-lg p-1.5 text-muted-foreground hover:text-destructive active:scale-90"
                 >
-                  <Trash2 className="h-4 w-4" />
+                  <Icone.apagar className="h-4 w-4" />
                 </button>
               }
               titulo="Apagar esta graduação?"
@@ -380,7 +380,7 @@ export function BotaoNovaGraduacao({
       aoSalvar={aoSalvar}
       gatilho={
         <Button variant="outline" size="sm" className="w-full gap-1">
-          <Plus className="h-4 w-4" /> {rotulo}
+          <Icone.adicionar className="h-4 w-4" /> {rotulo}
         </Button>
       }
     />

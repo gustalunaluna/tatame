@@ -1,19 +1,6 @@
 import { useMemo, useRef, useState, type CSSProperties } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import {
-  Camera,
-  Check,
-  GraduationCap,
-  Medal,
-  Pencil,
-  Plus,
-  Shield,
-  Star,
-  Swords,
-  Trophy,
-  User,
-  Users,
-} from "lucide-react";
+import { Icone } from "@/design/icones";
 import { toast } from "sonner";
 import { PageShell } from "@/components/PageShell";
 import { Link } from "@tanstack/react-router";
@@ -136,7 +123,7 @@ function PerfilPage() {
                     className="h-full w-full object-cover"
                   />
                 ) : (
-                  <User className="h-9 w-9 text-muted-foreground" />
+                  <Icone.perfil className="h-9 w-9 text-muted-foreground" />
                 )}
               </div>
               <button
@@ -145,7 +132,7 @@ function PerfilPage() {
                 aria-label="Trocar foto de perfil"
                 className="tap absolute -bottom-1 -right-1 grid h-8 w-8 place-items-center rounded-full bg-primary text-primary-foreground shadow-[0_0_16px_-4px_var(--primary)] active:scale-90 disabled:opacity-60"
               >
-                <Camera className="h-4 w-4" />
+                <Icone.foto className="h-4 w-4" />
               </button>
               <input
                 ref={inputFoto}
@@ -186,7 +173,7 @@ function PerfilPage() {
           <Dialog>
             <DialogTrigger asChild>
               <Button variant="secondary" className="mt-4 w-full gap-2">
-                <Pencil className="h-4 w-4" /> Editar perfil
+                <Icone.editar className="h-4 w-4" /> Editar perfil
               </Button>
             </DialogTrigger>
             {perfil && <EditarPerfil perfil={perfil} onSalvar={salvar} />}
@@ -198,7 +185,7 @@ function PerfilPage() {
       <Card className="border-border/60 bg-card/70">
         <CardContent className="p-4">
           <div className="mb-3 flex items-center gap-2">
-            <Swords className="h-4 w-4 text-primary" />
+            <Icone.rola className="h-4 w-4 text-primary" />
             <h2 className="text-sm font-bold">Lutas</h2>
           </div>
           <div className="grid grid-cols-3 gap-2 text-center">
@@ -239,13 +226,13 @@ function PerfilPage() {
       <section>
         <div className="mb-2 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Trophy className="h-4 w-4 text-primary" />
+            <Icone.conquista className="h-4 w-4 text-primary" />
             <h2 className="text-sm font-bold">Conquistas em destaque</h2>
           </div>
           <Dialog>
             <DialogTrigger asChild>
               <Button size="sm" variant="secondary" className="gap-1">
-                <Star className="h-3.5 w-3.5" /> Escolher
+                <Icone.destaque className="h-3.5 w-3.5" /> Escolher
               </Button>
             </DialogTrigger>
             <EscolherDestaques
@@ -270,7 +257,7 @@ function PerfilPage() {
                 style={{ "--i": i } as CSSProperties}
                 className="rise-in rounded-2xl border border-primary/40 bg-primary/10 p-3 shadow-[0_0_18px_-8px_var(--primary)]"
               >
-                <Trophy className="h-4 w-4 text-primary" />
+                <Icone.conquista className="h-4 w-4 text-primary" />
                 <p className="mt-2 text-xs font-bold leading-tight">{d.title}</p>
                 <p className="mt-0.5 text-[10px] uppercase tracking-wider text-primary">
                   Faixa {d.tier}
@@ -329,7 +316,7 @@ function MinhasMedalhas({ posicao }: { posicao: number }) {
   return (
     <CaixaDoPerfil
       titulo="Medalhas"
-      icone={<Medal className="h-4 w-4" />}
+      icone={<Icone.medalha className="h-4 w-4" />}
       i={posicao}
       contagem={resumo.total ? String(resumo.total) : undefined}
       verTodos={
@@ -356,7 +343,7 @@ function MinhasMedalhas({ posicao }: { posicao: number }) {
           aoSalvar={criar}
           gatilho={
             <Button variant="outline" size="sm" className="w-full gap-1">
-              <Plus className="h-4 w-4" /> Registrar medalha
+              <Icone.adicionar className="h-4 w-4" /> Registrar medalha
             </Button>
           }
         />
@@ -378,7 +365,7 @@ function MinhaGraduacao() {
   return (
     <CaixaDoPerfil
       titulo="Graduações"
-      icone={<GraduationCap className="h-4 w-4" />}
+      icone={<Icone.graduacao className="h-4 w-4" />}
       i={5}
       contagem={graduacoes.length ? String(graduacoes.length) : undefined}
       verTodos={
@@ -436,7 +423,7 @@ function CaixasDoPerfil() {
       <div className="grid grid-cols-2 gap-3">
         <CaixaDoPerfil
           titulo="Equipe"
-          icone={<Shield className="h-4 w-4" />}
+          icone={<Icone.equipe className="h-4 w-4" />}
           para={
             equipe?.status === "aprovada" ? `/academia/${equipe.slug}` : "/equipe"
           }
@@ -455,7 +442,7 @@ function CaixasDoPerfil() {
                 />
               ) : (
                 <div className="grid h-12 w-12 place-items-center rounded-xl bg-secondary">
-                  <Shield className="h-6 w-6 text-muted-foreground" />
+                  <Icone.equipe className="h-6 w-6 text-muted-foreground" />
                 </div>
               )}
               <p className="flex items-center justify-center gap-1 text-xs font-bold leading-tight">
@@ -473,7 +460,7 @@ function CaixasDoPerfil() {
 
         <CaixaDoPerfil
           titulo="Mestre"
-          icone={<GraduationCap className="h-4 w-4" />}
+          icone={<Icone.graduacao className="h-4 w-4" />}
           para="/equipe"
           i={podioNoTopo ? 2 : 1}
           vazio="Toque para indicar."
@@ -481,7 +468,7 @@ function CaixasDoPerfil() {
           {perfil?.master ? (
             <div className="flex flex-col items-center gap-2 text-center">
               <div className="grid h-12 w-12 place-items-center rounded-xl bg-secondary">
-                <GraduationCap className="h-6 w-6 text-muted-foreground" />
+                <Icone.graduacao className="h-6 w-6 text-muted-foreground" />
               </div>
               <p className="line-clamp-2 text-xs font-bold leading-tight">
                 {perfil.master}
@@ -494,7 +481,7 @@ function CaixasDoPerfil() {
 
       <CaixaDoPerfil
         titulo="Parceiros de rola"
-        icone={<Users className="h-4 w-4" />}
+        icone={<Icone.parceiro className="h-4 w-4" />}
         verTodos={{ para: "/parceiros", rotulo: "Ver todos" }}
         i={podioNoTopo ? 3 : 2}
         contagem={aceitos.length ? String(aceitos.length) : undefined}
@@ -518,7 +505,7 @@ function CaixasDoPerfil() {
 
       <CaixaDoPerfil
         titulo="Conquistas"
-        icone={<Trophy className="h-4 w-4" />}
+        icone={<Icone.conquista className="h-4 w-4" />}
         para="/conquistas"
         i={6}
         contagem={total ? `${unlocked}/${total}` : undefined}
@@ -761,7 +748,7 @@ function EscolherDestaques({
                   on ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground",
                 )}
               >
-                {on ? <Check className="h-4 w-4" /> : <Trophy className="h-4 w-4" />}
+                {on ? <Icone.confirmar className="h-4 w-4" /> : <Icone.conquista className="h-4 w-4" />}
               </span>
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-xs font-bold">{a.title}</span>

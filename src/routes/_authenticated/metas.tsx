@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Suspense, lazy, useState } from "react";
-import { Award, ChevronRight, ClipboardList, Plus, Target, Trash2, TrendingUp, Trophy } from "lucide-react";
+import { Icone } from "@/design/icones";
 import { toast } from "sonner";
 import { PageShell } from "@/components/PageShell";
 import { Card, CardContent } from "@/components/ui/card";
@@ -77,7 +77,7 @@ function NovaMeta() {
     <Dialog open={aberto} onOpenChange={setAberto}>
       <DialogTrigger asChild>
         <Button variant="outline" className="w-full gap-2">
-          <Plus className="h-4 w-4" /> Nova meta
+          <Icone.adicionar className="h-4 w-4" /> Nova meta
         </Button>
       </DialogTrigger>
       <DialogContent>
@@ -245,11 +245,11 @@ function CartaoMeta({
             )}
           </div>
           {meta.kind === "graduacao" ? (
-            <Award className="h-6 w-6 shrink-0 text-primary" />
+            <Icone.premio className="h-6 w-6 shrink-0 text-primary" />
           ) : meta.kind === "competicao" ? (
-            <Trophy className="h-6 w-6 shrink-0 text-primary" />
+            <Icone.conquista className="h-6 w-6 shrink-0 text-primary" />
           ) : (
-            <Target className="h-6 w-6 shrink-0 text-primary" />
+            <Icone.meta className="h-6 w-6 shrink-0 text-primary" />
           )}
         </div>
 
@@ -291,7 +291,7 @@ function CartaoMeta({
                 variant="ghost"
                 aria-label={`Apagar meta ${meta.title}`}
               >
-                <Trash2 className="h-4 w-4 text-muted-foreground" />
+                <Icone.apagar className="h-4 w-4 text-muted-foreground" />
               </Button>
             }
             titulo="Apagar esta meta?"
@@ -394,7 +394,7 @@ function MetasPage() {
       {ready && ativas.length === 0 && (
         <Card className="border-dashed border-primary/40 bg-transparent">
           <CardContent className="p-6 text-center text-sm text-muted-foreground">
-            <Award className="mx-auto mb-2 h-6 w-6 text-primary" />
+            <Icone.premio className="mx-auto mb-2 h-6 w-6 text-primary" />
             Nenhuma meta ainda. Comece pela graduação — a data é sua.
           </CardContent>
         </Card>
@@ -415,7 +415,7 @@ function MetasPage() {
       <Link to="/plano" className="block">
         <Card className="tap border-primary/40 bg-card/60 active:scale-[0.99]">
           <CardContent className="flex items-center gap-3 p-4">
-            <ClipboardList className="h-5 w-5 shrink-0 text-primary" />
+            <Icone.tecnica className="h-5 w-5 shrink-0 text-primary" />
             <div className="min-w-0 flex-1">
               <p className="text-sm font-bold">
                 {ciclo ? ciclo.titulo : "Plano do mês"}
@@ -426,7 +426,7 @@ function MetasPage() {
                   : "Escolha o que melhorar e monte as 4 semanas"}
               </p>
             </div>
-            <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+            <Icone.avancar className="h-4 w-4 shrink-0 text-muted-foreground" />
           </CardContent>
         </Card>
       </Link>
@@ -437,7 +437,7 @@ function MetasPage() {
         <Card className="border-border/60 bg-card/70">
           <CardContent className="p-4">
             <div className="mb-2 flex items-center gap-2">
-              <TrendingUp className="h-4 w-4 text-primary" />
+              <Icone.evolucao className="h-4 w-4 text-primary" />
               <p className="text-sm font-semibold">Evolução dos pontos</p>
             </div>
             <div className="h-40">
@@ -466,7 +466,7 @@ function MetasPage() {
           {concluidas.map((m) => (
             <Card key={m.id} className="border-primary/40 bg-primary/5">
               <CardContent className="flex items-center gap-2 p-3">
-                <Trophy className="h-4 w-4 shrink-0 text-primary" />
+                <Icone.conquista className="h-4 w-4 shrink-0 text-primary" />
                 <p className="min-w-0 flex-1 truncate text-sm font-bold">{m.title}</p>
               </CardContent>
             </Card>

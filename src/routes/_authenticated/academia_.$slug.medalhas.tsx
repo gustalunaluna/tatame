@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, EyeOff, Medal } from "lucide-react";
+import { Icone } from "@/design/icones";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Confirmar } from "@/components/Confirmar";
@@ -28,12 +28,12 @@ function MedalhasDaAcademiaPage() {
         onClick={() => navigate({ to: "/academia/$slug", params: { slug } })}
         className="tap -ml-1 flex w-fit items-center gap-1.5 text-sm text-muted-foreground active:scale-95"
       >
-        <ArrowLeft className="h-4 w-4" /> Voltar à academia
+        <Icone.voltar className="h-4 w-4" /> Voltar à academia
       </button>
 
       <div>
         <h1 className="flex items-center gap-2 text-2xl font-black">
-          <Medal className="h-6 w-6 text-primary" />
+          <Icone.medalha className="h-6 w-6 text-primary" />
           Pódios
         </h1>
         <p className="mt-0.5 text-sm text-muted-foreground">
@@ -70,7 +70,7 @@ function MedalhasDaAcademiaPage() {
                       aria-label={`Tirar a medalha de ${m.atletaNome} do perfil da academia`}
                       className="tap rounded-lg p-2 text-muted-foreground hover:text-destructive active:scale-90"
                     >
-                      <EyeOff className="h-4 w-4" />
+                      <Icone.ocultar className="h-4 w-4" />
                     </button>
                   }
                   titulo="Tirar do perfil da academia?"

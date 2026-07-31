@@ -22,6 +22,37 @@ PWA mobile-first, instalável na tela inicial.
 
 ---
 
+## 🎨 Sistema de design
+
+Tudo que é visual mora em **`src/design/`** e nada é escrito duas vezes.
+
+| Arquivo | O que é |
+|---|---|
+| `design/tokens.json` | **A fonte única.** Cor, raio, movimento, camadas. |
+| `design/tokens.css` | Gerado a partir do JSON. Não edite. |
+| `design/icones.ts` | Registro de ícones **pelo significado**, não pelo nome da biblioteca. |
+| `/estilo` (rota no app) | Guia vivo: todos os tokens e ícones numa tela só. |
+
+```bash
+npm run tokens             # regenera o CSS a partir do JSON
+npm run verificar:design   # reprova quem furar o sistema
+```
+
+**Trocar uma cor:** edite `tokens.json`, rode `npm run tokens`. O `prebuild`
+roda sozinho, então é impossível publicar um CSS desatualizado.
+
+**Trocar um ícone:** edite `design/icones.ts`. Como cada ícone é referenciado
+pelo que significa (`Icone.medalha`, `Icone.graduacao`), mudar o desenho de um
+conceito é mexer em uma linha — e o app inteiro acompanha.
+
+`verificar:design` falha o build se alguém: editar o CSS gerado à mão, importar
+`lucide-react` fora do registro, escrever cor crua num componente, ou usar
+`z-index` solto em vez da escala semântica. Um sistema só continua sendo
+sistema enquanto ninguém contorna ele — e contornar é sempre mais rápido no dia
+em que se está com pressa.
+
+---
+
 ## 🚀 Passo a passo para colocar no ar
 
 ### 1. Criar o banco (Supabase — grátis)

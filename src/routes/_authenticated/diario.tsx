@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ChevronRight, FileText, Pencil, Plus, Trash2 } from "lucide-react";
+import { Icone } from "@/design/icones";
 import { toast } from "sonner";
 import { PageShell } from "@/components/PageShell";
 import { Button } from "@/components/ui/button";
@@ -63,7 +63,7 @@ function DiaryPage() {
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button size="sm" className="gap-1">
-              <Plus className="h-4 w-4" /> Novo
+              <Icone.adicionar className="h-4 w-4" /> Novo
             </Button>
           </DialogTrigger>
           {open && (
@@ -98,14 +98,14 @@ function DiaryPage() {
       {/* As análises nascem destes treinos — por isso ficam aqui. */}
       <Link to="/analises" className="block">
         <div className="tap flex items-center gap-3 rounded-2xl border border-border/60 bg-card/60 p-3 active:scale-[0.99]">
-          <FileText className="h-5 w-5 shrink-0 text-primary" />
+          <Icone.analise className="h-5 w-5 shrink-0 text-primary" />
           <div className="min-w-0 flex-1">
             <p className="text-sm font-bold">Análises do treinador</p>
             <p className="text-xs text-muted-foreground">
               A leitura do que estes treinos mostram
             </p>
           </div>
-          <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+          <Icone.avancar className="h-4 w-4 shrink-0 text-muted-foreground" />
         </div>
       </Link>
 
@@ -167,7 +167,7 @@ function DiaryPage() {
                   className="rounded-md p-1.5 text-muted-foreground hover:bg-primary/10 hover:text-primary"
                   aria-label={`Editar treino de ${new Date(t.date + "T00:00:00").toLocaleDateString("pt-BR")}`}
                 >
-                  <Pencil className="h-4 w-4" />
+                  <Icone.editar className="h-4 w-4" />
                 </button>
                 <button
                   onClick={() => {
@@ -192,7 +192,7 @@ function DiaryPage() {
                   className="rounded-md p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
                   aria-label={`Remover treino de ${new Date(t.date + "T00:00:00").toLocaleDateString("pt-BR")}`}
                 >
-                  <Trash2 className="h-4 w-4" />
+                  <Icone.apagar className="h-4 w-4" />
                 </button>
                 </div>
               </div>

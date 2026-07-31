@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import type { CSSProperties } from "react";
-import { ArrowLeft, MapPin, Medal, Shield, Trophy, Users } from "lucide-react";
+import { Icone } from "@/design/icones";
 import { Card, CardContent } from "@/components/ui/card";
 import { Faixa as FaixaVisual } from "@/components/Faixa";
 import { PlacarDeMedalhas } from "@/components/Medalha";
@@ -117,7 +117,7 @@ function AcademiaPage() {
         onClick={() => navigate({ to: "/perfil" })}
         className="tap -ml-1 flex w-fit items-center gap-1.5 text-sm text-muted-foreground active:scale-95"
       >
-        <ArrowLeft className="h-4 w-4" /> Voltar
+        <Icone.voltar className="h-4 w-4" /> Voltar
       </button>
 
       {ready && naoExiste && (
@@ -141,7 +141,7 @@ function AcademiaPage() {
                 />
               ) : (
                 <div className="mx-auto grid h-24 w-24 place-items-center rounded-2xl bg-secondary">
-                  <Shield className="h-10 w-10 text-muted-foreground" />
+                  <Icone.equipe className="h-10 w-10 text-muted-foreground" />
                 </div>
               )}
 
@@ -152,7 +152,7 @@ function AcademiaPage() {
 
               {equipe.city && (
                 <p className="mt-1 flex items-center justify-center gap-1 text-sm text-muted-foreground">
-                  <MapPin className="h-3.5 w-3.5" /> {equipe.city}
+                  <Icone.local className="h-3.5 w-3.5" /> {equipe.city}
                 </p>
               )}
 
@@ -179,7 +179,7 @@ function AcademiaPage() {
               resposta é o total por colocação. */}
           <section>
             <h2 className="mb-2 flex items-center gap-2 text-sm font-semibold uppercase tracking-widest text-muted-foreground">
-              <Medal className="h-4 w-4 text-primary" />
+              <Icone.medalha className="h-4 w-4 text-primary" />
               Quadro de medalhas
             </h2>
             <PlacarDeMedalhas
@@ -234,7 +234,7 @@ function AcademiaPage() {
           {graduados.length > 0 && (
             <section className="space-y-2">
               <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-widest text-muted-foreground">
-                <Trophy className="h-4 w-4 text-primary" />
+                <Icone.conquista className="h-4 w-4 text-primary" />
                 Mestres e faixas pretas ({graduados.length})
               </h2>
               {graduados.map((g, i) => (
@@ -246,7 +246,7 @@ function AcademiaPage() {
           {/* ===== O elenco ===== */}
           <section className="space-y-2">
             <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-widest text-muted-foreground">
-              <Users className="h-4 w-4 text-primary" />
+              <Icone.parceiro className="h-4 w-4 text-primary" />
               No tatame ({equipe.alunos})
             </h2>
             {atletas.length === 0 && ready && (

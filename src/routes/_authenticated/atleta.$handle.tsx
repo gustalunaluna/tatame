@@ -1,16 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import type { CSSProperties } from "react";
-import {
-  ArrowLeft,
-  GraduationCap,
-  Medal,
-  Shield,
-  Swords,
-  Trophy,
-  User,
-  UserPlus,
-  Users,
-} from "lucide-react";
+import { Icone } from "@/design/icones";
 import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -47,7 +37,7 @@ function GraduacaoDoPerfil({ handle }: { handle: string }) {
   return (
     <CaixaDoPerfil
       titulo="Graduações"
-      icone={<GraduationCap className="h-4 w-4" />}
+      icone={<Icone.graduacao className="h-4 w-4" />}
       i={4}
       contagem={String(graduacoes.length)}
     >
@@ -86,7 +76,7 @@ function MedalhasDoPerfil({
   return (
     <CaixaDoPerfil
       titulo="Medalhas"
-      icone={<Medal className="h-4 w-4" />}
+      icone={<Icone.medalha className="h-4 w-4" />}
       i={posicao}
       contagem={`${resumo.ouro}🥇 ${resumo.prata}🥈 ${resumo.bronze}🥉`}
       verTodos={
@@ -150,7 +140,7 @@ function AtletaPage() {
         onClick={() => navigate({ to: "/parceiros" })}
         className="tap -ml-1 flex w-fit items-center gap-1.5 text-sm text-muted-foreground active:scale-95"
       >
-        <ArrowLeft className="h-4 w-4" /> Voltar
+        <Icone.voltar className="h-4 w-4" /> Voltar
       </button>
 
       {ready && naoExiste && (
@@ -177,7 +167,7 @@ function AtletaPage() {
                   />
                 ) : (
                   <span className="text-2xl font-black text-muted-foreground">
-                    {iniciais(perfil.nickname) || <User className="h-9 w-9" />}
+                    {iniciais(perfil.nickname) || <Icone.perfil className="h-9 w-9" />}
                   </span>
                 )}
               </div>
@@ -232,7 +222,7 @@ function AtletaPage() {
             {!perfil.souEu &&
               (perfil.eMeuParceiro ? (
                 <div className="mt-4 flex items-center justify-center gap-2 rounded-xl border border-primary/40 bg-primary/10 py-2.5 text-sm font-semibold text-primary">
-                  <Users className="h-4 w-4" /> Vocês são parceiros de rola
+                  <Icone.parceiro className="h-4 w-4" /> Vocês são parceiros de rola
                 </div>
               ) : jaTemVinculo ? (
                 <div className="mt-4 rounded-xl border border-border/60 py-2.5 text-center text-sm text-muted-foreground">
@@ -246,7 +236,7 @@ function AtletaPage() {
                       toast.success(`Convite enviado para @${perfil.handle}.`);
                   }}
                 >
-                  <UserPlus className="h-4 w-4" /> Adicionar como parceiro
+                  <Icone.adicionarParceiro className="h-4 w-4" /> Adicionar como parceiro
                 </Button>
               ))}
           </div>
@@ -256,7 +246,7 @@ function AtletaPage() {
             <Card className="border-primary/40 bg-primary/5">
               <CardContent className="p-4">
                 <div className="mb-3 flex items-center gap-2">
-                  <Swords className="h-4 w-4 text-primary" />
+                  <Icone.rola className="h-4 w-4 text-primary" />
                   <h2 className="text-sm font-bold">Entre vocês</h2>
                 </div>
                 <div className="grid grid-cols-3 gap-2 text-center">
@@ -299,7 +289,7 @@ function AtletaPage() {
           <Card className="border-border/60 bg-card/70">
             <CardContent className="p-4">
               <div className="mb-3 flex items-center gap-2">
-                <Swords className="h-4 w-4 text-primary" />
+                <Icone.rola className="h-4 w-4 text-primary" />
                 <h2 className="text-sm font-bold">Lutas</h2>
               </div>
               <div className="grid grid-cols-3 gap-2 text-center">
@@ -341,7 +331,7 @@ function AtletaPage() {
           <div className="grid grid-cols-2 gap-3">
             <CaixaDoPerfil
               titulo="Equipe"
-              icone={<Shield className="h-4 w-4" />}
+              icone={<Icone.equipe className="h-4 w-4" />}
               para={perfil.teamSlug ? `/academia/${perfil.teamSlug}` : undefined}
               i={podioNoTopo ? 1 : 0}
               contagem={perfil.teamStatus === "aprovada" ? "oficial" : undefined}
@@ -358,7 +348,7 @@ function AtletaPage() {
                     />
                   ) : (
                     <div className="grid h-12 w-12 place-items-center rounded-xl bg-secondary">
-                      <Shield className="h-6 w-6 text-muted-foreground" />
+                      <Icone.equipe className="h-6 w-6 text-muted-foreground" />
                     </div>
                   )}
                   <p className="flex items-center justify-center gap-1 text-xs font-bold leading-tight">
@@ -378,7 +368,7 @@ function AtletaPage() {
 
             <CaixaDoPerfil
               titulo="Mestre"
-              icone={<GraduationCap className="h-4 w-4" />}
+              icone={<Icone.graduacao className="h-4 w-4" />}
               para={
                 perfil.masterHandle ? `/atleta/${perfil.masterHandle}` : undefined
               }
@@ -388,7 +378,7 @@ function AtletaPage() {
               {perfil.masterNickname || perfil.master ? (
                 <div className="flex flex-col items-center gap-2 text-center">
                   <div className="grid h-12 w-12 place-items-center rounded-xl bg-secondary">
-                    <GraduationCap className="h-6 w-6 text-muted-foreground" />
+                    <Icone.graduacao className="h-6 w-6 text-muted-foreground" />
                   </div>
                   <p className="flex items-center justify-center gap-1 text-xs font-bold leading-tight">
                     <span className="line-clamp-2">
@@ -409,7 +399,7 @@ function AtletaPage() {
           {/* ===== Parceiros de rola dele ===== */}
           <CaixaDoPerfil
             titulo="Parceiros de rola"
-            icone={<Users className="h-4 w-4" />}
+            icone={<Icone.parceiro className="h-4 w-4" />}
             verTodos={
               perfil.parceiros > 8
                 ? {
@@ -447,7 +437,7 @@ function AtletaPage() {
           <section>
             <div className="mb-2 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Trophy className="h-4 w-4 text-primary" />
+                <Icone.conquista className="h-4 w-4 text-primary" />
                 <h2 className="text-sm font-bold">Conquistas em destaque</h2>
               </div>
               {perfil.conquistasTotal > 0 && (
@@ -476,7 +466,7 @@ function AtletaPage() {
                         : "border-border/50 bg-card/40 opacity-70",
                     )}
                   >
-                    <Trophy
+                    <Icone.conquista
                       className={cn(
                         "h-4 w-4",
                         d.unlocked ? "text-primary" : "text-muted-foreground",

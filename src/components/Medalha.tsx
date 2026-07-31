@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
 import { Link } from "@tanstack/react-router";
-import { Medal } from "lucide-react";
+import { Icone } from "@/design/icones";
 import { cn } from "@/lib/utils";
 import type { Colocacao, Medalha, MedalhaDaEquipe } from "@/lib/medalhas-storage";
 
@@ -60,7 +60,7 @@ export function SeloDeMedalha({
         className ?? "h-10 w-10",
       )}
     >
-      <Medal className="h-1/2 w-1/2" aria-hidden="true" />
+      <Icone.medalha className="h-1/2 w-1/2" aria-hidden="true" />
       <span className="sr-only">{c.nome}</span>
     </span>
   );

@@ -5,7 +5,10 @@
   "scripts": {
     "dev": "vite dev",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "tokens": "node scripts/gerar-tokens.mjs",
+    "verificar:design": "node verificar-design.mjs && node verificar-contraste.mjs",
+    "prebuild": "node scripts/gerar-tokens.mjs"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",

@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, type CSSProperties } from "react";
-import { Check, ChevronRight, Minus, Plus, Target, Trophy } from "lucide-react";
+import { Icone } from "@/design/icones";
 import { toast } from "sonner";
 import { PageShell } from "@/components/PageShell";
 import { Card, CardContent } from "@/components/ui/card";
@@ -68,7 +68,7 @@ function Item({
             onClick={() => aoMarcar(item, -1)}
             className="tap grid h-9 w-9 place-items-center rounded-lg border border-border/60 text-muted-foreground active:scale-90"
           >
-            <Minus className="h-3.5 w-3.5" />
+            <Icone.remover className="h-3.5 w-3.5" />
           </button>
           <span
             aria-live="polite"
@@ -85,7 +85,7 @@ function Item({
             onClick={() => aoMarcar(item, 1)}
             className="tap grid h-9 w-9 place-items-center rounded-lg border border-border/60 text-muted-foreground active:scale-90"
           >
-            <Plus className="h-3.5 w-3.5" />
+            <Icone.adicionar className="h-3.5 w-3.5" />
           </button>
         </div>
       ) : (
@@ -102,7 +102,7 @@ function Item({
               : "border-border/60",
           )}
         >
-          {completo && <Check className="pop-in h-4 w-4" />}
+          {completo && <Icone.confirmar className="pop-in h-4 w-4" />}
         </button>
       )}
 
@@ -162,7 +162,7 @@ function EscolherObjetivo({
                 <p className="text-sm font-bold">{o.nome}</p>
                 <p className="text-[11px] text-muted-foreground">{o.descricao}</p>
               </div>
-              <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+              <Icone.avancar className="h-4 w-4 shrink-0 text-muted-foreground" />
             </button>
           ))}
         </div>
@@ -242,7 +242,7 @@ function Historico({ itens }: { itens: Ciclo[] }) {
   return (
     <section className="space-y-2">
       <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-widest text-muted-foreground">
-        <Trophy className="h-4 w-4" /> Meses anteriores
+        <Icone.conquista className="h-4 w-4" /> Meses anteriores
       </h2>
       {itens.map((c) => (
         <Card key={c.id} className="border-border/50 bg-card/40">
@@ -289,7 +289,7 @@ function PlanoPage() {
       <PageShell title="Plano do mês" subtitle="Um objetivo por vez.">
         <Card className="border-dashed border-primary/40 bg-transparent">
           <CardContent className="p-6 text-center">
-            <Target className="mx-auto mb-3 h-8 w-8 text-primary" />
+            <Icone.meta className="mx-auto mb-3 h-8 w-8 text-primary" />
             <p className="font-bold">Nenhum plano ativo</p>
             <p className="mt-1 text-sm text-muted-foreground">
               Escolha o que você quer melhorar e o app monta as 4 semanas para a
