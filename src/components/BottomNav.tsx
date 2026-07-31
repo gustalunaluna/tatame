@@ -91,7 +91,7 @@ export function BottomNav() {
     <>
       {/* ===== Icone.menu lateral ===== */}
       {aberto && (
-        <div className="fixed inset-0 h-dvh" style={{ zIndex: "var(--z-overlay)" }}>
+        <div className="fixed inset-0 h-dvh" style={{ zIndex: "var(--z-sobreposicao)" }}>
           <button
             aria-label="Fechar menu"
             onClick={() => setAberto(false)}
@@ -103,7 +103,7 @@ export function BottomNav() {
             role="dialog"
             aria-modal="true"
             aria-label="Menu"
-            style={{ zIndex: "var(--z-panel)", paddingBottom: "var(--safe-b)" }}
+            style={{ zIndex: "var(--z-painel)" }}
             className="panel-in absolute bottom-0 right-0 top-0 flex w-[82%] min-w-[16rem] max-w-xs flex-col overflow-hidden border-l border-border/60 bg-card shadow-[-24px_0_60px_-20px_rgba(0,0,0,0.8)]"
           >
             <div
@@ -125,7 +125,11 @@ export function BottomNav() {
               </button>
             </div>
 
-            <nav className="flex-1 overflow-y-auto overscroll-contain p-3">
+            {/* `min-h-0` é o que permite o <nav> encolher dentro do flex e
+                virar área rolável de verdade; sem ele o conteúdo empurra o
+                painel e o último item fica fora do alcance. A folga extra
+                embaixo garante que ele não termine colado na borda. */}
+            <nav className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-3 pb-[max(1rem,var(--safe-b))]">
               <ul className="space-y-1">
                 {MENU.map(({ to, label, icon: Icon, desc }, i) => {
                   const on = ativo(to);

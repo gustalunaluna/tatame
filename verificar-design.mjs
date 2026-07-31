@@ -5,11 +5,12 @@
 // contornar é sempre mais rápido no dia em que se está com pressa. Este script
 // é o que transforma "combinado" em "regra": ele falha o build.
 //
-// Confere quatro coisas:
+// Confere cinco coisas:
 //   1. tokens.css está em dia com tokens.json (ninguém editou o gerado à mão)
 //   2. nenhum arquivo importa lucide-react fora do registro de ícones
 //   3. nenhuma cor crua (hex, rgb, oklch) escrita direto em componente
 //   4. nenhum z-index solto — a escala de camadas existe para isso
+//   5. nenhuma var(--token) apontando para nome que não existe
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import { execFileSync } from "node:child_process";
@@ -110,6 +111,46 @@ if (zSolto.length) {
   );
 } else {
   console.log("ok     empilhamento só pela escala semântica");
+}
+
+/* --- 5. variavel de token que nao existe -------------------------------- */
+// Foi o que me pegou: renomeei as camadas para portugues nos tokens e o menu
+// lateral continuou pedindo `--z-overlay`. Variavel inexistente nao da erro em
+// CSS — o valor simplesmente vira `auto`, e a barra inferior passou a cobrir o
+// ultimo item do menu. Silencioso e so visivel no celular.
+const DEFINIDAS = new Set();
+for (const arq of ["src/design/tokens.css", "src/styles.css"]) {
+  for (const m of readFileSync(arq, "utf8").matchAll(/^\s*(--[\w-]+)\s*:/gm)) {
+    DEFINIDAS.add(m[1]);
+  }
+}
+// vindas de fora do nosso controle
+const EXTERNAS = [/^--radix-/, /^--tw-/, /^--i$/];
+
+const orfas = [];
+for (const p of todos) {
+  const r = rel(p);
+  if (r === "src/design/tokens.css") continue;
+  readFileSync(p, "utf8")
+    .split("\n")
+    .forEach((l, i) => {
+      for (const m of l.matchAll(/var\((--[\w-]+)/g)) {
+        const nome = m[1];
+        // nome montado em tempo de execucao: `var(--radius-${tamanho})`
+        if (l.slice(m.index + m[0].length).startsWith("${")) continue;
+        if (DEFINIDAS.has(nome) || EXTERNAS.some((re) => re.test(nome))) continue;
+        orfas.push(`${r}:${i + 1}  ${nome}`);
+      }
+    });
+}
+if (orfas.length) {
+  problemas.push(
+    `${orfas.length} referencia(s) a variavel que nao existe:\n` +
+      [...new Set(orfas)].map((l) => `         ${l}`).join("\n") +
+      `\n         CSS nao reclama disso: o valor vira \`auto\` e o bug so aparece na tela.`,
+  );
+} else {
+  console.log("ok     toda var(--...) aponta para um token existente");
 }
 
 /* --- resultado ---------------------------------------------------------- */
