@@ -24,6 +24,11 @@ import { useEquipes, useMeuHandle, useParcerias } from "@/lib/social-storage";
 import { MedalhaEmDestaque } from "@/components/Medalha";
 import { CadastrarMedalha } from "@/components/CadastrarMedalha";
 import {
+  BotaoNovaGraduacao,
+  LinhaDeGraduacao,
+} from "@/components/HistoricoDeGraduacao";
+import { useMinhasGraduacoes } from "@/lib/graduacao-storage";
+import {
   useMedalhasDoAtleta,
   useMinhasMedalhas,
   useResumoMedalhasDoAtleta,
@@ -355,6 +360,49 @@ function MinhasMedalhas() {
   );
 }
 
+/**
+ * A escada de faixas e graus, com quem entregou cada uma. É o histórico que o
+ * app não tinha: a faixa atual do perfil diz onde a pessoa está, e isto conta
+ * como ela chegou.
+ */
+function MinhaGraduacao() {
+  const { handle } = useMeuHandle();
+  const { graduacoes, criar, apagar } = useMinhasGraduacoes(handle);
+  const recentes = graduacoes.slice(0, 3);
+
+  return (
+    <CaixaDoPerfil
+      titulo="Graduações"
+      icone={<GraduationCap className="h-4 w-4" />}
+      i={5}
+      contagem={graduacoes.length ? String(graduacoes.length) : undefined}
+      verTodos={
+        graduacoes.length > 3
+          ? { para: "/minhas-graduacoes", rotulo: "Ver o histórico inteiro" }
+          : undefined
+      }
+      vazio="Nenhuma graduação registrada. Guarde quem te deu cada grau."
+    >
+      {recentes.length ? (
+        <div className="space-y-0">
+          {recentes.map((g, i) => (
+            <LinhaDeGraduacao
+              key={g.id}
+              g={g}
+              i={i}
+              ultima={i === recentes.length - 1}
+              aoApagar={(id) => void apagar(id)}
+            />
+          ))}
+          <BotaoNovaGraduacao aoSalvar={criar} rotulo="Adicionar outra" />
+        </div>
+      ) : (
+        <BotaoNovaGraduacao aoSalvar={criar} />
+      )}
+    </CaixaDoPerfil>
+  );
+}
+
 function CaixasDoPerfil() {
   const { perfil } = usePerfil();
   const { minhaEquipe, equipes, vinculos } = useEquipes();
@@ -450,6 +498,8 @@ function CaixasDoPerfil() {
       </CaixaDoPerfil>
 
       <MinhasMedalhas />
+
+      <MinhaGraduacao />
 
       <CaixaDoPerfil
         titulo="Conquistas"

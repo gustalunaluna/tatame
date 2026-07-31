@@ -28,11 +28,42 @@ import {
   useMedalhasDoAtleta,
   useResumoMedalhasDoAtleta,
 } from "@/lib/medalhas-storage";
+import { useHistoricoDeGraduacao } from "@/lib/graduacao-storage";
+import { LinhaDeGraduacao } from "@/components/HistoricoDeGraduacao";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/atleta/$handle")({
   component: AtletaPage,
 });
+
+/**
+ * A escada de graduações dela. Mostra as três últimas — o resto fica na caixa
+ * aberta, sem link para outra tela: histórico de faixa é curto por natureza.
+ */
+function GraduacaoDoPerfil({ handle }: { handle: string }) {
+  const { graduacoes } = useHistoricoDeGraduacao(handle);
+  if (!graduacoes.length) return null;
+
+  return (
+    <CaixaDoPerfil
+      titulo="Graduações"
+      icone={<GraduationCap className="h-4 w-4" />}
+      i={4}
+      contagem={String(graduacoes.length)}
+    >
+      <div>
+        {graduacoes.map((g, i) => (
+          <LinhaDeGraduacao
+            key={g.id}
+            g={g}
+            i={i}
+            ultima={i === graduacoes.length - 1}
+          />
+        ))}
+      </div>
+    </CaixaDoPerfil>
+  );
+}
 
 /**
  * As até-três medalhas que a pessoa escolheu mostrar. Acima disso, o link leva
@@ -380,6 +411,9 @@ function AtletaPage() {
 
           {/* ===== Medalhas em destaque ===== */}
           <MedalhasDoPerfil handle={perfil.handle} nome={perfil.nickname} />
+
+          {/* ===== Como ele chegou na faixa que tem ===== */}
+          <GraduacaoDoPerfil handle={perfil.handle} />
 
           {/* ===== Conquistas em destaque ===== */}
           <section>
