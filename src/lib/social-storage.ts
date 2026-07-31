@@ -331,6 +331,7 @@ export function useRegistrosAConfirmar() {
         rolls: number;
         subs_for: number;
         subs_against: number;
+        dias_restantes: number | null;
       }[]).map((r) => ({
         id: r.id,
         autorId: r.autor_id,
@@ -340,6 +341,7 @@ export function useRegistrosAConfirmar() {
         rolls: r.rolls,
         subsFor: r.subs_for,
         subsAgainst: r.subs_against,
+        diasRestantes: r.dias_restantes ?? 0,
       }));
     },
   });
@@ -367,20 +369,21 @@ export function useRegistrosAConfirmar() {
   };
 }
 
-/** Grava as linhas de parceiro de um treino recém-salvo. */
+/**
+ * Grava a lista de parceiros de um treino — na criação e na edição.
+ *
+ * Quem manda é o banco: `salvar_parceiros_do_treino` grava por diferença, para
+ * que uma linha que não mudou não perca a confirmação que já tinha. Linha com
+ * `id` é uma que já existe; sem `id`, é nova.
+ */
 export async function salvarParceirosDoTreino(
   trainingId: string,
   linhas: RascunhoParceiro[],
 ) {
-  const uteis = linhas.filter(
-    (l) => l.partnerId || l.partnerName.trim().length > 0,
-  );
-  if (!uteis.length) return;
-  const eu = await meuId();
-  const { error } = await supabase.from("training_partners").insert(
-    uteis.map((l) => ({
-      training_id: trainingId,
-      owner_id: eu,
+  const { error } = await supabase.rpc("salvar_parceiros_do_treino" as never, {
+    p_training: trainingId,
+    p_linhas: linhas.map((l) => ({
+      id: l.id ?? null,
       partner_id: l.partnerId,
       partner_name: l.partnerId ? "" : l.partnerName.trim(),
       // Só mandamos a faixa do parceiro sem conta: para quem tem conta, um
@@ -389,9 +392,44 @@ export async function salvarParceirosDoTreino(
       rolls: l.rolls,
       subs_for: l.subsFor,
       subs_against: l.subsAgainst,
-    })) as never,
-  );
+    })),
+  } as never);
   if (error) throw error;
+}
+
+/** As linhas de parceiro já gravadas num treino, para abrir a edição. */
+export function useParceirosDoTreino(trainingId: string | null) {
+  const query = useQuery({
+    queryKey: ["parceiros_do_treino", trainingId],
+    enabled: !!trainingId,
+    queryFn: async (): Promise<RascunhoParceiro[]> => {
+      const { data, error } = await supabase.rpc(
+        "parceiros_do_treino" as never,
+        { p_training: trainingId } as never,
+      );
+      if (error) throw error;
+      return ((data ?? []) as unknown as {
+        id: string;
+        partner_id: string | null;
+        partner_name: string;
+        partner_belt: string | null;
+        rolls: number;
+        subs_for: number;
+        subs_against: number;
+        confirmacao: string;
+      }[]).map((r) => ({
+        id: r.id,
+        partnerId: r.partner_id,
+        partnerName: r.partner_name,
+        partnerBelt: (r.partner_belt as RascunhoParceiro["partnerBelt"]) ?? null,
+        rolls: r.rolls,
+        subsFor: r.subs_for,
+        subsAgainst: r.subs_against,
+        confirmacao: r.confirmacao,
+      }));
+    },
+  });
+  return { linhas: query.data ?? [], ready: query.isSuccess };
 }
 
 /* ------------------------------------------------------------------ */

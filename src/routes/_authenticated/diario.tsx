@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
-import { ChevronRight, FileText, Plus, Trash2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { ChevronRight, FileText, Pencil, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { PageShell } from "@/components/PageShell";
 import { Button } from "@/components/ui/button";
@@ -24,10 +24,13 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useTrainings, useHydrated } from "@/lib/bjj-storage";
-import { salvarParceirosDoTreino } from "@/lib/social-storage";
+import {
+  salvarParceirosDoTreino,
+  useParceirosDoTreino,
+} from "@/lib/social-storage";
 import { ParceirosDoTreino } from "@/components/ParceirosDoTreino";
 import type { RascunhoParceiro } from "@/lib/social-types";
-import type { TrainingType } from "@/lib/bjj-types";
+import type { Training, TrainingType } from "@/lib/bjj-types";
 
 export const Route = createFileRoute("/_authenticated/diario")({
   head: () => ({
@@ -41,8 +44,9 @@ export const Route = createFileRoute("/_authenticated/diario")({
 
 function DiaryPage() {
   const hydrated = useHydrated();
-  const { items, add, remove } = useTrainings();
+  const { items, add, remove, update } = useTrainings();
   const [open, setOpen] = useState(false);
+  const [editando, setEditando] = useState<Training | null>(null);
   const [monthFilter, setMonthFilter] = useState<string>("all");
 
   const months = Array.from(new Set(items.map((t) => t.date.slice(0, 7)))).sort().reverse();
@@ -62,30 +66,32 @@ function DiaryPage() {
               <Plus className="h-4 w-4" /> Novo
             </Button>
           </DialogTrigger>
-          <NewTrainingDialog
-            onAdd={async ({ parceiros, ...t }) => {
-              setOpen(false);
-              // Só comemora depois que o banco confirmou. Antes o "Boa!"
-              // aparecia mesmo quando a gravação falhava e o treino se perdia.
-              const id = await add(t);
-              if (!id) return;
-              try {
-                await salvarParceirosDoTreino(id, parceiros);
-              } catch (erro) {
-                // O treino já está salvo; só os parceiros falharam. Dizer isso
-                // é mais útil do que um sucesso genérico ou um erro genérico.
-                console.error("[Tatame] Falha ao salvar os parceiros:", erro);
-                toast.error("Treino salvo, mas os parceiros não. Edite depois.");
-                return;
-              }
-              const comConta = parceiros.filter((p) => p.partnerId).length;
-              toast.success(
-                comConta
-                  ? `Treino registrado. ${comConta} ${comConta === 1 ? "parceiro vai confirmar" : "parceiros vão confirmar"}.`
-                  : "Treino registrado. Boa!",
-              );
-            }}
-          />
+          {open && (
+            <TrainingDialog
+              onSalvar={async ({ parceiros, ...t }) => {
+                setOpen(false);
+                // Só comemora depois que o banco confirmou. Antes o "Boa!"
+                // aparecia mesmo quando a gravação falhava e o treino se perdia.
+                const id = await add(t);
+                if (!id) return;
+                try {
+                  await salvarParceirosDoTreino(id, parceiros);
+                } catch (erro) {
+                  // O treino já está salvo; só os parceiros falharam. Dizer isso
+                  // é mais útil do que um sucesso genérico ou um erro genérico.
+                  console.error("[Tatame] Falha ao salvar os parceiros:", erro);
+                  toast.error("Treino salvo, mas os parceiros não. Edite depois.");
+                  return;
+                }
+                const comConta = parceiros.filter((p) => p.partnerId).length;
+                toast.success(
+                  comConta
+                    ? `Treino registrado. ${comConta} ${comConta === 1 ? "parceiro vai confirmar" : "parceiros vão confirmar"}.`
+                    : "Treino registrado. Boa!",
+                );
+              }}
+            />
+          )}
         </Dialog>
       }
     >
@@ -155,6 +161,14 @@ function DiaryPage() {
                     </span>
                   </div>
                 </div>
+                <div className="flex shrink-0 gap-0.5">
+                <button
+                  onClick={() => setEditando(t)}
+                  className="rounded-md p-1.5 text-muted-foreground hover:bg-primary/10 hover:text-primary"
+                  aria-label={`Editar treino de ${new Date(t.date + "T00:00:00").toLocaleDateString("pt-BR")}`}
+                >
+                  <Pencil className="h-4 w-4" />
+                </button>
                 <button
                   onClick={() => {
                     const backup = t;
@@ -175,11 +189,12 @@ function DiaryPage() {
                       },
                     });
                   }}
-                  className="shrink-0 rounded-md p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-                  aria-label="Remover"
+                  className="rounded-md p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                  aria-label={`Remover treino de ${new Date(t.date + "T00:00:00").toLocaleDateString("pt-BR")}`}
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>
+                </div>
               </div>
               {t.partners && (
                 <p className="mt-2 text-xs text-muted-foreground">
@@ -200,36 +215,103 @@ function DiaryPage() {
           </Card>
         ))}
       </div>
+
+      {/* Edição: o diálogo só é montado quando há treino escolhido, para o
+          formulário nascer já com os valores certos em vez de sincronizar
+          depois. */}
+      <Dialog
+        open={!!editando}
+        onOpenChange={(aberto) => !aberto && setEditando(null)}
+      >
+        {editando && (
+          <TrainingDialog
+            key={editando.id}
+            treino={editando}
+            onSalvar={async ({ parceiros, ...t }) => {
+              const alvo = editando;
+              setEditando(null);
+              const salvou = await update(alvo.id, t);
+              if (!salvou) return;
+              try {
+                await salvarParceirosDoTreino(alvo.id, parceiros);
+              } catch (erro) {
+                console.error("[Tatame] Falha ao salvar os parceiros:", erro);
+                toast.error("Treino salvo, mas os parceiros não.");
+                return;
+              }
+              toast.success("Treino atualizado.");
+            }}
+          />
+        )}
+      </Dialog>
     </PageShell>
   );
 }
 
-function NewTrainingDialog({
-  onAdd,
+export interface DadosDoTreino {
+  date: string;
+  type: TrainingType;
+  durationMin: number;
+  rolls: number;
+  partners: string;
+  techniques: string;
+  notes: string;
+  parceiros: RascunhoParceiro[];
+}
+
+/**
+ * O mesmo formulário serve para criar e para editar. Sem `treino`, é um treino
+ * novo; com `treino`, os campos já vêm preenchidos e os parceiros são buscados
+ * no banco (é de lá que vem o `id` de cada linha, que é o que permite gravar
+ * por diferença sem zerar confirmações).
+ */
+function TrainingDialog({
+  treino,
+  onSalvar,
 }: {
-  onAdd: (t: {
-    date: string;
-    type: TrainingType;
-    durationMin: number;
-    rolls: number;
-    partners: string;
-    techniques: string;
-    notes: string;
-    parceiros: RascunhoParceiro[];
-  }) => void;
+  treino?: Training;
+  onSalvar: (t: DadosDoTreino) => void;
 }) {
-  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
-  const [type, setType] = useState<TrainingType>("Gi");
-  const [durationMin, setDuration] = useState(60);
-  const [rolls, setRolls] = useState(4);
-  const [techniques, setTechniques] = useState("");
-  const [notes, setNotes] = useState("");
+  const editando = !!treino;
+  const [date, setDate] = useState(
+    treino?.date ?? new Date().toISOString().slice(0, 10),
+  );
+  const [type, setType] = useState<TrainingType>(treino?.type ?? "Gi");
+  const [durationMin, setDuration] = useState(treino?.durationMin ?? 60);
+  const [rolls, setRolls] = useState(treino?.rolls ?? 4);
+  const [techniques, setTechniques] = useState(treino?.techniques ?? "");
+  const [notes, setNotes] = useState(treino?.notes ?? "");
   const [parceiros, setParceiros] = useState<RascunhoParceiro[]>([]);
+
+  const { linhas, ready: parceirosProntos } = useParceirosDoTreino(
+    treino?.id ?? null,
+  );
+
+  // As linhas gravadas chegam depois da primeira pintura. Só copiamos para o
+  // rascunho quando elas chegam — daí em diante quem manda é o que a pessoa
+  // está digitando, e por isso a dependência é o `ready`, não a lista.
+  useEffect(() => {
+    if (parceirosProntos) setParceiros(linhas);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [parceirosProntos, treino?.id]);
+
+  const vaiVoltarParaFila =
+    editando &&
+    parceiros.some((p) => {
+      if (!p.partnerId || !p.id) return false;
+      const antes = linhas.find((l) => l.id === p.id);
+      if (!antes || antes.confirmacao !== "confirmado") return false;
+      return (
+        antes.rolls !== p.rolls ||
+        antes.subsFor !== p.subsFor ||
+        antes.subsAgainst !== p.subsAgainst
+      );
+    });
 
   return (
     <DialogContent className="max-h-[90vh] overflow-y-auto">
       <DialogHeader>
-        <DialogTitle>Novo treino</DialogTitle>
+        <DialogTitle>{editando ? "Editar treino" : "Novo treino"}</DialogTitle>
       </DialogHeader>
       <div className="space-y-3">
         <div className="grid grid-cols-2 gap-3">
@@ -278,11 +360,17 @@ function NewTrainingDialog({
           <Textarea rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Sensações, o que travou, o que fluiu…" />
         </div>
       </div>
-      <DialogFooter>
+      <DialogFooter className="flex-col gap-2 sm:flex-col">
+        {vaiVoltarParaFila && (
+          <p className="w-full text-xs text-muted-foreground">
+            Você mudou o placar de alguém que já tinha confirmado. Esse registro
+            volta para a fila e a pessoa vai poder ver o número novo.
+          </p>
+        )}
         <Button
           className="w-full"
           onClick={() =>
-            onAdd({
+            onSalvar({
               date,
               type,
               durationMin,
@@ -298,7 +386,7 @@ function NewTrainingDialog({
             })
           }
         >
-          Salvar treino
+          {editando ? "Salvar alterações" : "Salvar treino"}
         </Button>
       </DialogFooter>
     </DialogContent>

@@ -72,6 +72,12 @@ export interface ParceiroDoTreino {
 
 /** Linha do rascunho antes de salvar o treino */
 export interface RascunhoParceiro {
+  /**
+   * Só existe quando a linha já está gravada. É por ele que o banco sabe
+   * distinguir "esta linha mudou" de "esta linha é nova" — e por isso uma
+   * linha intocada não perde a confirmação que já recebeu.
+   */
+  id?: string | null;
   partnerId: string | null;
   partnerName: string;
   /**
@@ -82,6 +88,8 @@ export interface RascunhoParceiro {
   rolls: number;
   subsFor: number;
   subsAgainst: number;
+  /** Preenchido só na leitura, para a edição avisar o que vai voltar à fila. */
+  confirmacao?: string;
 }
 
 /** Placar acumulado com uma pessoa, somando os dois lados já confirmados */
@@ -109,6 +117,11 @@ export interface RegistroAConfirmar {
   subsFor: number;
   /** finalizações que o autor diz que eu fiz nele */
   subsAgainst: number;
+  /**
+   * Quantos dias faltam para o silêncio virar aceite. Zerou, o registro sai
+   * da fila e passa a contar sozinho — contestar é que tem prazo.
+   */
+  diasRestantes: number;
 }
 
 /** Regras do @: minúsculas, 3–20, letras/números/ponto/underline */

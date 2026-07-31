@@ -235,7 +235,8 @@ function Confirmacoes() {
         Esperando você ({itens.length})
       </h2>
       <p className="text-xs text-muted-foreground">
-        Só entra no placar de vocês depois que você confirmar.
+        Se você não disser nada, entra no placar sozinho em até 7 dias. Só
+        precisa aparecer aqui se algo estiver errado.
       </p>
 
       {itens.map((r, i) => (
@@ -254,6 +255,13 @@ function Confirmacoes() {
                 Você finalizou ele <b>{r.subsAgainst}x</b>
               </span>
             </div>
+            <p className="text-[11px] text-muted-foreground">
+              {r.diasRestantes <= 0
+                ? "Entra no placar hoje."
+                : r.diasRestantes === 1
+                  ? "Entra no placar amanhã, se você não contestar."
+                  : `Entra no placar em ${r.diasRestantes} dias, se você não contestar.`}
+            </p>
             <div className="flex gap-2">
               <Button
                 size="sm"
