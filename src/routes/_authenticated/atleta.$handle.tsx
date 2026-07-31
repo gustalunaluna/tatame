@@ -2,7 +2,6 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import type { CSSProperties } from "react";
 import {
   ArrowLeft,
-  BadgeCheck,
   GraduationCap,
   Shield,
   Swords,
@@ -16,6 +15,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Faixa as FaixaVisual } from "@/components/Faixa";
 import { CaixaDoPerfil } from "@/components/CaixaDoPerfil";
+import { SeloDaPessoa, SeloVerificado } from "@/components/SeloVerificado";
 import { usePerfilPublico, useParcerias } from "@/lib/social-storage";
 import { cn } from "@/lib/utils";
 
@@ -88,12 +88,11 @@ function AtletaPage() {
               <div className="min-w-0 flex-1 pt-1">
                 <h1 className="flex items-center gap-1.5 text-2xl font-black leading-tight">
                   <span className="truncate">{perfil.nickname}</span>
-                  {perfil.verificado && (
-                    <BadgeCheck
-                      className="h-5 w-5 shrink-0 text-primary"
-                      aria-label="Faixa preta verificada"
-                    />
-                  )}
+                  <SeloDaPessoa
+                    verificado={perfil.verificado}
+                    equipeOficial={perfil.teamStatus === "aprovada"}
+                    className="h-5 w-5"
+                  />
                 </h1>
                 {perfil.idade != null && (
                   <p className="text-sm text-muted-foreground">
@@ -195,8 +194,13 @@ function AtletaPage() {
                       <Shield className="h-6 w-6 text-muted-foreground" />
                     </div>
                   )}
-                  <p className="line-clamp-2 text-xs font-bold leading-tight">
-                    {perfil.teamName || perfil.gym}
+                  <p className="flex items-center justify-center gap-1 text-xs font-bold leading-tight">
+                    <span className="line-clamp-2">
+                      {perfil.teamName || perfil.gym}
+                    </span>
+                    {perfil.teamStatus === "aprovada" && (
+                      <SeloVerificado tipo="equipe" className="h-3.5 w-3.5" />
+                    )}
                   </p>
                   {!perfil.teamName && (
                     <p className="text-[10px] text-muted-foreground">declarada</p>

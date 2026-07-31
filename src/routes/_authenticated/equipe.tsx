@@ -16,6 +16,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Confirmar } from "@/components/Confirmar";
+import { SeloVerificado } from "@/components/SeloVerificado";
 import { useEquipes, useMembrosDaEquipe } from "@/lib/social-storage";
 import type { Equipe } from "@/lib/social-types";
 
@@ -112,7 +113,7 @@ function PedirCadastro() {
 /* ------------------------------------------------------------------ */
 
 function MinhaEquipe({ equipe }: { equipe: Equipe }) {
-  const { souDono, sair, decidir } = useEquipes();
+  const { souDono, sair, decidir, definirPapel } = useEquipes();
   const { ativos, pendentes, ready } = useMembrosDaEquipe(equipe.id);
   const dono = souDono(equipe.id);
 
@@ -125,7 +126,12 @@ function MinhaEquipe({ equipe }: { equipe: Equipe }) {
               <p className="text-[10px] font-bold uppercase tracking-widest text-primary">
                 Sua equipe
               </p>
-              <h2 className="mt-1 truncate text-2xl font-black">{equipe.name}</h2>
+              <h2 className="mt-1 flex items-center gap-1.5 text-2xl font-black">
+                <span className="truncate">{equipe.name}</span>
+                {equipe.status === "aprovada" && (
+                  <SeloVerificado tipo="equipe" className="h-5 w-5" />
+                )}
+              </h2>
               <p className="mt-0.5 text-xs text-muted-foreground">
                 {[equipe.city, equipe.master && `Mestre ${equipe.master}`]
                   .filter(Boolean)
@@ -201,8 +207,45 @@ function MinhaEquipe({ equipe }: { equipe: Equipe }) {
             i={i}
             atleta={m}
             detalhe={
-              m.role === "dono" ? (
-                <p className="mt-1 text-[11px] font-bold text-primary">dono</p>
+              m.role !== "membro" ? (
+                <p className="mt-1 text-[11px] font-bold text-primary">
+                  {m.role === "dono" ? "dono" : "mestre da academia"}
+                </p>
+              ) : undefined
+            }
+            acao={
+              // Quem manda na academia diz quem é mestre dela. É o segundo
+              // caminho para o selo — o primeiro é a verificação do app.
+              dono && m.role !== "dono" ? (
+                <Confirmar
+                  gatilho={
+                    <Button size="sm" variant="outline" className="shrink-0">
+                      {m.role === "mestre" ? "Tirar mestre" : "Tornar mestre"}
+                    </Button>
+                  }
+                  titulo={
+                    m.role === "mestre"
+                      ? `Tirar ${m.nickname} de mestre?`
+                      : `Tornar ${m.nickname} mestre da academia?`
+                  }
+                  descricao={
+                    m.role === "mestre"
+                      ? `${m.nickname} deixa de constar como mestre da ${equipe.name} e perde o selo que vem daí.`
+                      : `${m.nickname} passa a constar como mestre da ${equipe.name} e ganha o selo de mestre verificado. Só faça isso com quem realmente dá aula aqui.`
+                  }
+                  rotuloConfirmar={m.role === "mestre" ? "Tirar" : "Tornar mestre"}
+                  destrutivo={m.role === "mestre"}
+                  aoConfirmar={async () => {
+                    const novo = m.role === "mestre" ? "membro" : "mestre";
+                    if (await definirPapel(equipe.id, m.userId, novo)) {
+                      toast.success(
+                        novo === "mestre"
+                          ? `${m.nickname} agora é mestre da academia.`
+                          : `${m.nickname} voltou a ser membro.`,
+                      );
+                    }
+                  }}
+                />
               ) : undefined
             }
           />
@@ -275,7 +318,10 @@ function ProcurarEquipe() {
           >
             <CardContent className="flex items-center justify-between gap-3 p-4">
               <div className="min-w-0">
-                <p className="truncate font-bold">{e.name}</p>
+                <p className="flex items-center gap-1.5 font-bold">
+                  <span className="truncate">{e.name}</span>
+                  <SeloVerificado tipo="equipe" className="h-4 w-4" />
+                </p>
                 <p className="truncate text-xs text-muted-foreground">
                   {[e.city, e.master && `Mestre ${e.master}`]
                     .filter(Boolean)

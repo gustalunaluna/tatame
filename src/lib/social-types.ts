@@ -9,11 +9,16 @@ export interface CartaoPublico {
   degrees: number;
   gym: string;
   photoUrl: string;
+  /** faixa preta confirmada por um admin do app */
+  verificado: boolean;
+  /** membro ativo de uma equipe aprovada — é o que sustenta o selo de aluno */
+  equipeOficial: boolean;
 }
 
 export type StatusEquipe = "pendente" | "aprovada" | "recusada";
 export type StatusMembro = "pendente" | "ativo" | "recusado";
-export type PapelMembro = "dono" | "membro";
+/** `mestre` é o papel que a academia concede — e que dá o selo à pessoa */
+export type PapelMembro = "dono" | "mestre" | "membro";
 
 export interface Equipe {
   id: string;

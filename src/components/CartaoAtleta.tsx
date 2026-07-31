@@ -1,6 +1,7 @@
 import type { CSSProperties, ReactNode } from "react";
 import { Faixa } from "@/components/Faixa";
 import { Link } from "@tanstack/react-router";
+import { SeloDaPessoa } from "@/components/SeloVerificado";
 import { cn } from "@/lib/utils";
 import type { CartaoPublico } from "@/lib/social-types";
 
@@ -28,6 +29,8 @@ export function CartaoAtleta({
   atleta: Pick<CartaoPublico, "nickname" | "handle" | "belt" | "degrees"> & {
     photoUrl?: string;
     gym?: string;
+    verificado?: boolean;
+    equipeOficial?: boolean;
   };
   detalhe?: ReactNode;
   acao?: ReactNode;
@@ -64,7 +67,14 @@ export function CartaoAtleta({
             params={{ handle: atleta.handle }}
             className="tap block active:scale-[0.98]"
           >
-            <p className="truncate text-sm font-bold">{atleta.nickname}</p>
+            <p className="flex items-center gap-1 text-sm font-bold">
+              <span className="truncate">{atleta.nickname}</span>
+              <SeloDaPessoa
+                verificado={atleta.verificado}
+                equipeOficial={atleta.equipeOficial}
+                className="h-4 w-4"
+              />
+            </p>
             <p className="truncate text-[11px] text-muted-foreground">
               @{atleta.handle}
               {atleta.gym ? ` · ${atleta.gym}` : ""}

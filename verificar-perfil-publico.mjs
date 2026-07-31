@@ -24,7 +24,7 @@ await p.route(`https://${REF}.supabase.co/**`, async r => {
   if (url.includes("/rpc/perfil_publico")) return json([{
     user_id:"u2", handle:"joaozinho", nickname:"Joãozinho",
     bio:"Comecei em 2025. Guardeiro.", belt:"Branca", degrees:2,
-    photo_url:"", verificado:false, idade:24,
+    photo_url:"", verificado:true, idade:24,
     gym:"Academia Teste", master:"Mestre Silva",
     team_id:"e1", team_name:"Academia Teste", team_crest:"", team_status:"aprovada",
     fights_won:3, fights_lost:1, treinos:42, parceiros:2,
@@ -63,6 +63,8 @@ console.log(JSON.stringify({
   conquistasDestaque: c.includes("30 dias seguidos"),
   contagemConquistas: c.includes("87/1006"),
   mostraVinculo: c.includes("parceiros de rola"),
+  seloMestre: (await p.locator('[title="Faixa preta verificada"]').count()) > 0,
+  seloEquipe: (await p.locator('[title="Equipe oficial"]').count()) > 0,
   erros: [...new Set(erros)],
 }, null, 2));
 await b.close();

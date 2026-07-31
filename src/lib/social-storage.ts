@@ -54,6 +54,8 @@ type LinhaCartao = {
   degrees: number | null;
   gym?: string | null;
   photo_url: string | null;
+  verificado?: boolean | null;
+  equipe_oficial?: boolean | null;
 };
 
 function paraCartao(r: LinhaCartao): CartaoPublico {
@@ -65,6 +67,8 @@ function paraCartao(r: LinhaCartao): CartaoPublico {
     degrees: r.degrees ?? 0,
     gym: r.gym ?? "",
     photoUrl: r.photo_url ?? "",
+    verificado: Boolean(r.verificado),
+    equipeOficial: Boolean(r.equipe_oficial),
   };
 }
 
@@ -514,6 +518,19 @@ export function useEquipes() {
     onError: aoFalhar("responder o pedido"),
   });
 
+  const papelMut = useMutation({
+    mutationFn: async (d: { teamId: string; userId: string; role: PapelMembro }) => {
+      const { error } = await supabase
+        .from("team_members")
+        .update({ role: d.role } as never)
+        .eq("team_id", d.teamId)
+        .eq("user_id", d.userId);
+      if (error) throw error;
+    },
+    onSuccess: invalidar,
+    onError: aoFalhar("mudar o papel do membro"),
+  });
+
   const vinculos = minhasQuery.data ?? [];
   const equipes = listaQuery.data ?? [];
 
@@ -536,6 +553,8 @@ export function useEquipes() {
     sair: (teamId: string) => ok(sairMut.mutateAsync(teamId)),
     decidir: (teamId: string, userId: string, aceita: boolean) =>
       ok(decidirMut.mutateAsync({ teamId, userId, aceita })),
+    definirPapel: (teamId: string, userId: string, role: PapelMembro) =>
+      ok(papelMut.mutateAsync({ teamId, userId, role })),
   };
 }
 
