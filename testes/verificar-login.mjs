@@ -19,6 +19,8 @@ for (const nome of CONTAS) {
     }
   });
   await p.goto(`${BASE}/auth`, { waitUntil: "networkidle" });
+  // A tela abre no convite: os campos só existem depois do primeiro toque.
+  await p.getByRole("button", { name: /^Entrar$/ }).click();
   await p.getByLabel(/E-mail/i).fill(`${nome}.teste@tatame.app`);
   await p.getByLabel(/Senha/i).fill(SENHA);
   await p.getByRole("button", { name: /^Entrar$/ }).click();

@@ -7,6 +7,8 @@ import type {
   AtletaDaEquipe,
   CartaoPublico,
   DestaquePublico,
+  EloDaLinhagem,
+  VinculoDeMestre,
   PerfilEquipe,
   PerfilPublico,
   Equipe,
@@ -917,4 +919,160 @@ export function useResumoDeMestre(handle: string | null | undefined) {
     ...(query.data ?? { eMestre: false, alunos: 0, equipes: 0 }),
     ready: query.isSuccess,
   };
+}
+
+/* ------------------------------------------------------------------ */
+/* Mestres e linhagem                                                  */
+/* ------------------------------------------------------------------ */
+
+const paraVinculo = (r: Record<string, unknown>): VinculoDeMestre => ({
+  id: r.id as string,
+  papel: (r.papel as VinculoDeMestre["papel"]) ?? "mestre",
+  principal: Boolean(r.principal),
+  desde: (r.desde as string) ?? null,
+  ate: (r.ate as string) ?? null,
+  nota: (r.nota as string) ?? "",
+  mestreHandle: (r.mestre_handle as string) ?? "",
+  mestreNome: (r.mestre_nome as string) ?? "",
+  mestreBelt: ((r.mestre_belt as string) ?? "") as VinculoDeMestre["mestreBelt"],
+  mestreGraus: Number(r.mestre_graus ?? 0),
+  mestreFoto: (r.mestre_foto as string) ?? "",
+  mestreVerificado: Boolean(r.mestre_verificado),
+  teamSlug: (r.team_slug as string) ?? "",
+  teamNome: (r.team_nome as string) ?? "",
+  souDono: Boolean(r.sou_dono),
+});
+
+/**
+ * Os mestres de alguém — todos, não um.
+ *
+ * O campo de texto `master` do perfil guardava um nome só, e por isso a
+ * história inteira de quem treina há dez anos cabia numa linha: sumia quem
+ * iniciou a pessoa, sumia quem a graduou preta. São vínculos separados, cada
+ * um com período e academia.
+ */
+export function useMestresDe(handle: string | undefined) {
+  const limpo = (handle ?? "").trim().toLowerCase().replace(/^@+/, "");
+  const query = useQuery({
+    queryKey: ["mestres_de", limpo],
+    enabled: limpo.length >= 3,
+    queryFn: async (): Promise<VinculoDeMestre[]> => {
+      const { data, error } = await supabase.rpc("mestres_de" as never, {
+        p_handle: limpo,
+      } as never);
+      if (error) throw error;
+      return ((data ?? []) as unknown as Record<string, unknown>[]).map(paraVinculo);
+    },
+  });
+  return {
+    mestres: query.data ?? [],
+    ready: query.isSuccess,
+  };
+}
+
+/**
+ * A linhagem: a corrente para trás, seguindo sempre o mestre principal.
+ *
+ * O elemento 0 é a própria pessoa — é o que permite desenhar a corrente
+ * inteira sem a tela ter que costurar o topo na mão.
+ */
+export function useLinhagemDe(handle: string | undefined) {
+  const limpo = (handle ?? "").trim().toLowerCase().replace(/^@+/, "");
+  const query = useQuery({
+    queryKey: ["linhagem_de", limpo],
+    enabled: limpo.length >= 3,
+    queryFn: async (): Promise<EloDaLinhagem[]> => {
+      const { data, error } = await supabase.rpc("linhagem_de" as never, {
+        p_handle: limpo,
+      } as never);
+      if (error) throw error;
+      return ((data ?? []) as unknown as Record<string, unknown>[]).map((r) => ({
+        nivel: Number(r.nivel ?? 0),
+        handle: (r.handle as string) ?? "",
+        nome: (r.nome as string) ?? "?",
+        belt: ((r.belt as string) ?? "") as EloDaLinhagem["belt"],
+        graus: Number(r.graus ?? 0),
+        foto: (r.foto as string) ?? "",
+        verificado: Boolean(r.verificado),
+        temConta: Boolean(r.tem_conta),
+      }));
+    },
+  });
+  return {
+    linhagem: query.data ?? [],
+    /** Só os de cima — sem a própria pessoa. */
+    acima: (query.data ?? []).filter((e) => e.nivel > 0),
+    ready: query.isSuccess,
+  };
+}
+
+/** Cadastrar, editar e apagar os próprios vínculos de mestre. */
+export function useMeusMestres() {
+  const qc = useQueryClient();
+  const invalidar = () => {
+    qc.invalidateQueries({ queryKey: ["mestres_de"] });
+    qc.invalidateQueries({ queryKey: ["linhagem_de"] });
+  };
+
+  const adicionar = useMutation({
+    mutationFn: async (novo: {
+      mestreId?: string | null;
+      mestreNome?: string;
+      teamId?: string | null;
+      papel?: VinculoDeMestre["papel"];
+      principal?: boolean;
+      desde?: string | null;
+      nota?: string;
+    }) => {
+      const { data: sessao } = await supabase.auth.getUser();
+      const eu = sessao.user?.id;
+      if (!eu) throw new Error("Entre para cadastrar seu mestre.");
+      const { error } = await supabase.from("master_links" as never).insert({
+        aluno_id: eu,
+        mestre_id: novo.mestreId ?? null,
+        mestre_nome: (novo.mestreNome ?? "").trim(),
+        team_id: novo.teamId ?? null,
+        papel: novo.papel ?? "mestre",
+        principal: novo.principal ?? false,
+        desde: novo.desde ?? null,
+        nota: (novo.nota ?? "").trim(),
+      } as never);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      invalidar();
+      toast.success("Mestre cadastrado.");
+    },
+    onError: (e) => toast.error(mensagemDoErro(e)),
+  });
+
+  /** Marca um vínculo como principal — é por ele que a linhagem sobe. */
+  const tornarPrincipal = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("master_links" as never)
+        .update({ principal: true } as never)
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      invalidar();
+      toast.success("Linhagem atualizada.");
+    },
+    onError: (e) => toast.error(mensagemDoErro(e)),
+  });
+
+  const remover = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("master_links" as never).delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      invalidar();
+      toast.success("Vínculo removido.");
+    },
+    onError: (e) => toast.error(mensagemDoErro(e)),
+  });
+
+  return { adicionar, tornarPrincipal, remover };
 }

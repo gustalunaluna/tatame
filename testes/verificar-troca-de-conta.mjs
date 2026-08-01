@@ -92,7 +92,9 @@ await pagina.waitForTimeout(600);
 await pagina.getByRole("button", { name: /Sair/i }).click();
 await pagina.waitForTimeout(800);
 
-// Entra na conta B — mesma carga de página, sem F5
+// Entra na conta B — mesma carga de página, sem F5.
+// A tela de entrada abre no convite; o formulário vem depois do toque.
+await pagina.getByRole("button", { name: /^Entrar$/ }).click();
 await pagina.getByLabel(/E-mail/i).fill(CONTAS.b.email);
 await pagina.getByLabel(/Senha/i).fill("qualquer");
 await pagina.getByRole("button", { name: /^Entrar$/ }).click();

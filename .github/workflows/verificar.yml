@@ -16,12 +16,16 @@ jobs:
           cache: npm
       - run: npm ci
 
-      # Barato e rápido primeiro: se o sistema de design foi furado ou os tipos
-      # não fecham, não vale gastar cinco minutos subindo navegador.
+      # Barato e rápido primeiro: se o sistema de design foi furado, não vale
+      # gastar cinco minutos subindo navegador.
       - run: npm run verificar:design
-      - run: npx tsc --noEmit
 
+      # O build vem ANTES do tsc de propósito. `src/routeTree.gen.ts` é gerado
+      # pelo plugin do roteador durante o build, e sem ele o tsc não encontra
+      # nenhuma rota — foi o que quebrou a primeira execução desta CI, com 23
+      # erros que não existiam no código.
       - run: npm run build
+      - run: npx tsc --noEmit
       - run: npm run orcamento
 
       - run: npx playwright install --with-deps chromium

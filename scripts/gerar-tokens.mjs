@@ -74,6 +74,14 @@ for (const [, def] of Object.entries(t.cor.podio)) {
 }
 escreva();
 
+/* ---- marca ------------------------------------------------------------- */
+escreva("  /* marca — fixa, não segue a faixa de quem está logado */");
+for (const [nome, def] of Object.entries(t.cor.marca)) {
+  if (nome.startsWith("_")) continue;
+  escreva(`  --${def.css}: ${oklch(def.valor)};`);
+}
+escreva();
+
 /* ---- gráficos ---------------------------------------------------------- */
 escreva("  /* gráficos: a série 1 é a faixa; as outras só precisam se distinguir */");
 escreva("  --chart-1: var(--faixa);");

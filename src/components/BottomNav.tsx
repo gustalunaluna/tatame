@@ -49,6 +49,11 @@ export function BottomNav() {
 
   const ativo = (to: string) => (to === "/" ? pathname === "/" : pathname.startsWith(to));
 
+  // Fora da sessão não há para onde navegar. A barra aparecia na tela de
+  // entrada, cobrindo o botão de criar conta e oferecendo seis telas que
+  // devolviam a pessoa para cá.
+  const foraDaSessao = pathname.startsWith("/auth");
+
   // Fecha ao trocar de tela
   useEffect(() => setAberto(false), [pathname]);
 
@@ -87,9 +92,11 @@ export function BottomNav() {
     };
   }, [aberto]);
 
+  if (foraDaSessao) return null;
+
   return (
     <>
-      {/* ===== Icone.menu lateral ===== */}
+      {/* ===== Menu lateral ===== */}
       {aberto && (
         <div className="fixed inset-0 h-dvh" style={{ zIndex: "var(--z-sobreposicao)" }}>
           <button

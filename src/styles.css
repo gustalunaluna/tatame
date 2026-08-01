@@ -223,3 +223,60 @@
   }
   details.reveal::details-content { transition: none; }
 }
+
+/* ============================================================
+   MARCA — entrada dos graus e da escada de faixas
+   ============================================================
+   Só na tela de entrada. O movimento conta uma história curta: a faixa está
+   ali, e os graus vão sendo conquistados um a um. Quem pediu menos movimento
+   vê tudo já no lugar.
+   ============================================================ */
+@keyframes grau-entra {
+  from { opacity: 0; transform: translate3d(-6px, 0, 0); }
+  to   { opacity: 1; transform: none; }
+}
+
+@keyframes escada-entra {
+  from { transform: scaleX(0); }
+  to   { transform: none; }
+}
+
+@keyframes marca-entra {
+  from { opacity: 0; transform: rotate(-7deg) translate3d(0, 16px, 0) scale(1.03); }
+  to   { opacity: 1; transform: rotate(-7deg); }
+}
+
+@keyframes folha-sobe {
+  from { transform: translate3d(0, 100%, 0); }
+  to   { transform: none; }
+}
+
+@keyframes campos-entram {
+  from { opacity: 0; transform: translate3d(0, 8px, 0); }
+  to   { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .grau-entra {
+    animation: grau-entra var(--t-base) var(--ease-out-quart) both;
+    animation-delay: calc(320ms + var(--i) * 140ms);
+  }
+  .escada-entra {
+    transform-origin: left;
+    animation: escada-entra var(--t-enter) var(--ease-out-expo) both;
+    animation-delay: calc(120ms + var(--i) * 90ms);
+  }
+  /* A entrada da marca carrega a rotação dentro do keyframe de propósito: uma
+     animação de transform sobrescreve a classe `-rotate-[7deg]` enquanto roda,
+     e sem repetir a rotação aqui a faixa entraria reta e giraria no fim. */
+  .marca-entra {
+    animation: marca-entra var(--t-enter) var(--ease-out-expo) both;
+  }
+  .folha-sobe {
+    animation: folha-sobe var(--t-enter) var(--ease-out-expo) both;
+    animation-delay: 140ms;
+  }
+  .campos-entram {
+    animation: campos-entram var(--t-base) var(--ease-out-quart) both;
+  }
+}

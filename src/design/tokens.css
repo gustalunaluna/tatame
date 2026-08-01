@@ -46,6 +46,13 @@
   --prata: oklch(0.83 0.02 250);
   --bronze: oklch(0.66 0.12 50);
 
+  /* marca — fixa, não segue a faixa de quem está logado */
+  --marca-tecido: oklch(0.93 0.02 92);
+  --marca-ponteira: oklch(0.11 0.008 250);
+  --marca-grau: oklch(1 0 0);
+  --marca-costura: oklch(0.11 0.008 250);
+  --marca-contorno: oklch(0.34 0.01 250);
+
   /* gráficos: a série 1 é a faixa; as outras só precisam se distinguir */
   --chart-1: var(--faixa);
   --chart-2: oklch(0.72 0.13 220);

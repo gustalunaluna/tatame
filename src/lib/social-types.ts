@@ -216,3 +216,45 @@ export interface DestaquePublico {
   tier: string;
   unlocked: boolean;
 }
+
+/* ------------------------------------------------------------------ */
+/* Mestres e linhagem                                                  */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Um vínculo de mestre. São vários por pessoa: quem a iniciou, quem a graduou
+ * preta, quem a recebeu depois de uma mudança de cidade. `principal` é o que a
+ * linhagem segue.
+ */
+export interface VinculoDeMestre {
+  id: string;
+  papel: "mestre" | "professor" | "instrutor";
+  principal: boolean;
+  desde: string | null;
+  ate: string | null;
+  nota: string;
+  /** Vazio quando o mestre não tem conta no app. */
+  mestreHandle: string;
+  mestreNome: string;
+  mestreBelt: Faixa | "";
+  mestreGraus: number;
+  mestreFoto: string;
+  mestreVerificado: boolean;
+  teamSlug: string;
+  teamNome: string;
+  /** Verdadeiro quando o vínculo é meu — só aí dá para editar. */
+  souDono: boolean;
+}
+
+/** Um degrau da corrente. Nível 0 é a própria pessoa. */
+export interface EloDaLinhagem {
+  nivel: number;
+  handle: string;
+  nome: string;
+  belt: Faixa | "";
+  graus: number;
+  foto: string;
+  verificado: boolean;
+  /** Falso para quem está na linhagem mas não usa o app — Maeda, por exemplo. */
+  temConta: boolean;
+}
