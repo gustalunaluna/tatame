@@ -1,5 +1,4 @@
 import type { Faixa } from "./bjj-types";
-import { nomeDaGraduacao } from "./graduacao";
 
 /**
  * Como se chama alguém no jiu-jitsu.
@@ -34,11 +33,6 @@ import { nomeDaGraduacao } from "./graduacao";
 /** A partir da roxa a pessoa pode se declarar instrutora. */
 export function podeSerInstrutor(faixa: Faixa | string | undefined | null): boolean {
   return ["Roxa", "Marrom", "Preta", "Coral", "Vermelha"].includes(String(faixa ?? ""));
-}
-
-/** Faixa-preta em diante — quem gradua. */
-export function ePreta(faixa: Faixa | string | undefined | null): boolean {
-  return ["Preta", "Coral", "Vermelha"].includes(String(faixa ?? ""));
 }
 
 export type PapelNaAcademia =
@@ -131,28 +125,4 @@ export function tituloDe({
   // O teto da faixa vale por último e sobre tudo: dono de academia faixa-azul
   // continua sendo aluno de faixa-azul.
   return degrau(titulo) > degrau(teto) ? teto : titulo;
-}
-
-/**
- * O título junto da faixa, do jeito que se apresenta alguém.
- *
- *   "Professor · Preta 2º grau"   "Aluno · Azul 3 graus"
- *
- * Aluno some quando a faixa já diz tudo: escrever "Aluno · Branca" em todo
- * perfil de iniciante transforma o título em ruído em vez de informação.
- */
-export function tituloComFaixa({
-  belt,
-  degrees = 0,
-  papel,
-  instrutor = false,
-}: {
-  belt: Faixa | string | undefined | null;
-  degrees?: number;
-  papel?: PapelNaAcademia | string | null;
-  instrutor?: boolean;
-}): string {
-  const titulo = tituloDe({ belt, degrees, papel, instrutor });
-  const faixa = nomeDaGraduacao(belt, degrees);
-  return titulo === "Aluno" ? faixa : `${titulo} · ${faixa}`;
 }

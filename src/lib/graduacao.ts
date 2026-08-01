@@ -1,4 +1,4 @@
-import { FAIXAS, type Faixa } from "./bjj-types";
+import type { Faixa } from "./bjj-types";
 
 /**
  * A escada de graduação, como ela é de verdade.
@@ -38,6 +38,17 @@ export const GRAUS_DA_FAIXA: Record<Faixa, readonly number[]> = {
 } as const;
 
 /**
+ * Faixa-preta em diante — quem gradua, e quem conta grau por ordinal.
+ *
+ * Morava em `titulos.ts` e perdeu o único chamador quando o nome da graduação
+ * veio para cá; e aqui embaixo esta mesma lista estava escrita de novo à mão.
+ * Duas cópias da mesma regra, e a que tinha nome era a morta.
+ */
+export function ePreta(faixa: Faixa | string | undefined | null): boolean {
+  return ["Preta", "Coral", "Vermelha"].includes(String(faixa ?? ""));
+}
+
+/**
  * A faixa carrega listra de grau na ponteira?
  *
  * Da branca à preta, sim — a listra é como o grau aparece. Da coral em diante,
@@ -72,25 +83,6 @@ export function ajustarGrau(
 }
 
 /**
- * Uma posição única na escada inteira, para comparar graduações.
- *
- * Não dá para comparar só por grau (preta 6º e coral 7º são graus diferentes da
- * mesma progressão, mas marrom 4º e preta 0 não são), nem só por faixa. Este
- * número resolve os dois casos de uma vez.
- */
-export function posicaoNaEscada(
-  faixa: Faixa | string | undefined | null,
-  grau = 0,
-): number {
-  const i = FAIXAS.indexOf((faixa ?? "Branca") as Faixa);
-  const iSeguro = i < 0 ? 0 : i;
-  // Coral e vermelha continuam a contagem da preta: o índice delas seria um
-  // salto artificial. Ancorar as três no mesmo degrau mantém a ordem certa.
-  const base = iSeguro >= FAIXAS.indexOf("Preta") ? FAIXAS.indexOf("Preta") : iSeguro;
-  return base * 100 + Math.max(0, grau);
-}
-
-/**
  * O nome da graduação, como se fala.
  *
  * De branca a marrom se conta grau no plural ("Azul 3 graus"); da preta em
@@ -105,7 +97,7 @@ export function nomeDaGraduacao(
   const belt = String(faixa ?? "Branca");
   const g = Math.max(0, grau);
   if (!g) return belt;
-  if (["Preta", "Coral", "Vermelha"].includes(belt)) return `${belt} ${g}º grau`;
+  if (ePreta(belt)) return `${belt} ${g}º grau`;
   return `${belt} ${g} ${g === 1 ? "grau" : "graus"}`;
 }
 
