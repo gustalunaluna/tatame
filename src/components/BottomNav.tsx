@@ -17,30 +17,46 @@ const ATALHOS = [
   { to: "/perfil", label: "Perfil", icon: Icone.perfil },
 ] as const;
 
-/** Tudo que existe, com o que cada tela realmente faz */
+/**
+ * Tudo que existe, agrupado por assunto.
+ *
+ * Antes era uma lista plana de onze itens, cada um com título em negrito e uma
+ * frase de apoio embaixo. Na largura de um celular a frase não cabia: oito dos
+ * onze terminavam em reticências, virando meia-frase — espaço gasto sem
+ * informar nada. E onze linhas seguidas sem hierarquia nenhuma dão o mesmo
+ * trabalho de leitura que uma lista de compras.
+ *
+ * O título do grupo faz o serviço que a frase tentava fazer, e faz melhor:
+ * "Evolução" e "Plano do mês" não se distinguiam sozinhos, mas debaixo de
+ * PROGRESSO os dois se explicam.
+ */
 const MENU = [
-  { to: "/", label: "Início", icon: Icone.inicio,
-    desc: "Como você está hoje: sequência, semana e o próximo passo" },
-  { to: "/diario", label: "Diário", icon: Icone.treino,
-    desc: "Registrar o treino de hoje e reler os anteriores" },
-  { to: "/analises", label: "Análises", icon: Icone.analise,
-    desc: "A leitura do treinador sobre a sua evolução" },
-  { to: "/tecnicas", label: "Técnicas", icon: Icone.tecnica,
-    desc: "Sua biblioteca de posições, com a nota de domínio de cada uma" },
-  { to: "/metas", label: "Evolução", icon: Icone.evolucao,
-    desc: "Aonde você quer chegar e como está o caminho" },
-  { to: "/plano", label: "Plano do mês", icon: Icone.listaDeTecnicas,
-    desc: "Um objetivo, quatro semanas, para a sua faixa" },
-  { to: "/perfil", label: "Perfil", icon: Icone.perfil,
-    desc: "Seu cartão: faixa, equipe, mestre, parceiros e conquistas" },
-  { to: "/parceiros", label: "Parceiros de rola", icon: Icone.parceiro,
-    desc: "Quem treina com você e há quanto tempo" },
-  { to: "/equipe", label: "Equipe", icon: Icone.equipe,
-    desc: "Sua academia e quem treina nela" },
-  { to: "/meus-mestres", label: "Mestres e linhagem", icon: Icone.graduacao,
-    desc: "Quem te graduou, e a corrente que sai daí" },
-  { to: "/conquistas", label: "Conquistas", icon: Icone.conquista,
-    desc: "Da faixa branca à vermelha, o que você já desbloqueou" },
+  {
+    grupo: "Treino",
+    itens: [
+      { to: "/", label: "Início", icon: Icone.inicio },
+      { to: "/diario", label: "Diário", icon: Icone.treino },
+      { to: "/tecnicas", label: "Técnicas", icon: Icone.tecnica },
+      { to: "/analises", label: "Análises", icon: Icone.analise },
+    ],
+  },
+  {
+    grupo: "Progresso",
+    itens: [
+      { to: "/metas", label: "Evolução", icon: Icone.evolucao },
+      { to: "/plano", label: "Plano do mês", icon: Icone.listaDeTecnicas },
+      { to: "/conquistas", label: "Conquistas", icon: Icone.conquista },
+    ],
+  },
+  {
+    grupo: "Pessoas",
+    itens: [
+      { to: "/perfil", label: "Perfil", icon: Icone.perfil },
+      { to: "/parceiros", label: "Parceiros de rola", icon: Icone.parceiro },
+      { to: "/equipe", label: "Equipe", icon: Icone.equipe },
+      { to: "/meus-mestres", label: "Mestres e linhagem", icon: Icone.graduacao },
+    ],
+  },
 ] as const;
 
 export function BottomNav() {
@@ -113,10 +129,13 @@ export function BottomNav() {
             aria-modal="true"
             aria-label="Menu"
             style={{ zIndex: "var(--z-painel)" }}
-            className="panel-in absolute bottom-0 right-0 top-0 flex w-[82%] min-w-[16rem] max-w-xs flex-col overflow-hidden border-l border-border/60 bg-card shadow-[-24px_0_60px_-20px_rgba(0,0,0,0.8)]"
+            // Sem `border-l`: numa gaveta escura sobre fundo escurecido, a
+            // borda clara não separa nada — lê como uma listra solta grudada na
+            // lateral. A sombra já faz a separação, e sozinha faz melhor.
+            className="panel-in absolute bottom-0 right-0 top-0 flex w-[82%] min-w-[16rem] max-w-xs flex-col overflow-hidden bg-card shadow-[-24px_0_60px_-20px_rgba(0,0,0,0.85)]"
           >
             <div
-              className="flex items-center justify-between border-b border-border/60 px-4 pb-4"
+              className="flex items-center justify-between px-4 pb-3"
               style={{ paddingTop: "max(1rem, calc(var(--safe-t) + 1.25rem))" }}
             >
               <div>
@@ -138,50 +157,54 @@ export function BottomNav() {
                 virar área rolável de verdade; sem ele o conteúdo empurra o
                 painel e o último item fica fora do alcance. A folga extra
                 embaixo garante que ele não termine colado na borda. */}
-            <nav className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-3 pb-[max(1rem,var(--safe-b))]">
-              <ul className="space-y-1">
-                {MENU.map(({ to, label, icon: Icon, desc }, i) => {
-                  const on = ativo(to);
-                  return (
-                    <li key={to} className="rise-in" style={{ "--i": i } as CSSProperties}>
-                      <Link
-                        to={to}
-                        onClick={() => setAberto(false)}
-                        className={cn(
-                          "tap flex items-center gap-3 rounded-2xl px-3 py-2.5 active:scale-[0.98]",
-                          on
-                            ? "border border-primary/50 bg-primary/10 shadow-[0_0_18px_-8px_var(--primary)]"
-                            : "border border-transparent hover:bg-secondary/60",
-                        )}
-                      >
-                        <span
-                          className={cn(
-                            "grid h-9 w-9 shrink-0 place-items-center rounded-xl",
-                            on
-                              ? "bg-primary text-primary-foreground"
-                              : "bg-secondary text-muted-foreground",
-                          )}
+            <nav className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-2 pb-[max(1rem,var(--safe-b))]">
+              {MENU.map(({ grupo, itens }, g) => (
+                <section key={grupo} className={g > 0 ? "mt-5" : ""}>
+                  <h2 className="px-3 pb-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
+                    {grupo}
+                  </h2>
+                  <ul>
+                    {itens.map(({ to, label, icon: Icon }, i) => {
+                      const on = ativo(to);
+                      return (
+                        <li
+                          key={to}
+                          className="rise-in"
+                          style={{ "--i": Math.min(g * 4 + i, 10) } as CSSProperties}
                         >
-                          <Icon className="h-5 w-5" />
-                        </span>
-                        <span className="min-w-0">
-                          <span
+                          <Link
+                            to={to}
+                            onClick={() => setAberto(false)}
                             className={cn(
-                              "block truncate text-sm font-bold",
-                              on ? "text-primary" : "text-foreground",
+                              // Sem moldura, sem brilho, sem crachá redondo em
+                              // volta do ícone. Onze círculos empilhados eram
+                              // metade do peso visual do menu, e não diziam nada
+                              // que o ícone sozinho já não dissesse.
+                              "tap flex items-center gap-3 rounded-xl px-3 py-2.5 active:scale-[0.98]",
+                              on ? "bg-primary/10" : "hover:bg-secondary/50",
                             )}
                           >
-                            {label}
-                          </span>
-                          <span className="block truncate text-[11px] text-muted-foreground">
-                            {desc}
-                          </span>
-                        </span>
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
+                            <Icon
+                              className={cn(
+                                "h-5 w-5 shrink-0",
+                                on ? "text-primary" : "text-muted-foreground",
+                              )}
+                            />
+                            <span
+                              className={cn(
+                                "min-w-0 truncate text-sm",
+                                on ? "font-bold text-primary" : "text-foreground",
+                              )}
+                            >
+                              {label}
+                            </span>
+                          </Link>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </section>
+              ))}
             </nav>
           </aside>
         </div>
