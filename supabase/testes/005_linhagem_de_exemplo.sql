@@ -11,7 +11,7 @@
 --        └ Hélio Gracie
 --           ├ Rickson Gracie ─┐
 --           ├ Carlos Gracie Jr┤  os 24 faixas-pretas da Academia Gracie
---           │                 └  e, abaixo deles, os 1.180 alunos
+--           │                 └  e, abaixo deles, os alunos
 --           └ Grão-Mestre Rui
 --              └ Mestre Coral
 --                 ├ Mestre Silva (dono da Academia Teste)
@@ -50,7 +50,7 @@ from pretas pr
 join graduadores g on g.i = pr.n % 3
 where not exists (select 1 from public.master_links ml where ml.aluno_id = pr.user_id);
 
-/* --- 2. os 1.180 alunos, cada um com o preta que o graduou --------------- */
+/* --- 2. os alunos, cada um com o preta que o graduou --------------- */
 with gracie as (select id from public.teams where slug = 'academia-gracie'),
 pretas as (
   select p.user_id, (row_number() over (order by p.handle) - 1)::int as i,

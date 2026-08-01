@@ -187,10 +187,10 @@ Dados de exemplo com escala real:
 
 | | |
 |---|---|
-| Alunos ativos | **1.204** |
+| Alunos ativos | **73** |
 | Faixas-pretas | 24 |
 | Instrutores (roxa/marrom) | 32 |
-| Vínculos de mestre | 1.207 |
+| Vínculos de mestre | 116 |
 | Profundidade típica | 4 a 6 níveis |
 
 O seed respeita as duas regras do esporte, e o primeiro rascunho errou as duas:

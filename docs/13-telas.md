@@ -157,7 +157,7 @@ esquerda; a folha sobe. Tudo sob `prefers-reduced-motion: no-preference`.
  │ Gracie ✓    │ e mais 1     │
  ├─────────────┴──────────────┤
  │ 👥 Parceiros de rola     8 │
- │ 🎓 Alunos             1204 │  ← só se comanda academia
+ │ 🎓 Alunos             73 │  ← só se comanda academia
  │ 🏆 Conquistas em destaque  │
  │ 🎓 Graduações              │
  └────────────────────────────┘
@@ -261,13 +261,13 @@ embaixo, separados.
  │      🛡  Academia Gracie ✓  │
  │      Rio de Janeiro         │
  ├────────────────────────────┤
- │ 1204 alunos · 28 pretas     │
+ │ 73 alunos · 28 pretas     │
  ├────────────────────────────┤
  │ 🏅 Medalhas                 │
  │ Ouro 26× Prata 23× Bronze 19│  ← totais, não destaque
  │ [Ver tudo]                  │
  ├────────────────────────────┤
- │ 👥 Atletas             1204 │
+ │ 👥 Atletas             73 │
  │ 🎓 Graduados                │
  └────────────────────────────┘
 ```
@@ -293,7 +293,7 @@ colocação**, não três medalhas escolhidas. Ver capítulo 05.
 | `/atleta/$handle/parceiros` | CONSTRUÍDO | Lista paginada |
 | `/atleta/$handle/alunos` | CONSTRUÍDO | Alunos de quem comanda academia |
 | `/atleta/$handle/medalhas` | CONSTRUÍDO | Todas as medalhas |
-| `/academia/$slug/atletas` | CONSTRUÍDO | Lista paginada de 1.204 |
+| `/academia/$slug/atletas` | CONSTRUÍDO | Lista paginada de 73 |
 | `/academia/$slug/medalhas` | CONSTRUÍDO | Campeonatos e quem ganhou |
 | `/estilo` | CONSTRUÍDO | Guia interno: tokens, ícones, componentes |
 

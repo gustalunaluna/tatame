@@ -163,10 +163,10 @@ problema caro: **evasão**.
 
 | | |
 |---|---|
-| Alunos ativos | 1.204 |
+| Alunos ativos | 73 |
 | Faixas-pretas | 24 |
 | Instrutores | 32 |
-| Vínculos de linhagem | 1.207 |
+| Vínculos de linhagem | 116 |
 | Profundidade da corrente | 4 a 6 níveis |
 
 A lista paginada carrega, o perfil abre, a linhagem sobe. A escala foi testada
