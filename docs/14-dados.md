@@ -134,6 +134,15 @@ O nome digitado só vale quando não há conta — se o mestre está no app, que
 isso, "rolei com ele quando ele era azul" seria impossível de contar, porque a
 faixa atual sobrescreveria a história.
 
+### A escada de graduação mora no banco
+
+`grau_valido(belt, degrees)` é a fonte da regra, e três tabelas a usam em `CHECK`:
+`profiles`, `graduations` e `goals`. Branca a marrom vão até o 4º grau, preta até
+o 6º, coral aceita 7 e 8, vermelha aceita 9 e 10.
+
+Sem isso a regra existiria só no formulário, e o backfill que criou "vermelha 3º
+grau" teria acontecido de novo na primeira tela nova que alguém escrevesse.
+
 ### Catálogo separado do progresso
 
 `achievement_catalog` (compartilhado) e `achievements` (por pessoa). A separação

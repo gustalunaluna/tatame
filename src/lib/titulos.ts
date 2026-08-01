@@ -1,4 +1,5 @@
 import type { Faixa } from "./bjj-types";
+import { nomeDaGraduacao } from "./graduacao";
 
 /**
  * Como se chama alguém no jiu-jitsu.
@@ -152,24 +153,6 @@ export function tituloComFaixa({
   instrutor?: boolean;
 }): string {
   const titulo = tituloDe({ belt, degrees, papel, instrutor });
-  const faixa = faixaEGraus(belt, degrees);
+  const faixa = nomeDaGraduacao(belt, degrees);
   return titulo === "Aluno" ? faixa : `${titulo} · ${faixa}`;
-}
-
-/**
- * A graduação escrita como se fala.
- *
- * De branca a marrom se conta grau no plural ("Azul 3 graus"); da preta em
- * diante se diz o ordinal ("Preta 2º grau"), que é como aparece em diploma e
- * em chamada de pódio.
- */
-export function faixaEGraus(
-  belt: Faixa | string | undefined | null,
-  degrees = 0,
-): string {
-  const faixa = String(belt ?? "Branca");
-  const g = Math.max(0, degrees);
-  if (!g) return faixa;
-  if (ePreta(faixa)) return `${faixa} ${g}º grau`;
-  return `${faixa} ${g} ${g === 1 ? "grau" : "graus"}`;
 }

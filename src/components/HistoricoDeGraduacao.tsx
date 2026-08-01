@@ -30,6 +30,7 @@ import {
   type NovaGraduacao,
 } from "@/lib/graduacao-storage";
 import { FAIXAS, type Faixa } from "@/lib/bjj-types";
+import { ajustarGrau, explicacaoDaFaixa, grausValidos } from "@/lib/graduacao";
 
 const SEM_EQUIPE = "__nenhuma__";
 
@@ -208,7 +209,14 @@ export function CadastrarGraduacao({
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label>Faixa</Label>
-              <Select value={belt} onValueChange={(v) => setBelt(v as Faixa)}>
+              <Select
+                value={belt}
+                onValueChange={(v) => {
+                  const nova = v as Faixa;
+                  setBelt(nova);
+                  setDegrees(ajustarGrau(nova, degrees));
+                }}
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -231,16 +239,25 @@ export function CadastrarGraduacao({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="0">A faixa (sem grau)</SelectItem>
-                  {[1, 2, 3, 4].map((n) => (
+                  {/* Os graus vêm da faixa. A preta vai até o 6º; coral e
+                      vermelha não têm grau a escolher além de qual das duas —
+                      o grau É a faixa. Antes a lista era fixa em 1 a 4 para
+                      todas, o que deixava registrar "vermelha 2º grau". */}
+                  {grausValidos(belt).map((n) => (
                     <SelectItem key={n} value={String(n)}>
-                      {n}º grau
+                      {n === 0 ? "A faixa (sem grau)" : `${n}º grau`}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
           </div>
+
+          {explicacaoDaFaixa(belt, degrees) && (
+            <p className="text-xs text-muted-foreground">
+              {explicacaoDaFaixa(belt, degrees)}
+            </p>
+          )}
 
           <div>
             <Label htmlFor="grad-data">Data</Label>

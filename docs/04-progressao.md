@@ -16,7 +16,45 @@ não produzem faixa (todo mundo conhece alguém que treina há seis anos e é az
 faixa não produz horas (todo mundo conhece um preta que sumiu), e nenhuma das
 duas é a meta que a pessoa escolheu.
 
-## 4.2 Nível por horas de tatame
+## 4.2 A escada de faixas, como ela é
+
+**Estado: CONSTRUÍDO.** `src/lib/graduacao.ts`, migração 016.
+
+| Faixa | Graus | Como o grau aparece |
+|---|---|---|
+| Branca, Azul, Roxa, Marrom | 0 a 4 | listra branca na ponteira |
+| Preta | 0 a **6** | listra branca na ponteira |
+| Coral — vermelha e preta | **7º** | o tecido muda |
+| Coral — vermelha e branca | **8º** | o tecido muda |
+| Vermelha | **9º e 10º** | o tecido muda |
+
+**Depois da preta não existe faixa nova.** Existe a mesma faixa-preta com mais
+graus, e a partir do sétimo o grau muda a cor do tecido em vez de acrescentar
+listra. A faixa vermelha não é uma faixa vermelha sem graus — **é o 9º grau de
+faixa-preta**.
+
+### O que o app errava
+
+Três erros, todos do mesmo mal-entendido:
+
+1. **Desenhava listras de grau na coral e na vermelha.** Um vermelha 9º grau
+   aparecia com quatro listras brancas, como se fosse "vermelha 4 graus". Isso
+   inventa uma graduação que não existe e rebaixa a pessoa em cinco graus.
+2. **Oferecia "0 a 4 graus" para todas as faixas**, inclusive coral e vermelha —
+   dava para registrar "vermelha 2º grau".
+3. **Não oferecia o 5º e o 6º grau de preta**, que existem.
+
+E o banco tinha o estrago correspondente: dez linhas em `graduations` com coral e
+vermelha de 0 a 4 graus, vindas de um backfill que tratou as duas como faixas
+comuns. Foram apagadas — corrigir o número criaria um histórico de cerimônias que
+nunca aconteceram.
+
+A regra agora existe em dois lugares que não podem divergir: `GRAUS_DA_FAIXA` no
+cliente e `grau_valido()` no banco, com `CHECK` em `profiles`, `graduations` e
+`goals`. Uma regra que só existe no formulário morre na primeira chamada direta à
+API.
+
+## 4.3 Nível por horas de tatame
 
 **Estado: CONSTRUÍDO.** `src/lib/nivel.ts`.
 
@@ -61,7 +99,7 @@ O nível é essa palavra, dita em voz alta.
 **Posição na tela:** abaixo da faixa, sempre, com uma linha explicando que não a
 substitui. Ver regra 1 no capítulo 01.
 
-## 4.3 Histórico de graduação
+## 4.4 Histórico de graduação
 
 **Estado: CONSTRUÍDO.** Tabela `graduations`.
 
@@ -91,7 +129,7 @@ Linha do tempo vertical, ano em destaque à esquerda, marcador na trilha, faixa
 desenhada e o nome de quem entregou com selo de verificado quando aplicável.
 Não é lista de cartões — é cronologia, porque é o que ela é.
 
-## 4.4 Metas
+## 4.5 Metas
 
 **Estado: CONSTRUÍDO.** Tabela `goals`.
 
@@ -132,7 +170,7 @@ declarado no `:root`, e o que desce para os filhos é o valor **já resolvido**.
 Trocar `--faixa` num filho não recalcula `--primary`. Por isso existe
 `estiloDaFaixa()`, que escreve as duas. Ver capítulo 16.
 
-## 4.5 Plano do mês
+## 4.6 Plano do mês
 
 **Estado: PARCIAL.** Tabelas `plan_templates`, `plan_cycles`, `plan_cycle_items`,
 `plan_weeks`, `plan_objectives`.
@@ -161,7 +199,7 @@ o app e não voltar.
 
 **Prioridade de correção: alta**, e é trabalho de conteúdo, não de código.
 
-## 4.6 Trilhas de aprendizado
+## 4.7 Trilhas de aprendizado
 
 **Estado: PARCIAL.** Tabela `techniques`, `weak_points`.
 
@@ -199,7 +237,7 @@ pontos fracos declarados, e o que foi treinado em cada sessão.
 **O que falta:** o grafo de dependências. É conteúdo curado, não algoritmo — e
 precisa ser escrito por quem entende, faixa por faixa.
 
-## 4.7 Buracos conhecidos
+## 4.8 Buracos conhecidos
 
 | Buraco | Impacto | Esforço |
 |---|---|---|

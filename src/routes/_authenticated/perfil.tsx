@@ -27,6 +27,11 @@ import {
 } from "@/lib/medalhas-storage";
 import { useAchievementStats } from "@/lib/bjj-storage";
 import { Faixa as FaixaVisual } from "@/components/Faixa";
+import {
+  ajustarGrau,
+  explicacaoDaFaixa,
+  grausValidos,
+} from "@/lib/graduacao";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -643,7 +648,17 @@ function EditarPerfil({
         <div className="grid grid-cols-2 gap-3">
           <div>
             <Label>Faixa</Label>
-            <Select value={f.belt} onValueChange={(v) => set("belt", v as Faixa)}>
+            <Select
+              value={f.belt}
+              onValueChange={(v) => {
+                const nova = v as Faixa;
+                set("belt", nova);
+                // Trocar a faixa reencaixa o grau. Quem estava em "Preta 3º" e
+                // escolhe Vermelha não pode ficar com 3: vermelha 3º grau não
+                // existe — a vermelha É o 9º grau de preta.
+                set("degrees", ajustarGrau(nova, f.degrees));
+              }}
+            >
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -666,7 +681,7 @@ function EditarPerfil({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {[0, 1, 2, 3, 4].map((g) => (
+                {grausValidos(f.belt).map((g) => (
                   <SelectItem key={g} value={String(g)}>
                     {g === 0 ? "Sem grau" : `${g}º grau`}
                   </SelectItem>
@@ -675,6 +690,12 @@ function EditarPerfil({
             </Select>
           </div>
         </div>
+
+        {explicacaoDaFaixa(f.belt, f.degrees) && (
+          <p className="-mt-1 text-xs text-muted-foreground">
+            {explicacaoDaFaixa(f.belt, f.degrees)}
+          </p>
+        )}
 
         {/* O campo de texto virou tela própria. Um nome só não guardava quem
             iniciou a pessoa nem quem a graduou preta, e não ligava em perfil

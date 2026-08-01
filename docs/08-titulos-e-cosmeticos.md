@@ -25,14 +25,20 @@ produto** — e é impossível comprá-lo.
 | Roxa | roxo | |
 | Marrom | marrom clareado | Marrom real morre num fundo escuro |
 | Preta | vermelho | Preto não serve de destaque num app escuro |
-| Coral | laranja-coral | |
-| Vermelha | vermelho intenso | |
+| Coral | laranja-coral | 7º e 8º grau de preta — o tecido é tecido em barras |
+| Vermelha | vermelho intenso | 9º e 10º grau de preta |
 
 A preta merece explicação: o **acento** dela é vermelho porque preto sobre fundo
 preto não é acento nenhum. O **tecido** dela, usado onde a faixa é desenhada,
 continua sendo preto. São duas cores para dois usos, e confundi-las produziu um
 bug real — a escada de faixas da tela de entrada terminava em vermelho, o que não
 é a graduação de ninguém.
+
+Coral e vermelha também merecem: elas **não são faixas novas**, são graus da
+preta (capítulo 04, seção 4.2). Por isso não carregam listra — o grau já está
+dito pela cor do tecido, e uma listra em cima disso contaria a mesma coisa duas
+vezes. A coral é desenhada em barras alternadas: vermelha com preta no 7º grau,
+vermelha com branca no 8º.
 
 ## 8.3 Títulos
 

@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { temListras } from "./graduacao";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import type { Faixa } from "./bjj-types";
@@ -25,7 +26,7 @@ const ok = (p: Promise<unknown>) => p.then(() => true).catch(() => false);
 export interface Graduacao {
   id: string;
   belt: Faixa;
-  /** 0 = a faixa em si; 1..4 = os graus dela */
+  /** 0 = a faixa em si. Branca a marrom vao ate 4; preta ate 6; coral e vermelha carregam 7-8 e 9-10, que sao os graus da propria preta. */
   degrees: number;
   data: string;
   nota: string;
@@ -50,11 +51,20 @@ export interface NovaGraduacao {
   teamId: string | null;
 }
 
-/** "Faixa Azul" para a faixa em si, "3º grau na Branca" para os graus. */
+/**
+ * Como a graduação é anunciada.
+ *
+ *   "Faixa Azul"          a faixa em si
+ *   "3º grau na Branca"   um grau que é listra
+ *   "Faixa Coral · 7º grau"  a coral e a vermelha, onde o grau É a faixa
+ *
+ * A terceira forma existe porque "7º grau na Coral" diria que a coral tem
+ * graus próprios. Não tem: ela é o 7º grau da preta.
+ */
 export function nomeDaGraduacao(g: { belt: string; degrees: number }): string {
-  return g.degrees === 0
-    ? `Faixa ${g.belt}`
-    : `${g.degrees}º grau na ${g.belt}`;
+  if (g.degrees === 0) return `Faixa ${g.belt}`;
+  if (!temListras(g.belt)) return `Faixa ${g.belt} · ${g.degrees}º grau`;
+  return `${g.degrees}º grau na ${g.belt}`;
 }
 
 export function useHistoricoDeGraduacao(handle: string | null) {
