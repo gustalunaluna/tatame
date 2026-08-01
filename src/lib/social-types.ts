@@ -173,6 +173,12 @@ export interface PerfilPublico {
   conquistasFeitas: number;
   souEu: boolean;
   eMeuParceiro: boolean;
+  /** Cargo na academia: dono, mestre, professor, instrutor, monitor, membro. */
+  papel: string;
+  /** Declaração própria de quem dá aula — permitida da roxa em diante. */
+  instrutor: boolean;
+  /** Quantos vínculos de mestre a pessoa tem. */
+  mestres: number;
 }
 
 export interface PerfilEquipe {

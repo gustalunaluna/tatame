@@ -26,6 +26,8 @@ export interface Perfil {
   fightsWon: number;
   fightsLost: number;
   goalStart: string;
+  /** Declaração de quem dá aula. O banco só aceita da roxa em diante. */
+  instrutor: boolean;
 }
 
 export type TrainingType = "Gi" | "No-Gi";

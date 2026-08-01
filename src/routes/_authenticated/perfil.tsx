@@ -7,7 +7,12 @@ import { Link } from "@tanstack/react-router";
 import { CaixaDoPerfil } from "@/components/CaixaDoPerfil";
 import { AmostraDeAtletas } from "@/components/ListaDeAtletas";
 import { SeloVerificado } from "@/components/SeloVerificado";
-import { useEquipes, useMeuHandle, useParcerias } from "@/lib/social-storage";
+import {
+  useEquipes,
+  useMeuHandle,
+  useMestresDe,
+  useParcerias,
+} from "@/lib/social-storage";
 import { MedalhaEmDestaque } from "@/components/Medalha";
 import { CadastrarMedalha } from "@/components/CadastrarMedalha";
 import {
@@ -299,6 +304,63 @@ function MinhaAcademia() {
 }
 
 /**
+ * A caixa de mestres do próprio perfil.
+ *
+ * Mostra o principal — o que a linhagem segue — e diz quantos mais existem. O
+ * texto antigo do campo "Mestre / professor" continua aparecendo enquanto não
+ * houver nenhum vínculo cadastrado: é dado que a pessoa digitou e que não pode
+ * sumir só porque o modelo melhorou.
+ */
+function MeusMestresNoPerfil({ i, legado }: { i: number; legado: string }) {
+  const { handle } = useMeuHandle();
+  const { mestres } = useMestresDe(handle);
+  const principal = mestres[0];
+
+  return (
+    <CaixaDoPerfil
+      titulo={mestres.length > 1 ? "Mestres" : "Mestre"}
+      icone={<Icone.graduacao className="h-4 w-4" />}
+      para="/meus-mestres"
+      i={i}
+      contagem={mestres.length > 1 ? String(mestres.length) : undefined}
+      vazio="Toque para cadastrar."
+    >
+      {principal || legado ? (
+        <div className="flex flex-col items-center gap-2 text-center">
+          {principal?.mestreFoto ? (
+            <img
+              src={principal.mestreFoto}
+              alt=""
+              loading="lazy"
+              className="h-12 w-12 rounded-xl object-cover"
+            />
+          ) : (
+            <div className="grid h-12 w-12 place-items-center rounded-xl bg-secondary">
+              <Icone.graduacao className="h-6 w-6 text-muted-foreground" />
+            </div>
+          )}
+          <p className="flex items-center justify-center gap-1 text-xs font-bold leading-tight">
+            <span className="line-clamp-2">
+              {principal ? principal.mestreNome : legado}
+            </span>
+            {principal?.mestreVerificado && (
+              <SeloVerificado tipo="mestre" className="h-3.5 w-3.5" />
+            )}
+          </p>
+          <p className="text-[10px] text-muted-foreground">
+            {mestres.length > 1
+              ? `e mais ${mestres.length - 1}`
+              : principal
+                ? "ver linhagem"
+                : "declarado"}
+          </p>
+        </div>
+      ) : null}
+    </CaixaDoPerfil>
+  );
+}
+
+/**
  * As medalhas em destaque do próprio perfil. Até três, escolhidas por quem
  * ganhou — quem tem mais que isso vê a lista completa em outra tela.
  *
@@ -458,25 +520,10 @@ function CaixasDoPerfil() {
           ) : null}
         </CaixaDoPerfil>
 
-        <CaixaDoPerfil
-          titulo="Mestre"
-          icone={<Icone.graduacao className="h-4 w-4" />}
-          para="/equipe"
+        <MeusMestresNoPerfil
           i={podioNoTopo ? 2 : 1}
-          vazio="Toque para indicar."
-        >
-          {perfil?.master ? (
-            <div className="flex flex-col items-center gap-2 text-center">
-              <div className="grid h-12 w-12 place-items-center rounded-xl bg-secondary">
-                <Icone.graduacao className="h-6 w-6 text-muted-foreground" />
-              </div>
-              <p className="line-clamp-2 text-xs font-bold leading-tight">
-                {perfil.master}
-              </p>
-              <p className="text-[10px] text-muted-foreground">declarado</p>
-            </div>
-          ) : null}
-        </CaixaDoPerfil>
+          legado={perfil?.master ?? ""}
+        />
       </div>
 
       <CaixaDoPerfil
@@ -629,15 +676,24 @@ function EditarPerfil({
           </div>
         </div>
 
-        <div>
-          <Label htmlFor="mestre">Mestre / professor</Label>
-          <Input
-            id="mestre"
-            value={f.master}
-            onChange={(e) => set("master", e.target.value)}
-            placeholder="Quem te gradua"
-          />
-        </div>
+        {/* O campo de texto virou tela própria. Um nome só não guardava quem
+            iniciou a pessoa nem quem a graduou preta, e não ligava em perfil
+            nenhum. Quem já preencheu o antigo continua vendo o valor aqui até
+            cadastrar o primeiro vínculo de verdade. */}
+        <Link
+          to="/meus-mestres"
+          className="tap flex items-center justify-between rounded-xl border border-border/60 p-3 active:scale-[0.99]"
+        >
+          <span className="min-w-0">
+            <span className="block text-sm font-bold">Mestres e linhagem</span>
+            <span className="block truncate text-xs text-muted-foreground">
+              {f.master
+                ? `Cadastrado à mão: ${f.master}`
+                : "Quem te graduou, com data e academia"}
+            </span>
+          </span>
+          <Icone.avancar className="h-4 w-4 shrink-0 text-muted-foreground" />
+        </Link>
 
         <div className="grid grid-cols-2 gap-3">
           <div>

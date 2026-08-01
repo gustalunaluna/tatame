@@ -715,6 +715,7 @@ export function usePerfil() {
         fightsWon: data?.fights_won ?? 0,
         fightsLost: data?.fights_lost ?? 0,
         goalStart: data?.goal_start ?? new Date().toISOString().slice(0, 10),
+        instrutor: Boolean(extra?.instrutor),
       };
     },
   });
@@ -735,6 +736,7 @@ export function usePerfil() {
         ...(patch.fightsWon !== undefined && { fights_won: patch.fightsWon }),
         ...(patch.fightsLost !== undefined && { fights_lost: patch.fightsLost }),
         ...(patch.goalStart !== undefined && { goal_start: patch.goalStart }),
+        ...(patch.instrutor !== undefined && { instrutor: patch.instrutor }),
       };
       const { error } = await supabase
         .from("profiles")

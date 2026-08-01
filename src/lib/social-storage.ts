@@ -683,6 +683,9 @@ export function usePerfilPublico(handle: string | undefined) {
         conquistasFeitas: Number(r.conquistas_feitas ?? 0),
         souEu: Boolean(r.sou_eu),
         eMeuParceiro: Boolean(r.e_meu_parceiro),
+        papel: (r.papel as string) ?? "",
+        instrutor: Boolean(r.instrutor),
+        mestres: Number(r.mestres ?? 0),
       };
     },
   });

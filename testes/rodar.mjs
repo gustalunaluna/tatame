@@ -27,19 +27,51 @@ if (!arquivos.length) {
 }
 
 /* --- build + servidor ---------------------------------------------------- */
+
+// Antes de tudo: a porta está livre? Se um servidor de uma rodada anterior
+// sobreviveu, o teste de saúde abaixo passa contra ELE — e a suíte inteira
+// roda contra o build antigo, verde e mentindo. É o pior desfecho possível
+// para uma rede de proteção, então isto para aqui.
+try {
+  await fetch(BASE, { signal: AbortSignal.timeout(1500) });
+  console.error(
+    `já tem alguém servindo em ${BASE}.\n` +
+      "Derrube antes: a suíte rodaria contra o build daquele processo, não " +
+      "contra o que acabou de ser construído.",
+  );
+  process.exit(1);
+} catch {
+  /* ninguém atende: é o que queremos */
+}
+
 console.log("· build");
 execFileSync("npm", ["run", "build"], { stdio: "pipe" });
 
 console.log(`· subindo servidor em ${BASE}`);
+// Duas escolhas aqui, cada uma por um motivo que já custou tempo:
+//
+//   stdio "ignore" — com "pipe" o servidor herda o stdout deste processo, e
+//   `npm test | tail` fica pendurado depois do último teste: o runner termina,
+//   o relatório fica pronto, e nada aparece porque o cano continua aberto do
+//   outro lado.
+//
+//   detached — `npx` não é o servidor: ele abre um `sh`, que abre o node do
+//   vite. Matar o filho direto deixava os netos vivos, segurando a porta.
+//   Com `detached` todos ficam no mesmo grupo, e dá para derrubar o grupo.
 const servidor = spawn(
   "npx",
   ["vite", "preview", "--port", String(PORTA), "--strictPort"],
-  { stdio: "pipe" },
+  { stdio: "ignore", detached: true },
 );
 
 const encerrar = () => {
-  // `kill` no processo, e não `pkill vite`: já derrubei o próprio shell assim.
-  if (!servidor.killed) servidor.kill("SIGTERM");
+  // O menos, e não o pid: derruba o grupo inteiro. `pkill vite` já derrubou o
+  // meu próprio shell uma vez — nunca mais.
+  try {
+    process.kill(-servidor.pid, "SIGKILL");
+  } catch {
+    /* já morreu */
+  }
 };
 process.on("exit", encerrar);
 process.on("SIGINT", () => { encerrar(); process.exit(130); });

@@ -37,6 +37,8 @@ const MENU = [
     desc: "Quem treina com você e há quanto tempo" },
   { to: "/equipe", label: "Equipe", icon: Icone.equipe,
     desc: "Sua academia e quem treina nela" },
+  { to: "/meus-mestres", label: "Mestres e linhagem", icon: Icone.graduacao,
+    desc: "Quem te graduou, e a corrente que sai daí" },
   { to: "/conquistas", label: "Conquistas", icon: Icone.conquista,
     desc: "Da faixa branca à vermelha, o que você já desbloqueou" },
 ] as const;

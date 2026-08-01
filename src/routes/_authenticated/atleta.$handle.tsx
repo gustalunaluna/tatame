@@ -15,7 +15,10 @@ import {
   useResumoParceiros,
   useAlunosDoMestre,
   useResumoDeMestre,
+  useMestresDe,
 } from "@/lib/social-storage";
+import type { PerfilPublico } from "@/lib/social-types";
+import { tituloDe } from "@/lib/titulos";
 import {
   useMedalhasDoAtleta,
   useResumoMedalhasDoAtleta,
@@ -86,6 +89,91 @@ function AlunosDoPerfil({ handle, nome }: { handle: string; nome: string }) {
     >
       {itens.length ? (
         <AmostraDeAtletas atletas={itens} total={alunos} limite={8} />
+      ) : null}
+    </CaixaDoPerfil>
+  );
+}
+
+/**
+ * Os mestres da pessoa.
+ *
+ * Era um campo de texto com um nome só, e por isso a história inteira de quem
+ * treina há dez anos cabia numa linha: sumia quem iniciou, sumia quem graduou
+ * preta. Agora a caixa mostra o mestre principal — o que a linhagem segue — e
+ * diz quantos mais existem; a caixa inteira abre a linhagem.
+ *
+ * O texto antigo (`master`) continua sendo lido quando não há vínculo nenhum
+ * cadastrado. É dado de gente de verdade que não pode sumir só porque o modelo
+ * melhorou.
+ */
+function MestresDoPerfil({
+  perfil,
+  i,
+}: {
+  perfil: PerfilPublico;
+  i: number;
+}) {
+  const { mestres } = useMestresDe(perfil.handle);
+  const principal = mestres[0];
+  const legado = !mestres.length && (perfil.masterNickname || perfil.master);
+
+  return (
+    <CaixaDoPerfil
+      titulo={mestres.length > 1 ? "Mestres" : "Mestre"}
+      icone={<Icone.graduacao className="h-4 w-4" />}
+      // A caixa leva à linhagem, não ao perfil do mestre: é a corrente
+      // inteira que responde "de quem você é aluno?", e o mestre em si está
+      // a um toque de lá.
+      para={mestres.length ? `/atleta/${perfil.handle}/linhagem` : undefined}
+      i={i}
+      contagem={mestres.length > 1 ? String(mestres.length) : undefined}
+      vazio="Não informou."
+    >
+      {principal ? (
+        <div className="flex flex-col items-center gap-2 text-center">
+          {principal.mestreFoto ? (
+            <img
+              src={principal.mestreFoto}
+              alt=""
+              loading="lazy"
+              className="h-12 w-12 rounded-xl object-cover"
+            />
+          ) : (
+            <div className="grid h-12 w-12 place-items-center rounded-xl bg-secondary">
+              <Icone.graduacao className="h-6 w-6 text-muted-foreground" />
+            </div>
+          )}
+          <p className="flex items-center justify-center gap-1 text-xs font-bold leading-tight">
+            <span className="line-clamp-2">{principal.mestreNome}</span>
+            {principal.mestreVerificado && (
+              <SeloVerificado tipo="mestre" className="h-3.5 w-3.5" />
+            )}
+          </p>
+          <p className="text-[10px] text-muted-foreground">
+            {mestres.length > 1
+              ? `e mais ${mestres.length - 1}`
+              : principal.mestreHandle
+                ? "no app"
+                : "declarado"}
+          </p>
+        </div>
+      ) : legado ? (
+        <div className="flex flex-col items-center gap-2 text-center">
+          <div className="grid h-12 w-12 place-items-center rounded-xl bg-secondary">
+            <Icone.graduacao className="h-6 w-6 text-muted-foreground" />
+          </div>
+          <p className="flex items-center justify-center gap-1 text-xs font-bold leading-tight">
+            <span className="line-clamp-2">
+              {perfil.masterNickname || perfil.master}
+            </span>
+            {perfil.masterHandle && (
+              <SeloVerificado tipo="mestre" className="h-3.5 w-3.5" />
+            )}
+          </p>
+          <p className="text-[10px] text-muted-foreground">
+            {perfil.masterHandle ? "da academia" : "declarado"}
+          </p>
+        </div>
       ) : null}
     </CaixaDoPerfil>
   );
@@ -217,6 +305,21 @@ function AtletaPage() {
                     className="h-5 w-5"
                   />
                 </h1>
+                {/* O título vem da faixa, do cargo na academia e da
+                    declaração de instrutor — nessa ordem, com a faixa como
+                    teto. "Aluno" fica de fora: a faixa logo abaixo já diz
+                    isso, e escrever em todo perfil vira ruído. */}
+                {(() => {
+                  const titulo = tituloDe({
+                    belt: perfil.belt,
+                    degrees: perfil.degrees,
+                    papel: perfil.papel,
+                    instrutor: perfil.instrutor,
+                  });
+                  return titulo === "Aluno" ? null : (
+                    <p className="mt-0.5 text-sm font-bold text-primary">{titulo}</p>
+                  );
+                })()}
                 {perfil.idade != null && (
                   <p className="text-sm text-muted-foreground">
                     {perfil.idade} anos
@@ -402,34 +505,7 @@ function AtletaPage() {
               ) : null}
             </CaixaDoPerfil>
 
-            <CaixaDoPerfil
-              titulo="Mestre"
-              icone={<Icone.graduacao className="h-4 w-4" />}
-              para={
-                perfil.masterHandle ? `/atleta/${perfil.masterHandle}` : undefined
-              }
-              i={podioNoTopo ? 2 : 1}
-              vazio="Não informou."
-            >
-              {perfil.masterNickname || perfil.master ? (
-                <div className="flex flex-col items-center gap-2 text-center">
-                  <div className="grid h-12 w-12 place-items-center rounded-xl bg-secondary">
-                    <Icone.graduacao className="h-6 w-6 text-muted-foreground" />
-                  </div>
-                  <p className="flex items-center justify-center gap-1 text-xs font-bold leading-tight">
-                    <span className="line-clamp-2">
-                      {perfil.masterNickname || perfil.master}
-                    </span>
-                    {perfil.masterHandle && (
-                      <SeloVerificado tipo="mestre" className="h-3.5 w-3.5" />
-                    )}
-                  </p>
-                  <p className="text-[10px] text-muted-foreground">
-                    {perfil.masterHandle ? "da academia" : "declarado"}
-                  </p>
-                </div>
-              ) : null}
-            </CaixaDoPerfil>
+            <MestresDoPerfil perfil={perfil} i={podioNoTopo ? 2 : 1} />
           </div>
 
           {/* ===== Parceiros de rola dele ===== */}

@@ -30,6 +30,7 @@ export type Database = {
           gym: string;
           fights_won: number;
           fights_lost: number;
+          instrutor: boolean;
         };
         Insert: {
           user_id: string;
@@ -51,6 +52,7 @@ export type Database = {
           gym?: string;
           fights_won?: number;
           fights_lost?: number;
+          instrutor?: boolean;
         };
         Update: {
           user_id?: string;
@@ -72,6 +74,7 @@ export type Database = {
           gym?: string;
           fights_won?: number;
           fights_lost?: number;
+          instrutor?: boolean;
         };
         Relationships: [];
       };

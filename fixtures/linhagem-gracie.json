@@ -1,0 +1,112 @@
+{
+  "_leia": "Payload real do banco (via MCP) para a linhagem do Rickson. Serve o teste de linhagem sem depender da rede, que este ambiente bloqueia.",
+  "perfil": {
+    "user_id": "b3f956f8-38b4-42e6-a1cd-0dabf52c54d6",
+    "handle": "rickson.gracie",
+    "nickname": "Rickson Gracie",
+    "bio": "Filho do Hélio.",
+    "belt": "Vermelha",
+    "degrees": 9,
+    "photo_url": "",
+    "verificado": true,
+    "idade": null,
+    "gym": "Academia Gracie",
+    "master": "",
+    "team_id": "a0a1e937-8aad-49f1-bfb2-97e3496f3afe",
+    "team_name": "Academia Gracie",
+    "team_crest": "",
+    "team_status": "aprovada",
+    "team_slug": "academia-gracie",
+    "master_handle": "helio.gracie",
+    "master_nickname": "Hélio Gracie",
+    "fights_won": 0,
+    "fights_lost": 0,
+    "treinos": 0,
+    "parceiros": 0,
+    "conquistas_total": 0,
+    "conquistas_feitas": 0,
+    "sou_eu": false,
+    "e_meu_parceiro": false,
+    "papel": "mestre",
+    "instrutor": true,
+    "mestres": 2
+  },
+  "linhagem": [
+    {
+      "nivel": 0,
+      "handle": "rickson.gracie",
+      "nome": "Rickson Gracie",
+      "belt": "Vermelha",
+      "graus": 9,
+      "foto": "",
+      "verificado": true,
+      "tem_conta": true
+    },
+    {
+      "nivel": 1,
+      "handle": "helio.gracie",
+      "nome": "Hélio Gracie",
+      "belt": "Vermelha",
+      "graus": 10,
+      "foto": "",
+      "verificado": true,
+      "tem_conta": true
+    },
+    {
+      "nivel": 2,
+      "handle": "carlos.gracie",
+      "nome": "Carlos Gracie",
+      "belt": "Vermelha",
+      "graus": 10,
+      "foto": "",
+      "verificado": true,
+      "tem_conta": true
+    },
+    {
+      "nivel": 3,
+      "handle": "",
+      "nome": "Mitsuyo Maeda (Conde Koma)",
+      "belt": "",
+      "graus": 0,
+      "foto": "",
+      "verificado": false,
+      "tem_conta": false
+    }
+  ],
+  "mestres": [
+    {
+      "id": "f41abffb-f72a-4587-ab3f-20795fb7af4c",
+      "papel": "mestre",
+      "principal": true,
+      "desde": "1965-01-01",
+      "ate": null,
+      "nota": "",
+      "mestre_handle": "helio.gracie",
+      "mestre_nome": "Hélio Gracie",
+      "mestre_belt": "Vermelha",
+      "mestre_graus": 10,
+      "mestre_foto": "",
+      "mestre_verificado": true,
+      "team_slug": "academia-gracie",
+      "team_nome": "Academia Gracie",
+      "sou_dono": false
+    },
+    {
+      "id": "77c5d87c-7abc-4ea6-bd74-617edb9b5efd",
+      "papel": "professor",
+      "principal": false,
+      "desde": "1972-01-01",
+      "ate": null,
+      "nota": "",
+      "mestre_handle": "",
+      "mestre_nome": "Rolls Gracie",
+      "mestre_belt": "",
+      "mestre_graus": 0,
+      "mestre_foto": "",
+      "mestre_verificado": false,
+      "team_slug": "academia-gracie",
+      "team_nome": "Academia Gracie",
+      "sou_dono": false
+    }
+  ]
+}

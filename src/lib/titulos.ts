@@ -152,7 +152,7 @@ export function tituloComFaixa({
   instrutor?: boolean;
 }): string {
   const titulo = tituloDe({ belt, degrees, papel, instrutor });
-  const faixa = nomeDaGraduacao(belt, degrees);
+  const faixa = faixaEGraus(belt, degrees);
   return titulo === "Aluno" ? faixa : `${titulo} · ${faixa}`;
 }
 
@@ -163,7 +163,7 @@ export function tituloComFaixa({
  * diante se diz o ordinal ("Preta 2º grau"), que é como aparece em diploma e
  * em chamada de pódio.
  */
-export function nomeDaGraduacao(
+export function faixaEGraus(
   belt: Faixa | string | undefined | null,
   degrees = 0,
 ): string {
