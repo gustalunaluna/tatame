@@ -8,7 +8,7 @@
 //
 // Por isso o teste não olha só "o item existe": ele rola até o último, confere
 // que nada está por cima do ponto onde o dedo cairia, e clica de verdade.
-import { chromium } from "playwright";
+import { abrirNavegador } from "./navegador.mjs";
 import { readFileSync, mkdirSync } from "node:fs";
 
 const REF = "jqcuysthbcdbohkavfeb";
@@ -22,7 +22,7 @@ const APARELHO = { width: 360, height: 640 };
 const INSET_TOPO = 47;
 const INSET_BASE = 34;
 
-const navegador = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
+const navegador = await abrirNavegador();
 const ctx = await navegador.newContext({ viewport: APARELHO, deviceScaleFactor: 2 });
 
 await ctx.addInitScript(([ref, uid, t, b]) => {

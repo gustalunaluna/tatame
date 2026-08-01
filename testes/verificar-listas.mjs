@@ -2,7 +2,7 @@
  * Com muita gente, o perfil não pode despejar todo mundo: mostra uma amostra,
  * o "+N" e um caminho para a lista completa.
  */
-import { chromium } from "playwright";
+import { abrirNavegador } from "./navegador.mjs";
 const REF = "jqcuysthbcdbohkavfeb";
 const BASE = process.env.BASE ?? "http://localhost:4199";
 const N = 103; // total de parceiros do sujeito
@@ -13,7 +13,7 @@ const pessoa = (i) => ({
   degrees: i % 5, photo_url: "", verificado: i % 20 === 0, equipe_oficial: true,
 });
 
-const b = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
+const b = await abrirNavegador();
 const ctx = await b.newContext({ viewport: { width: 390, height: 844 } });
 await ctx.addInitScript(([ref]) => {
   localStorage.setItem(`sb-${ref}-auth-token`, JSON.stringify({

@@ -4,7 +4,7 @@
 // O truque do teste: o stub devolve dados propositalmente diferentes entre
 // `plan_weeks` (o sistema velho) e `plan_cycles` (o novo). Se a tela ler o
 // velho, o texto do ciclo não aparece — e o teste falha.
-import { chromium } from "playwright";
+import { abrirNavegador } from "./navegador.mjs";
 
 const REF = "jqcuysthbcdbohkavfeb";
 const BASE = process.env.BASE ?? "http://localhost:4183";
@@ -17,7 +17,7 @@ const treinos = Array.from({ length: 30 }, (_, i) => ({
   partners: "", techniques: "", notes: "",
 }));
 
-const navegador = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
+const navegador = await abrirNavegador();
 const ctx = await navegador.newContext({ viewport: { width: 390, height: 844 } });
 await ctx.addInitScript(([ref]) => {
   localStorage.setItem(`sb-${ref}-auth-token`, JSON.stringify({

@@ -1,4 +1,4 @@
-import { chromium } from "playwright";
+import { abrirNavegador } from "./navegador.mjs";
 
 const REF = "jqcuysthbcdbohkavfeb";
 const BASE = process.env.BASE ?? "http://localhost:4183";
@@ -20,7 +20,7 @@ const conquistas = Array.from({ length: 1006 }, (_, i) => ({
   featured: false,
 }));
 
-const navegador = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
+const navegador = await abrirNavegador();
 const ctx = await navegador.newContext({ viewport: { width: 390, height: 844 } });
 
 await ctx.addInitScript(

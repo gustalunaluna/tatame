@@ -5,7 +5,7 @@
 //   - o perfil da academia NÃO escolhe 3: mostra o total por colocação
 //   - a lista da academia diz quem ganhou cada medalha
 //   - o botão de ocultar só aparece para quem manda na academia
-import { chromium } from "playwright";
+import { abrirNavegador } from "./navegador.mjs";
 
 const REF = "jqcuysthbcdbohkavfeb";
 const BASE = process.env.BASE ?? "http://localhost:4183";
@@ -39,7 +39,7 @@ const daEquipe = minhas.map((m, i) => ({
   posso_ocultar: i < 2,
 }));
 
-const navegador = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
+const navegador = await abrirNavegador();
 const ctx = await navegador.newContext({ viewport: { width: 390, height: 844 } });
 await ctx.addInitScript(([ref]) => {
   localStorage.setItem(`sb-${ref}-auth-token`, JSON.stringify({

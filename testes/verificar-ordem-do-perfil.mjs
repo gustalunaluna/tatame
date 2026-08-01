@@ -5,7 +5,7 @@
 // O teste roda o mesmo perfil duas vezes, mudando só a resposta de
 // `medalhas_do_atleta(p_so_destaque=true)`, e compara a posição do texto
 // "Medalhas" com a de "Equipe" no corpo da página.
-import { chromium } from "playwright";
+import { abrirNavegador } from "./navegador.mjs";
 
 const REF = "jqcuysthbcdbohkavfeb";
 const BASE = process.env.BASE ?? "http://localhost:4183";
@@ -18,7 +18,7 @@ const emDestaque = [
     sou_dono: true },
 ];
 
-const navegador = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
+const navegador = await abrirNavegador();
 
 async function ordemDoPerfil({ caminho, comDestaque }) {
   const ctx = await navegador.newContext({ viewport: { width: 390, height: 844 } });

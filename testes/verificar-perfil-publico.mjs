@@ -1,9 +1,9 @@
 /** O perfil de outra pessoa: tudo que você pediu tem que estar lá. */
-import { chromium } from "playwright";
+import { abrirNavegador } from "./navegador.mjs";
 const REF = "jqcuysthbcdbohkavfeb";
 const BASE = process.env.BASE ?? "http://localhost:4195";
 
-const b = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
+const b = await abrirNavegador();
 const ctx = await b.newContext({ viewport: { width: 390, height: 844 } });
 await ctx.addInitScript(([ref]) => {
   localStorage.setItem(`sb-${ref}-auth-token`, JSON.stringify({

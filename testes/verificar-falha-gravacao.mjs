@@ -3,12 +3,12 @@
  * Antes da correção o app mostrava "Treino registrado. Boa!" mesmo assim,
  * e o treino se perdia em silêncio.
  */
-import { chromium } from "playwright";
+import { abrirNavegador } from "./navegador.mjs";
 
 const REF = "jqcuysthbcdbohkavfeb";
 const BASE = process.env.BASE ?? "http://localhost:4184";
 
-const navegador = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
+const navegador = await abrirNavegador();
 const ctx = await navegador.newContext({ viewport: { width: 390, height: 844 } });
 await ctx.addInitScript(([ref]) => {
   localStorage.setItem(`sb-${ref}-auth-token`, JSON.stringify({

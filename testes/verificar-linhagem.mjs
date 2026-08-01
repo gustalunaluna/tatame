@@ -10,7 +10,7 @@
  *   4. o título do perfil lê a faixa: vermelha 9º grau é Grão-Mestre
  *   5. a caixa do perfil diz "Mestres" no plural e leva à linhagem
  */
-import { chromium } from "playwright";
+import { abrirNavegador } from "./navegador.mjs";
 import { readFileSync } from "node:fs";
 
 const REF = "jqcuysthbcdbohkavfeb";
@@ -24,7 +24,7 @@ const conferir = (nome, cond, detalhe = "") => {
   else falhas.push(`${nome}${detalhe ? ` — ${detalhe}` : ""}`);
 };
 
-const navegador = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
+const navegador = await abrirNavegador();
 const ctx = await navegador.newContext({ viewport: { width: 390, height: 844 } });
 await ctx.addInitScript(([ref]) => {
   localStorage.setItem(

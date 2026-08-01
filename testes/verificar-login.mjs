@@ -1,10 +1,10 @@
 /** Login de verdade: sem stub nenhum, bate no Supabase real. */
-import { chromium } from "playwright";
+import { abrirNavegador } from "./navegador.mjs";
 const BASE = process.env.BASE ?? "http://localhost:4190";
 const SENHA = "Tatame#2026";
 const CONTAS = ["joao", "maria", "carlos", "mestre"];
 
-const b = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
+const b = await abrirNavegador();
 const resultado = [];
 for (const nome of CONTAS) {
   const ctx = await b.newContext({ viewport: { width: 390, height: 844 } });

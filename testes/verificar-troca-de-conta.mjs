@@ -5,7 +5,7 @@
  *
  * O banco nunca vazou — quem vazava era o navegador.
  */
-import { chromium } from "playwright";
+import { abrirNavegador } from "./navegador.mjs";
 
 const REF = "jqcuysthbcdbohkavfeb";
 const BASE = process.env.BASE ?? "http://localhost:4192";
@@ -26,7 +26,7 @@ const CONTAS = {
 // Quem está "logado" do ponto de vista das rotas simuladas
 let atual = CONTAS.a;
 
-const navegador = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
+const navegador = await abrirNavegador();
 const ctx = await navegador.newContext({ viewport: { width: 390, height: 844 } });
 
 await ctx.addInitScript(

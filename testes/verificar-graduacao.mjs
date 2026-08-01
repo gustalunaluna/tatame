@@ -4,7 +4,7 @@
 // verificado sozinho, e que o mestre só escrito aparece como texto — são os
 // dois caminhos que a tabela permite, e confundir os dois criaria perfil
 // clicável para gente que não existe.
-import { chromium } from "playwright";
+import { abrirNavegador } from "./navegador.mjs";
 
 const REF = "jqcuysthbcdbohkavfeb";
 const BASE = process.env.BASE ?? "http://localhost:4183";
@@ -27,7 +27,7 @@ const graduacoes = [
     sou_dono: false },
 ];
 
-const navegador = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
+const navegador = await abrirNavegador();
 const ctx = await navegador.newContext({ viewport: { width: 390, height: 844 } });
 await ctx.addInitScript(([ref]) => {
   localStorage.setItem(`sb-${ref}-auth-token`, JSON.stringify({

@@ -11,7 +11,7 @@
  *   2. oferecia "0 a 4 graus" para todas as faixas, inclusive as duas
  *   3. não oferecia o 5º e o 6º grau de preta, que existem
  */
-import { chromium } from "playwright";
+import { abrirNavegador } from "./navegador.mjs";
 
 const REF = "jqcuysthbcdbohkavfeb";
 const BASE = process.env.BASE ?? "http://localhost:4183";
@@ -32,7 +32,7 @@ const perfilDe = (belt, degrees) => ({
   sou_eu: false, e_meu_parceiro: false, papel: "", instrutor: false, mestres: 0,
 });
 
-const b = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
+const b = await abrirNavegador();
 const ctx = await b.newContext({ viewport: { width: 390, height: 844 } });
 await ctx.addInitScript(([ref]) => {
   localStorage.setItem(`sb-${ref}-auth-token`, JSON.stringify({

@@ -4,7 +4,8 @@
  * Confere que nada do app fica escondido atrás da barra de status nem da
  * barra inferior, e tira as capturas para conferência visual.
  */
-import { chromium, devices } from "playwright";
+import { devices } from "playwright";
+import { abrirNavegador } from "./navegador.mjs";
 import { mkdirSync } from "node:fs";
 
 const REF = "jqcuysthbcdbohkavfeb";
@@ -48,7 +49,7 @@ const dados = {
   }],
 };
 
-const navegador = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
+const navegador = await abrirNavegador();
 const ctx = await navegador.newContext({ ...devices["iPhone 13"], isMobile: true, hasTouch: true });
 await ctx.addInitScript(([ref]) => {
   localStorage.setItem(`sb-${ref}-auth-token`, JSON.stringify({

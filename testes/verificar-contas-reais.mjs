@@ -7,7 +7,7 @@
 // transporte é interceptado.
 //
 // Gera capturas em telas/ para conferência visual.
-import { chromium } from "playwright";
+import { abrirNavegador } from "./navegador.mjs";
 import { readFileSync, mkdirSync } from "node:fs";
 
 const REF = "jqcuysthbcdbohkavfeb";
@@ -18,7 +18,7 @@ const J = JSON.parse(readFileSync("fixtures/joaozinho.json", "utf8"));
 
 mkdirSync("telas", { recursive: true });
 
-const navegador = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
+const navegador = await abrirNavegador();
 const ctx = await navegador.newContext({
   viewport: { width: 390, height: 844 },
   deviceScaleFactor: 2,

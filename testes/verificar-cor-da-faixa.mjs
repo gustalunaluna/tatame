@@ -6,7 +6,7 @@
 //
 // Também confere o que mais importa na prática: que a cor do texto de destaque
 // realmente muda, e que nada ficou verde-limão.
-import { chromium } from "playwright";
+import { abrirNavegador } from "./navegador.mjs";
 import { readFileSync, mkdirSync } from "node:fs";
 
 const REF = "jqcuysthbcdbohkavfeb";
@@ -17,7 +17,7 @@ mkdirSync("telas", { recursive: true });
 
 const FAIXAS = ["Branca", "Azul", "Roxa", "Marrom", "Preta"];
 
-const navegador = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
+const navegador = await abrirNavegador();
 const vistos = new Map();
 const erros = [];
 

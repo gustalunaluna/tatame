@@ -4,7 +4,7 @@
 // rola, aluno é quem ele gradua. O teste garante que as duas caixas convivem
 // no perfil dele, e que quem NÃO comanda academia não ganha a caixa de alunos
 // — senão ela viraria enfeite vazio em todo perfil.
-import { chromium } from "playwright";
+import { abrirNavegador } from "./navegador.mjs";
 import { readFileSync, mkdirSync } from "node:fs";
 
 const REF = "jqcuysthbcdbohkavfeb";
@@ -55,7 +55,7 @@ const CASOS = [
   },
 ];
 
-const navegador = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
+const navegador = await abrirNavegador();
 const checagens = [];
 const ver = (n, ok, extra) => checagens.push([n, ok, extra]);
 

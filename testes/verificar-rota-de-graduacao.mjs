@@ -4,7 +4,7 @@
 //   - trocar de cor  (Branca → Azul): o cartão fica azul, não da faixa atual
 //   - ganhar um grau (Branca 2 → Branca 3): a rota também aparece, porque é o
 //     que acontece na maior parte da vida de quem treina
-import { chromium } from "playwright";
+import { abrirNavegador } from "./navegador.mjs";
 import { readFileSync, mkdirSync } from "node:fs";
 
 const REF = "jqcuysthbcdbohkavfeb";
@@ -46,7 +46,7 @@ const CASOS = [
   },
 ];
 
-const navegador = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
+const navegador = await abrirNavegador();
 const checagens = [];
 const ver = (n, ok, extra) => checagens.push([n, ok, extra]);
 

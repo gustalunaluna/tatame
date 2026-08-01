@@ -2,7 +2,7 @@
  * O caminho completo que você pediu: perfil do João → academia → mestre.
  * Usa os dados reais das contas de teste, servidos pelas mesmas funções.
  */
-import { chromium } from "playwright";
+import { abrirNavegador } from "./navegador.mjs";
 const REF = "jqcuysthbcdbohkavfeb";
 const BASE = process.env.BASE ?? "http://localhost:4197";
 
@@ -27,7 +27,7 @@ const ATLETAS = [
     degrees:2, photo_url:"", verificado:false },
 ];
 
-const b = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
+const b = await abrirNavegador();
 const ctx = await b.newContext({ viewport: { width: 390, height: 844 } });
 await ctx.addInitScript(([ref]) => {
   localStorage.setItem(`sb-${ref}-auth-token`, JSON.stringify({

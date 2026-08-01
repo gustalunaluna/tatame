@@ -13,7 +13,7 @@
  *      (o acento da preta é vermelho — uma escada que termina em vermelho
  *       não é a graduação de ninguém)
  */
-import { chromium } from "playwright";
+import { abrirNavegador } from "./navegador.mjs";
 
 const BASE = process.env.BASE ?? "http://localhost:4183";
 const falhas = [];
@@ -24,7 +24,7 @@ function conferir(nome, condicao, detalhe = "") {
   else falhas.push(`${nome}${detalhe ? ` — ${detalhe}` : ""}`);
 }
 
-const b = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
+const b = await abrirNavegador();
 const ctx = await b.newContext({ viewport: { width: 390, height: 844 } });
 const p = await ctx.newPage();
 // Sem rede: a tela de entrada não pode depender do Supabase para se desenhar.
