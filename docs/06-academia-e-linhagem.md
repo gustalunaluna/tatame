@@ -166,12 +166,44 @@ where c.nivel < 20
 - **`nivel < 20`** corta o resto. Uma linhagem real de jiu-jitsu tem cinco ou seis
   níveis até o Maeda.
 
+### A regra que governa tudo: cada um declara só o próprio mestre
+
+**Quem graduou a minha mestra é fato dela, não meu.** Eu posso dizer quem me
+graduou; não posso dizer quem graduou ela. É o mesmo princípio que o app já
+aplica em parceria (aceite dos dois lados) e em registro de rola (confirmação
+com prazo) — a linhagem tinha escapado dele.
+
+Isso já custou uma correção. Uma versão intermediária deixava a pessoa cadastrar
+a corrente inteira: eu declarava a minha mestra, depois quem graduou ela, depois
+quem graduou aquele. Resolvia o sintoma certo — a corrente parava cedo demais —
+pelo caminho errado, porque punha uma pessoa escrevendo o histórico de outras
+três.
+
+### A consequência, que é uma boa notícia
+
+**A corrente para no primeiro elo sem conta.** Uma linhagem real como
+
+```
+Gustavo → Emy Lopes
+```
+
+fica em dois níveis, e é honesto que fique: ninguém além da Emy pode dizer quem
+a graduou.
+
+Mas ela **cresce sozinha**. No dia em que a Emy criar conta e declarar o Felipe
+Thome, a linhagem do Gustavo passa a três níveis sem ele tocar em nada. Quando o
+Felipe entrar, quatro.
+
+Isso transforma a linhagem num artefato coletivo em vez de um texto que alguém
+escreve — e dá ao mestre o motivo mais concreto que existe para criar conta: a
+corrente dos alunos dele para nele.
+
 ### Quem não usa o app
 
 O nível 0 é a própria pessoa — é o que permite desenhar a corrente inteira sem a
-tela ter que costurar o topo na mão. E quem não tem conta aparece com o nome
-escrito e **não vira link**. A tela diz "fora do app — cadastrado pelo aluno" em
-vez de inventar uma faixa branca para um Maeda.
+tela ter que costurar o topo na mão. Quem não tem conta aparece com o que se
+sabe dele (`linhagem_externa`: nome, academia, faixa) e **não vira link**. A tela
+diz "fora do app" em vez de inventar uma faixa branca para um Maeda.
 
 ### A navegação
 
