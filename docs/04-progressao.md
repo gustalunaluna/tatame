@@ -482,3 +482,75 @@ E o plano **só aponta para eixo que tem dado**. Mandar alguém treinar defesa
 porque o app não sabe nada sobre a defesa dela seria pior que não mandar.
 
 **O que o plano não faz:** prometer graduação. Ver regra 1 do capítulo 01.
+
+## 4.12 A técnica do treino vai para a galeria
+
+**Estado: CONSTRUÍDO.** `src/lib/tecnicas-storage.ts`,
+`src/components/SeletorDeTecnicas.tsx`, migração 027.
+
+`trainings.techniques` era texto livre — *"DLR → costas, tesourinha"* — e a
+galeria (`techniques`) era outra coisa, alimentada por um formulário separado.
+As duas nunca se falaram.
+
+Isso deixava a informação mais valiosa do app presa numa string que nada
+consegue ler. As duas perguntas que uma galeria de técnicas existe para
+responder ficavam sem resposta:
+
+- *"há quanto tempo eu não treino armlock?"*
+- *"quantas vezes eu já vi essa passagem?"*
+
+Agora existe `training_techniques` ligando os dois. **Tirar uma técnica de um
+treino não a apaga da galeria** — a galeria é acervo, não histórico da sessão.
+
+### O que impede a galeria de virar depósito
+
+O risco óbvio de deixar criar técnica pelo diário: *"Armlock"*, *"armlock"*,
+*"Armlock "*, *"Triângulo"* ao lado de *"Triangulo"*.
+
+1. **Sugere antes de criar.** Duas letras já mostram o que existe, com a última
+   vez que apareceu num treino. Quem tem *"Armlock"* toca no que existe.
+2. **O banco dedupe de verdade.** Índice único em
+   `(user_id, chave_da_tecnica(name))`, normalizando caixa, espaço e acento.
+   `on conflict` no achar-ou-criar, numa transação só — no cliente seriam três
+   viagens, e dois toques rápidos criariam duas linhas.
+3. **`do update set name = techniques.name`.** O `on conflict` não sobrescreve
+   nada: quem tem *"Armlock"* com anotação e domínio 4 não perde isso por
+   registrar de novo. O `do update` existe só para o `RETURNING` devolver a
+   linha.
+
+### Categoria é opcional, e isso é uma escolha
+
+Obrigar a escolher entre sete categorias para anotar uma técnica no fim do
+treino é atrito que faz a pessoa **não anotar**. Técnica sem categoria é um
+buraco pequeno; técnica não registrada é um buraco grande. A galeria mostra
+*"sem categoria"* e deixa arrumar lá.
+
+### A mesma regra em dois lugares
+
+`chave_da_tecnica` existe em SQL (para o índice, que exige `IMMUTABLE`) e em JS
+(para o cliente não oferecer criar o que já existe antes da viagem ao servidor).
+**Duas cópias da mesma regra é dívida**, e está anotada como tal: se divergirem,
+o cliente acha que são duas técnicas e o banco acha que é uma.
+
+`verificar-tecnicas.mjs` roda a mesma lista de casos contra a cópia em JS
+justamente para prender isso — e o módulo `chave-da-tecnica.ts` não importa
+nada, para o teste poder carregá-lo sem arrastar o cliente do Supabase junto.
+
+### Duas armadilhas que custaram tempo
+
+**O `translate()` que virou identidade.** Ao aplicar a migração no banco, os
+acentos se perderam no caminho e a função ficou com origem e destino iguais.
+*"Triângulo"* e *"Triangulo"* continuariam sendo duas técnicas, e **nada
+avisaria** — a função existia, rodava, e não fazia nada. Está escrito no
+cabeçalho da migração, com a linha que confere:
+
+```sql
+select public.chave_da_tecnica('Triângulo') = public.chave_da_tecnica('TRIANGULO');
+```
+
+E o índice único depende da função: mudá-la exige **refazer o índice**, senão
+ele continua guardando as chaves da definição antiga.
+
+**`.single()` pede objeto, não lista.** O primeiro mock do teste devolvia
+`[{id}]` para o `POST /trainings`, a leitura do id falhava, e o salvamento
+morria em silêncio. Foi assim que o teste pegou a si mesmo.

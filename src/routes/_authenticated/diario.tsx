@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Icone } from "@/design/icones";
 import { toast } from "sonner";
 import { PageShell } from "@/components/PageShell";
+import { SeletorDeTecnicas } from "@/components/SeletorDeTecnicas";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -28,6 +29,11 @@ import {
   salvarParceirosDoTreino,
   useParceirosDoTreino,
 } from "@/lib/social-storage";
+import {
+  salvarTecnicasDoTreino,
+  useTecnicasDoTreino,
+  type RascunhoTecnica,
+} from "@/lib/tecnicas-storage";
 import { ParceirosDoTreino } from "@/components/ParceirosDoTreino";
 import type { RascunhoParceiro } from "@/lib/social-types";
 import type { Training, TrainingType } from "@/lib/bjj-types";
@@ -68,7 +74,7 @@ function DiaryPage() {
           </DialogTrigger>
           {open && (
             <TrainingDialog
-              onSalvar={async ({ parceiros, ...t }) => {
+              onSalvar={async ({ parceiros, tecnicasDoDia, ...t }) => {
                 setOpen(false);
                 // Só comemora depois que o banco confirmou. Antes o "Boa!"
                 // aparecia mesmo quando a gravação falhava e o treino se perdia.
@@ -81,6 +87,16 @@ function DiaryPage() {
                   // é mais útil do que um sucesso genérico ou um erro genérico.
                   console.error("[Ponteira] Falha ao salvar os parceiros:", erro);
                   toast.error("Treino salvo, mas os parceiros não. Edite depois.");
+                  return;
+                }
+                try {
+                  await salvarTecnicasDoTreino(id, tecnicasDoDia);
+                } catch (erro) {
+                  // Mesma regra dos parceiros: o treino já está no banco, e
+                  // dizer exatamente o que faltou é mais útil que um erro
+                  // genérico que faz a pessoa achar que perdeu tudo.
+                  console.error("[Ponteira] Falha ao salvar as técnicas:", erro);
+                  toast.error("Treino salvo, mas as técnicas não. Edite depois.");
                   return;
                 }
                 const comConta = parceiros.filter((p) => p.partnerId).length;
@@ -227,7 +243,7 @@ function DiaryPage() {
           <TrainingDialog
             key={editando.id}
             treino={editando}
-            onSalvar={async ({ parceiros, ...t }) => {
+            onSalvar={async ({ parceiros, tecnicasDoDia, ...t }) => {
               const alvo = editando;
               setEditando(null);
               const salvou = await update(alvo.id, t);
@@ -237,6 +253,13 @@ function DiaryPage() {
               } catch (erro) {
                 console.error("[Ponteira] Falha ao salvar os parceiros:", erro);
                 toast.error("Treino salvo, mas os parceiros não.");
+                return;
+              }
+              try {
+                await salvarTecnicasDoTreino(alvo.id, tecnicasDoDia);
+              } catch (erro) {
+                console.error("[Ponteira] Falha ao salvar as técnicas:", erro);
+                toast.error("Treino salvo, mas as técnicas não.");
                 return;
               }
               toast.success("Treino atualizado.");
@@ -257,6 +280,7 @@ export interface DadosDoTreino {
   techniques: string;
   notes: string;
   parceiros: RascunhoParceiro[];
+  tecnicasDoDia: RascunhoTecnica[];
 }
 
 /**
@@ -282,6 +306,14 @@ function TrainingDialog({
   const [techniques, setTechniques] = useState(treino?.techniques ?? "");
   const [notes, setNotes] = useState(treino?.notes ?? "");
   const [parceiros, setParceiros] = useState<RascunhoParceiro[]>([]);
+  const [tecnicasDoDia, setTecnicasDoDia] = useState<RascunhoTecnica[]>([]);
+
+  // No modo edição as técnicas já ligadas chegam do banco depois da primeira
+  // pintura — mesma dança dos parceiros, e pelo mesmo motivo: só copiamos
+  // quando chegam, e daí em diante quem manda é o que a pessoa está mexendo.
+  const { tecnicas: tecnicasSalvas, ready: tecnicasProntas } = useTecnicasDoTreino(
+    treino?.id ?? null,
+  );
 
   const { linhas, ready: parceirosProntos } = useParceirosDoTreino(
     treino?.id ?? null,
@@ -294,6 +326,14 @@ function TrainingDialog({
     if (parceirosProntos) setParceiros(linhas);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [parceirosProntos, treino?.id]);
+
+  useEffect(() => {
+    if (tecnicasProntas)
+      setTecnicasDoDia(
+        tecnicasSalvas.map((t) => ({ id: t.id, nome: t.name, categoria: t.category })),
+      );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tecnicasProntas, treino?.id]);
 
   const vaiVoltarParaFila =
     editando &&
@@ -351,10 +391,7 @@ function TrainingDialog({
           </div>
         </div>
         <ParceirosDoTreino linhas={parceiros} aoMudar={setParceiros} />
-        <div>
-          <Label>Técnicas trabalhadas</Label>
-          <Textarea rows={2} value={techniques} onChange={(e) => setTechniques(e.target.value)} placeholder="Ex: DLR → costas, tesourinha" />
-        </div>
+        <SeletorDeTecnicas valor={tecnicasDoDia} aoMudar={setTecnicasDoDia} />
         <div>
           <Label>Como me senti / observações</Label>
           <Textarea rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Sensações, o que travou, o que fluiu…" />
@@ -380,9 +417,12 @@ function TrainingDialog({
                 .map((p) => p.partnerName)
                 .filter(Boolean)
                 .join(", "),
+              // O texto livre continua indo: os treinos antigos ainda o
+              // exibem, e apagá-lo agora perderia o que está escrito lá.
               techniques,
               notes,
               parceiros,
+              tecnicasDoDia,
             })
           }
         >

@@ -38,6 +38,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useTechniques, useHydrated } from "@/lib/bjj-storage";
+import { useGaleriaDeTecnicas, desdeQuando } from "@/lib/tecnicas-storage";
 import {
   TECHNIQUE_CATEGORIES,
   type Technique,
@@ -58,6 +59,11 @@ export const Route = createFileRoute("/_authenticated/tecnicas")({
 function TechniquesPage() {
   const hydrated = useHydrated();
   const { items, add, remove, update } = useTechniques();
+  // O uso — quantos treinos, e quando foi a última vez — vive na RPC nova.
+  // Vem por um mapa em vez de substituir `useTechniques` porque toda a edição
+  // desta tela (estrelas, apagar com desfazer) já está montada em cima dele.
+  const { tecnicas: comUso } = useGaleriaDeTecnicas();
+  const uso = new Map(comUso.map((t) => [t.id, t]));
   const [q, setQ] = useState("");
   const [cat, setCat] = useState<string>("all");
   const [open, setOpen] = useState(false);
@@ -134,8 +140,21 @@ function TechniquesPage() {
                 <div className="min-w-0">
                   <p className="truncate font-semibold">{t.name}</p>
                   <p className="text-[11px] uppercase tracking-wider text-primary">
-                    {t.category}
+                    {/* Técnica criada pelo diário pode não ter categoria: lá
+                        escolher entre sete é atrito que faz não anotar. Aqui o
+                        buraco fica visível e dá para arrumar. */}
+                    {t.category || "sem categoria"}
                   </p>
+                  {(() => {
+                    const u = uso.get(t.id);
+                    if (!u || u.treinos === 0) return null;
+                    return (
+                      <p className="mt-0.5 text-[11px] text-muted-foreground">
+                        {u.treinos} {u.treinos === 1 ? "treino" : "treinos"} ·
+                        última vez {desdeQuando(u.ultimaVez)}
+                      </p>
+                    );
+                  })()}
                 </div>
                 <div className="flex shrink-0 gap-1">
                   <button
