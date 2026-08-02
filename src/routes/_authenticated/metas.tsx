@@ -5,7 +5,7 @@ import { RotaDeGraduacao } from "@/components/RotaDeGraduacao";
 import { estiloDaFaixa } from "@/lib/faixa-cores";
 import { toast } from "sonner";
 import { PageShell } from "@/components/PageShell";
-import { PainelDoJogo } from "@/components/PainelDoJogo";
+import { PainelDoJogo, FechamentoDaSemana } from "@/components/PainelDoJogo";
 import { PrazoDaIBJJF } from "@/components/PrazoDaIBJJF";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -471,6 +471,8 @@ function MetasPage() {
           </CardContent>
         </Card>
       </Link>
+
+      <FechamentoDaSemana />
 
       <PrazoDaIBJJF />
 

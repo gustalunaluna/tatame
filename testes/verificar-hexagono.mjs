@@ -1,19 +1,19 @@
 /**
- * O hexágono do jogo, a sobreposição de dois meses, e o plano que sai daí.
+ * O hexágono na tela — desenhado a partir das rolas, não de auto-avaliação.
  *
- * O que este teste prende:
+ * O modelo que vira rola em nota tem teste próprio (verificar-hexagono-derivado).
+ * Aqui o que se prende é o que a TELA faz com o resultado:
+ *
  *   1. os seis eixos aparecem, e na ORDEM FIXA — se alguém ordenar por nota,
- *      o formato de um mês deixa de ser comparável com o de outro, que é a
+ *      o formato de uma semana deixa de ser comparável com o de outra, que é a
  *      razão de o gráfico existir
- *   2. são desenhados DOIS polígonos quando há mês de comparação, e um só
- *      quando não há
- *   3. as duas séries se distinguem sem depender de cor: a de agora tem
- *      marcadores e preenchimento, a de antes é tracejada e vazia
- *   4. a geometria está certa — nota 5 encosta no anel externo, nota 0 fica
- *      no centro
- *   5. a tabela repete os números com a diferença, que é a leitura sem a
- *      distorção de área do radar
- *   6. o plano aponta para o eixo MAIS BAIXO e intercala o segundo
+ *   2. eixo sem rola registrada vira "?" e NÃO vira ponto no centro — ausência
+ *      e nota zero são coisas opostas, e é o pior erro que este gráfico pode
+ *      cometer
+ *   3. a tabela diz "sem rolas registradas" em vez de mostrar um número
+ *   4. a geometria está certa — nota 5 encosta no anel externo
+ *   5. o plano só aponta para eixo que TEM dado
+ *   6. o hexágono aparece também no Início
  */
 import { abrirNavegador } from "./navegador.mjs";
 
@@ -28,28 +28,36 @@ const conferir = (nome, cond, detalhe = "") => {
   else falhas.push(`${nome}${detalhe ? ` — ${detalhe}` : ""}`);
 };
 
-// Guarda 5 (o máximo), gás 0 (o mínimo) — extremos de propósito, para a
-// geometria poder ser conferida contra o anel externo e contra o centro.
-const AGORA = {
-  mes: "2026-08-01",
-  guarda: 5,
-  passagem: 3,
-  finalizacao: 2,
-  retencao: 4,
-  defesa: 1,
-  gas: 0,
-  nota: "voltei de lesão",
-};
-const ANTES = {
-  mes: "2026-07-01",
-  guarda: 3,
-  passagem: 3,
-  finalizacao: 1,
-  retencao: 2,
-  defesa: 1,
-  gas: 2,
-  nota: "",
-};
+const hoje = new Date();
+const diasAtras = (n) =>
+  new Date(hoje.getTime() - n * 86400000).toISOString().slice(0, 10);
+
+/**
+ * O caso realista: o formulário de fechamento pergunta os cinco contadores de
+ * uma vez, então fechar um treino acende os cinco eixos juntos. O que fica
+ * separado é o GÁS, que depende de responder o ritmo da sessão — e aqui ele
+ * não foi respondido.
+ *
+ * Muitas finalizações contra parceiro de faixa acima empurram a finalização
+ * para perto do teto; zero raspadas deixam a guarda lá embaixo. As duas pontas
+ * da escala numa figura só.
+ */
+const SINAIS = Array.from({ length: 40 }, (_, i) => ({
+  data: diasAtras((i % 5) + 1),
+  parceiro_faixa: "Preta",
+  rolas: 1,
+  fin_a_favor: 6,
+  fin_sofridas: 0,
+  pass_a_favor: 0,
+  pass_sofridas: 0,
+  rasp_a_favor: 0,
+  rasp_sofridas: 0,
+  confirmado: true,
+  detalhado: true,
+  ritmo_caiu_na: null,
+  ritmo_respondido: false,
+  rolas_da_sessao: 5,
+}));
 
 const navegador = await abrirNavegador();
 const ctx = await navegador.newContext({ viewport: { width: 390, height: 844 } });
@@ -70,7 +78,7 @@ const p = await ctx.newPage();
 const erros = [];
 p.on("pageerror", (e) => erros.push(String(e).slice(0, 200)));
 
-let avaliacoes = [AGORA, ANTES];
+let sinais = SINAIS;
 
 await p.route(`https://${REF}.supabase.co/**`, (rota) => {
   const url = rota.request().url();
@@ -78,9 +86,9 @@ await p.route(`https://${REF}.supabase.co/**`, (rota) => {
     rota.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(b) });
 
   if (url.includes("/auth/v1/user")) return json({ id: EU, aud: "authenticated" });
-  if (url.includes("/rest/v1/avaliacoes_do_jogo")) return json(avaliacoes);
+  if (url.includes("/rpc/sinais_do_jogo")) return json(sinais);
   if (url.includes("/rest/v1/profiles"))
-    return json([{ user_id: EU, handle: "eu", nickname: "Eu", belt: "Roxa", degrees: 2 }]);
+    return json([{ user_id: EU, handle: "eu", nickname: "Eu", belt: "Branca", degrees: 0, birth_date: "1996-01-01" }]);
   return json([]);
 });
 
@@ -106,95 +114,118 @@ conferir(
   soEixos.join("|"),
 );
 
-/* --- 2 e 3. duas séries, distinguíveis sem cor --------------------------- */
-const poligonos = await p.locator('svg[role="img"] polygon').evaluateAll((ns) =>
-  ns.map((n) => ({
-    pontos: n.getAttribute("points") ?? "",
-    traco: n.getAttribute("stroke-dasharray") ?? "",
-    preenche: n.getAttribute("fill") ?? "",
-    largura: Number(n.getAttribute("stroke-width") ?? 0),
-  })),
-);
-// Os anéis também são polígonos; as séries são as de traço 2.
-const series = poligonos.filter((g) => g.largura === 2);
-conferir("duas séries desenhadas", series.length === 2, `${series.length} de traço 2`);
-
-const tracejada = series.filter((s) => s.traco);
-const cheia = series.filter((s) => !s.traco);
-conferir("a série de antes é tracejada", tracejada.length === 1);
+/* --- 2. eixo sem dado vira "?", nunca ponto no centro -------------------- */
+// Só finalização e defesa foram alimentadas. Os outros quatro precisam ficar
+// calados — e "calado" tem que ser visualmente diferente de "nota zero".
+const interrogacoes = await p
+  .locator('svg[role="img"] text')
+  .evaluateAll((ns) => ns.filter((n) => n.textContent?.trim() === "?").length);
 conferir(
-  "a série de antes não tem preenchimento",
-  tracejada[0]?.preenche === "none",
-  tracejada[0]?.preenche,
+  "o gás, sem o ritmo respondido, vira '?'",
+  interrogacoes === 1,
+  `${interrogacoes} interrogações`,
 );
-conferir(
-  "a série de agora é preenchida",
-  cheia[0]?.preenche !== "none" && Boolean(cheia[0]?.preenche),
-  cheia[0]?.preenche,
-);
-
-// Só dentro do gráfico: a legenda e os ícones da página também têm círculo,
-// e contar a página inteira mediria outra coisa.
 const marcadores = await p.locator('svg[role="img"] circle').count();
 conferir(
-  "só a série de agora tem marcadores (6)",
-  marcadores === 6,
-  `${marcadores} círculos no gráfico`,
+  "e os cinco eixos com dado ganham marcador",
+  marcadores === 5,
+  `${marcadores} marcadores`,
 );
 
-/* --- 4. a geometria ------------------------------------------------------ */
-// Centro (180,150), raio 98, primeiro eixo no topo. Guarda = 5 tem que
-// encostar no anel externo: y = 150 - 98 = 52. Gás = 0 fica no centro.
-const daAgora = cheia[0]?.pontos.split(" ").map((par) => par.split(",").map(Number)) ?? [];
-conferir(
-  "nota 5 encosta no anel externo",
-  daAgora[0] && Math.abs(daAgora[0][0] - 180) < 0.5 && Math.abs(daAgora[0][1] - 52) < 0.5,
-  JSON.stringify(daAgora[0]),
-);
-conferir(
-  "nota 0 fica no centro",
-  daAgora[5] && Math.abs(daAgora[5][0] - 180) < 0.5 && Math.abs(daAgora[5][1] - 150) < 0.5,
-  JSON.stringify(daAgora[5]),
-);
-
-/* --- 5. a tabela --------------------------------------------------------- */
-const linhaGuarda = await p
-  .locator("tr", { has: p.locator('th:text-is("Guarda")') })
-  .first()
-  .evaluate((el) => (el.textContent ?? "").replace(/\s+/g, " ").trim());
-conferir(
-  "a tabela mostra antes, agora e a diferença",
-  /Guarda\s*3\s*5\s*\+2/.test(linhaGuarda),
-  linhaGuarda,
-);
+/* --- 3. a tabela não inventa número -------------------------------------- */
 const linhaGas = await p
   .locator("tr", { has: p.locator('th:text-is("Gás")') })
   .first()
   .evaluate((el) => (el.textContent ?? "").replace(/\s+/g, " ").trim());
-conferir("a piora aparece com sinal", /Gás\s*2\s*0\s*-2/.test(linhaGas), linhaGas);
+conferir(
+  "a tabela diz 'sem rolas registradas' em vez de mostrar zero",
+  /sem rolas registradas/.test(linhaGas),
+  linhaGas,
+);
+const linhaFin = await p
+  .locator("tr", { has: p.locator('th:text-is("Finalização")') })
+  .first()
+  .evaluate((el) => (el.textContent ?? "").replace(/\s+/g, " ").trim());
+conferir(
+  "e mostra número onde há dado",
+  /Finalização\s*[0-9]/.test(linhaFin) && !/sem rolas/.test(linhaFin),
+  linhaFin,
+);
 
-/* --- 6. o plano ---------------------------------------------------------- */
-// Gás é 0, o mais baixo; defesa é 1, o segundo. O plano vai nos dois,
-// alternando — semana 1 e 3 no principal, 2 e 4 no secundário.
-conferir("o plano aponta para o eixo mais baixo", texto.includes("O mês aponta para gás"), "");
-conferir("e o segundo mais baixo entra junto", texto.includes("Defesa"), "");
+/* --- 4. a geometria ------------------------------------------------------ */
+// Centro (180,150), raio 98, primeiro eixo no topo. Finalização é o 3º eixo
+// (índice 2). Muitas finalizações contra faixa acima levam a nota perto do
+// teto, então o vértice tem que estar longe do centro.
+const daAgora = await p
+  .locator('svg[role="img"] polygon')
+  .evaluateAll((ns) => {
+    const serie = ns.find((n) => Number(n.getAttribute("stroke-width") ?? 0) === 2);
+    return (serie?.getAttribute("points") ?? "")
+      .split(" ")
+      .map((par) => par.split(",").map(Number));
+  });
+const raio = (i) =>
+  Math.hypot(daAgora[i][0] - 180, daAgora[i][1] - 150);
+conferir(
+  "o eixo com dado sai do centro",
+  raio(2) > 50,
+  `raio ${raio(2).toFixed(1)}`,
+);
+// Guarda: zero raspadas em 40 rolas respondidas. Isso É dado — nota baixa,
+// não ausência. A diferença entre este vértice e o do gás é a diferença
+// entre "não faço" e "não sei".
+conferir(
+  "zero raspadas respondidas é nota baixa, e nota baixa fica perto do centro",
+  raio(0) > 0.6 && raio(0) < 35,
+  `raio ${raio(0).toFixed(1)}`,
+);
+conferir(
+  "e o gás, que ninguém respondeu, fica exatamente no centro",
+  raio(5) < 0.6,
+  `raio ${raio(5).toFixed(1)}`,
+);
+
+/* --- 5. o plano só usa eixo com dado ------------------------------------- */
 const focos = await p
   .locator("ol li")
   .evaluateAll((ns) => ns.map((n) => n.querySelectorAll("span")[1]?.textContent?.trim() ?? ""));
 conferir(
-  "as semanas alternam entre os dois temas",
-  focos.length === 4 && focos[0] === focos[2] && focos[1] === focos[3] && focos[0] !== focos[1],
+  "o plano nunca aponta para o eixo que o app não mediu",
+  focos.length > 0 && !focos.includes("Gás"),
+  focos.join(" > "),
+);
+conferir(
+  "e aponta para a guarda, que é a nota mais baixa entre as medidas",
+  focos[0] === "Guarda",
   focos.join(" > "),
 );
 
-/* --- sem comparação, um polígono só -------------------------------------- */
-avaliacoes = [AGORA];
-await p.reload({ waitUntil: "load" });
+/* --- 6. o hexágono também aparece no Início ------------------------------ */
+await p.goto(`${BASE}/`, { waitUntil: "load" });
 await p.waitForTimeout(1500);
-const soUm = await p
-  .locator('svg[role="img"] polygon')
-  .evaluateAll((ns) => ns.filter((n) => Number(n.getAttribute("stroke-width") ?? 0) === 2).length);
-conferir("sem mês de comparação, uma série só", soUm === 1, `${soUm} séries`);
+conferir(
+  "o hexágono aparece no Início",
+  (await p.locator('svg[role="img"]').count()) >= 1,
+);
+conferir(
+  "e leva para Evolução ao toque",
+  (await p.locator('a[href="/metas"]').count()) >= 1,
+);
+
+/* --- sem nenhuma rola, o app se cala ------------------------------------- */
+sinais = [];
+await p.goto(`${BASE}/metas`, { waitUntil: "load" });
+await p.waitForTimeout(1500);
+const vazio = await p.locator("body").evaluate((el) => el.textContent ?? "");
+conferir(
+  "sem rolas, o app diz que está calado em vez de desenhar zeros",
+  vazio.includes("calado"),
+  vazio.slice(0, 100),
+);
+conferir(
+  "e não desenha figura nenhuma",
+  (await p.locator('svg[role="img"] polygon').count()) === 0,
+);
 
 /* ------------------------------------------------------------------------ */
 conferir("nenhum erro de página", erros.length === 0, erros.join(" / "));

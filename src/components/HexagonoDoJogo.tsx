@@ -51,6 +51,15 @@ export interface HexagonoProps {
   /** O mês que está em foco. Desenhado cheio, com marcadores. */
   agora: NotasDoHexagono;
   rotuloAgora: string;
+  /**
+   * Os eixos sobre os quais o app AINDA NÃO SABE nada.
+   *
+   * Não é detalhe de acabamento: sem isto, um eixo sem dado é desenhado no
+   * centro e lido como "você é péssimo nisso". Ausência e nota zero são coisas
+   * opostas, e confundi-las é o pior erro que este gráfico pode cometer.
+   * Aqui o vértice sem dado vira um "?" e o raio dele não é desenhado.
+   */
+  semDado?: readonly string[];
   /** O mês de comparação, quando houver. Desenhado em contorno tracejado. */
   antes?: NotasDoHexagono | null;
   rotuloAntes?: string;
@@ -103,12 +112,15 @@ export interface HexagonoProps {
 export function HexagonoDoJogo({
   agora,
   rotuloAgora,
+  semDado,
   antes,
   rotuloAntes,
   className,
 }: HexagonoProps) {
   const id = useId();
   const notasAgora = emOrdem(agora);
+  const calado = new Set(semDado ?? []);
+  const todoCalado = calado.size >= EIXOS.length;
   const notasAntes = antes ? emOrdem(antes) : null;
   const temComparacao = notasAntes !== null;
 
@@ -170,6 +182,7 @@ export function HexagonoDoJogo({
         )}
 
         {/* --- agora: preenchido, traço cheio, com marcadores --- */}
+        {!todoCalado && (
         <polygon
           points={poligono(notasAgora)}
           fill="var(--primary)"
@@ -178,11 +191,32 @@ export function HexagonoDoJogo({
           strokeWidth="2"
           strokeLinejoin="round"
         />
+        )}
         {notasAgora.map((n, i) => {
+          const slug = EIXOS[i].slug;
+          // Eixo calado: um "?" no meio do raio, e nenhum ponto no centro. Um
+          // ponto no centro seria lido como nota zero.
+          if (calado.has(slug)) {
+            const [mx, my] = ponto(i, R * 0.55);
+            return (
+              <text
+                key={slug}
+                x={mx}
+                y={my}
+                textAnchor="middle"
+                dominantBaseline="middle"
+                fontSize="12"
+                fill="var(--muted-foreground)"
+                className="font-bold"
+              >
+                ?
+              </text>
+            );
+          }
           const [x, y] = ponto(i, (R * n) / NOTA_MAXIMA);
           return (
             <circle
-              key={EIXOS[i].slug}
+              key={slug}
               cx={x}
               cy={y}
               r="4"
@@ -266,14 +300,17 @@ export function TabelaDoHexagono({
   antes,
   rotuloAgora,
   rotuloAntes,
+  semDado,
 }: {
   agora: NotasDoHexagono;
   antes?: NotasDoHexagono | null;
   rotuloAgora: string;
   rotuloAntes?: string;
+  semDado?: readonly string[];
 }) {
   const a = emOrdem(agora);
   const b = antes ? emOrdem(antes) : null;
+  const calado = new Set(semDado ?? []);
 
   return (
     <div className="overflow-x-auto">
@@ -301,6 +338,21 @@ export function TabelaDoHexagono({
         <tbody>
           {EIXOS.map((e, i) => {
             const dif = b ? a[i] - b[i] : 0;
+            if (calado.has(e.slug)) {
+              return (
+                <tr key={e.slug} className="border-t border-border/50">
+                  <th scope="row" className="py-2 text-left font-medium">
+                    {e.nome}
+                  </th>
+                  <td
+                    colSpan={b ? 3 : 1}
+                    className="py-2 text-right text-xs text-muted-foreground"
+                  >
+                    sem rolas registradas
+                  </td>
+                </tr>
+              );
+            }
             return (
               <tr key={e.slug} className="border-t border-border/50">
                 <th scope="row" className="py-2 text-left font-medium">

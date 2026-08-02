@@ -20,6 +20,7 @@ import {
 import { useCicloAtual, useMetas, diasAte } from "@/lib/plano-storage";
 import { nivelPorHoras, horasEmTexto } from "@/lib/nivel";
 import { RotaDeGraduacao } from "@/components/RotaDeGraduacao";
+import { PainelDoJogo, FechamentoDaSemana } from "@/components/PainelDoJogo";
 import { estiloDaFaixa } from "@/lib/faixa-cores";
 import { useCountUp } from "@/lib/motion";
 
@@ -311,6 +312,14 @@ function Home() {
           </CardContent>
         </Card>
       </div>
+
+      {/* O que a semana deixou aberto. Vem cedo de propósito: é ação
+          pendente, e ação pendente enterrada no rodapé não é vista. */}
+      <FechamentoDaSemana />
+
+      {/* O hexágono, na versão de leitura — toque leva para Evolução, onde
+          estão a tabela e o plano. */}
+      <PainelDoJogo compacto />
 
       {/* Achievements teaser */}
       <Link

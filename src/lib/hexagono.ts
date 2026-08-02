@@ -1,5 +1,5 @@
-import type { Faixa } from "./bjj-types";
-import { ePreta } from "./graduacao";
+import type { Faixa } from "./bjj-types.ts";
+import { ePreta } from "./graduacao.ts";
 
 /**
  * As seis áreas do jogo, e por que são estas seis.
@@ -295,9 +295,12 @@ export function prescricaoDoMes(
   notas: NotasDoHexagono,
   faixa: Faixa | string | undefined | null,
 ): PrescricaoDoMes | null {
-  const ranking = EIXOS.map((e) => ({ eixo: e, nota: clamp(Number(notas?.[e.slug] ?? 0)) })).sort(
-    (a, b) => a.nota - b.nota || EIXOS.indexOf(a.eixo) - EIXOS.indexOf(b.eixo),
-  );
+  // Só entra no ranking o eixo que ESTÁ no mapa. Ler eixo ausente como zero
+  // fazia o plano mandar treinar exatamente aquilo que o app não mediu: o eixo
+  // que ninguém respondeu vencia sempre, por ser o único em zero.
+  const ranking = EIXOS.filter((e) => notas?.[e.slug] !== undefined)
+    .map((e) => ({ eixo: e, nota: clamp(Number(notas[e.slug])) }))
+    .sort((a, b) => a.nota - b.nota || EIXOS.indexOf(a.eixo) - EIXOS.indexOf(b.eixo));
   const pior = ranking[0];
   const segundo = ranking[1];
   if (!pior || !segundo) return null;

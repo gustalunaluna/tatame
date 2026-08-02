@@ -296,14 +296,14 @@ migração 025.
 
 Seis áreas, nota de 0 a 5, uma leitura por mês:
 
-| Eixo | O que a pessoa responde |
+| Eixo | O evento contado |
 |---|---|
-| **Guarda** | Por baixo, você ataca e raspa — ou só segura? |
-| **Passagem** | Você passa a guarda de quem é do seu nível? |
-| **Finalização** | Chegando na posição, você termina? |
-| **Retenção** | Quando começam a passar, você recompõe? |
-| **Defesa** | Preso embaixo, você escapa antes de bater? |
-| **Gás** | No quinto round você ainda é o mesmo? |
+| **Guarda** | Raspadas dadas |
+| **Passagem** | Guardas passadas |
+| **Finalização** | Finalizações dadas |
+| **Retenção** | Guardas passadas *em você* (menos é melhor) |
+| **Defesa** | Finalizações sofridas (menos é melhor) |
+| **Gás** | Em que rola o ritmo caiu? |
 
 ### Por que estes seis, e não outros
 
@@ -364,16 +364,84 @@ A separação aqui não é por matiz, e por isso não depende de enxergar matiz:
 
 Quatro canais redundantes, nenhum cromático — mais a tabela.
 
-### Uma leitura por mês, garantida pelo banco
+### A nota é calculada, não declarada
 
-`avaliacoes_do_jogo` tem chave única em `(user_id, mes)`, e `mes` é sempre dia 1.
-O histórico antigo era um `jsonb` reescrito a cada **toque** no slider: mexer três
-vezes no mesmo dia criava três pontos. Não dá para comparar mês com mês em cima
-disso.
+**A auto-avaliação saiu.** Pedir nota de 0 a 5 media a confiança da pessoa, não o
+jiu-jitsu dela: o mesmo faixa-branca se dá 1 na semana em que apanhou e 4 na
+seguinte sem ter mudado nada. O gráfico registrava humor com cara de medida.
 
-A comparação padrão é com o **mês anterior que tem avaliação**, não com o mês de
-calendário anterior — quem pulou julho compara agosto com junho, e não com um
-hexágono vazio.
+Agora o app conta **eventos**: passagens, raspadas, finalizações, finalizações
+sofridas, e em que rola o ritmo caiu. *"Fui finalizado 3 vezes"* é fato; *"minha
+defesa é 2"* é veredito — e só o primeiro o parceiro pode conferir, que é para
+o que `training_partners.confirmacao` serve.
+
+### O que "relativo" quer dizer — três mecanismos
+
+**1. A faixa do parceiro (o principal).** Ser finalizado por um preta quando se é
+branca é o esperado; ser finalizado por um branca quando se é roxa não é.
+
+```
+evento a favor  →  peso 2^(gap)     fez contra quem está acima: vale mais
+evento sofrido  →  peso 2^(−gap)    sofreu de quem está acima: dói menos
+```
+
+com `gap` = faixa do parceiro − sua faixa, **limitado a ±2 degraus** — um branca
+que rola com preta não ganha multiplicador 16 e vira roxa por uma noite. Parceiro
+sem faixa registrada é neutro; chutar seria pior.
+
+É isto que torna a nota comparável entre faixas sem nivelar ninguém: um roxa
+entre roxas e um branca entre brancas jogam ambos 50/50, e ambos podem tirar 3.
+O que diferencia é o que cada um faz **dentro do próprio nível**.
+
+**2. Amostra pequena puxa para o meio.** Encolhimento para a média, com
+`p = n / (n + 10)`:
+
+```
+nota = 5 × [ p·observado + (1−p)·0,5 ]
+```
+
+Uma noite boa não faz um 5. A nota começa no meio e se afasta conforme a pessoa
+registra — e é por isso que ela merece confiança.
+
+**3. Idade, e só onde a idade manda.** A referência de gás desce 0,5 ponto
+percentual por ano acima dos 20, com piso em 45% da sessão. Nos outros cinco
+eixos a idade não entra.
+
+**E o tempo:** janela de 8 semanas com meia-vida de 4. Quem parou de passar
+guarda vê a passagem cair sozinha em um mês.
+
+### A coluna mais importante da migração 026
+
+`detalhado`. Zero e "não respondi" são a mesma coisa para o banco e **coisas
+opostas** para o hexágono. Sem essa bandeira, as 138 rolas que já existiam
+entrariam como *"dez rolas, ninguém me passou, ninguém me finalizou"* — e o app
+anunciaria retenção 3,7 e defesa 3,7 para quem nunca respondeu nada. Nota
+inventada nas duas direções: péssima no ataque, ótima na defesa.
+
+E **não há backfill**. A tentação era marcar `detalhado` nas linhas que já tinham
+`subs_for` preenchido, já que aquilo foi respondido de fato. Mas `detalhado` quer
+dizer *"respondi os cinco contadores"*, e naquelas linhas passagem e raspada nunca
+foram perguntadas — estão em zero por padrão, não por observação. Uma bandeira,
+um significado.
+
+### "Sem dado" nunca vira "é ruim"
+
+Eixo sem rola registrada aparece como **`?`** no meio do raio, sem marcador e sem
+vértice fora do centro; a tabela diz *"sem rolas registradas"*; e o plano **não
+aponta** para ele. Ausência e nota zero são coisas opostas, e confundi-las é o pior
+erro que este gráfico pode cometer.
+
+Um detalhe que o teste pegou: `prescricaoDoMes` lia eixo ausente como zero, então
+o eixo que ninguém respondeu vencia sempre o ranking de "mais baixo" — o plano
+mandava treinar exatamente aquilo que o app não mediu.
+
+### O fechamento da semana
+
+O hexágono se alimenta sozinho de um cartão que aparece no Início e em Evolução:
+os treinos dos últimos 7 dias que ainda não têm os números. Cinco contadores por
+parceiro (`+`/`−`, o teclado nunca abre) e uma pergunta de ritmo por sessão.
+
+Não se pergunta o quanto a pessoa acha que é boa. Pergunta-se o que aconteceu.
 
 ## 4.11 O plano de evolução, e de onde ele vem
 
@@ -406,9 +474,11 @@ exercício de correção afasta.
 
 ### O ciclo se fecha sozinho
 
-Refazer as seis notas no fim do mês muda o alvo do plano seguinte sem ninguém
-configurar nada — se gás subiu de 0 para 2 e defesa continua em 1, o mês que vem
-aponta para defesa. É a auto-avaliação espaçada da lista acima, aplicada ao
-próprio app.
+Ninguém reconfigura nada: fechar os treinos da semana move as notas, e o alvo do
+plano seguinte muda junto. Se a passagem subiu e a defesa não, o mês que vem
+aponta para defesa — sem que a pessoa precise ter opinião sobre isso.
+
+E o plano **só aponta para eixo que tem dado**. Mandar alguém treinar defesa
+porque o app não sabe nada sobre a defesa dela seria pior que não mandar.
 
 **O que o plano não faz:** prometer graduação. Ver regra 1 do capítulo 01.

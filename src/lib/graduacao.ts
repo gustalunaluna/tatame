@@ -1,4 +1,4 @@
-import type { Faixa } from "./bjj-types";
+import type { Faixa } from "./bjj-types.ts";
 
 /**
  * A escada de graduação, como ela é de verdade.

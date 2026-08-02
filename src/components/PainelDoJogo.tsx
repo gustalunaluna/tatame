@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { Icone } from "@/design/icones";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -8,115 +9,224 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Slider } from "@/components/ui/slider";
 import { HexagonoDoJogo, TabelaDoHexagono } from "@/components/HexagonoDoJogo";
+import { EIXOS, prescricaoDoMes, minutosDirigidos } from "@/lib/hexagono";
 import {
-  EIXOS,
-  NOTA_MAXIMA,
-  prescricaoDoMes,
-  minutosDirigidos,
-  type NotasDoHexagono,
-} from "@/lib/hexagono";
+  derivarHexagono,
+  notasDe,
+  eixosComDado,
+  type HexagonoDerivado,
+} from "@/lib/hexagono-derivado";
 import {
-  useAvaliacoes,
-  mesCurto,
-  nomeDoMes,
-  type AvaliacaoDoMes,
-} from "@/lib/hexagono-storage";
+  useSinaisDoJogo,
+  usePendenciasDaSemana,
+  SEMANAS_DA_JANELA,
+  type TreinoSemDetalhe,
+} from "@/lib/sinais-storage";
 import { usePerfil } from "@/lib/bjj-storage";
 import { cn } from "@/lib/utils";
 
 /* ================================================================== */
 
-function FormularioDaAvaliacao({
-  inicial,
-  notaInicial,
-  jaAvaliou,
+/** Contador de 0 a 99 com dois botões — o teclado do celular nunca abre. */
+function Contador({
+  rotulo,
+  valor,
+  aoMudar,
+}: {
+  rotulo: string;
+  valor: number;
+  aoMudar: (n: number) => void;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-2 py-1.5">
+      <span className="min-w-0 flex-1 text-sm">{rotulo}</span>
+      <div className="flex shrink-0 items-center gap-1">
+        <button
+          type="button"
+          onClick={() => aoMudar(Math.max(0, valor - 1))}
+          aria-label={`Menos um em ${rotulo}`}
+          disabled={valor === 0}
+          className="tap grid h-9 w-9 place-items-center rounded-full border border-border/60 text-lg font-bold disabled:opacity-30 active:scale-95"
+        >
+          −
+        </button>
+        <span className="w-7 text-center text-sm font-bold tabular-nums">{valor}</span>
+        <button
+          type="button"
+          onClick={() => aoMudar(Math.min(99, valor + 1))}
+          aria-label={`Mais um em ${rotulo}`}
+          className="tap grid h-9 w-9 place-items-center rounded-full border border-border/60 text-lg font-bold active:scale-95"
+        >
+          +
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ================================================================== */
+
+interface RespostaDoParceiro {
+  id: string;
+  passesFor: number;
+  passesAgainst: number;
+  sweepsFor: number;
+  subsFor: number;
+  subsAgainst: number;
+}
+
+/**
+ * O fechamento do treino — o que substituiu a auto-avaliação.
+ *
+ * A diferença que faz tudo: aqui não se pergunta "quanto vale a sua guarda".
+ * Pergunta-se o que ACONTECEU. Contagem o parceiro pode conferir; nota não.
+ */
+function FecharTreino({
+  treino,
+  aoFechar,
   aoSalvar,
   salvando,
 }: {
-  inicial: NotasDoHexagono;
-  notaInicial: string;
-  jaAvaliou: boolean;
-  aoSalvar: (notas: NotasDoHexagono, nota: string) => Promise<void>;
+  treino: TreinoSemDetalhe;
+  aoFechar: () => void;
+  aoSalvar: (r: {
+    ritmoCaiuNa: number | null;
+    parceiros: RespostaDoParceiro[];
+  }) => Promise<void>;
   salvando: boolean;
 }) {
-  const [aberto, setAberto] = useState(false);
-  const [notas, setNotas] = useState<NotasDoHexagono>(inicial);
-  const [nota, setNota] = useState(notaInicial);
+  const [respostas, setRespostas] = useState<Record<string, RespostaDoParceiro>>(() =>
+    Object.fromEntries(
+      treino.parceiros.map((p) => [
+        p.id,
+        {
+          id: p.id,
+          passesFor: 0,
+          passesAgainst: 0,
+          sweepsFor: 0,
+          subsFor: 0,
+          subsAgainst: 0,
+        },
+      ]),
+    ),
+  );
+  const [caiu, setCaiu] = useState<number | null>(null);
+  const [naoCaiu, setNaoCaiu] = useState(true);
+
+  const mexer = (id: string, campo: keyof RespostaDoParceiro, n: number) =>
+    setRespostas((r) => ({ ...r, [id]: { ...r[id], [campo]: n } }));
+
+  const dataBonita = new Date(`${treino.data}T00:00:00`).toLocaleDateString("pt-BR", {
+    weekday: "long",
+    day: "2-digit",
+    month: "2-digit",
+  });
 
   return (
-    <Dialog
-      open={aberto}
-      onOpenChange={(v) => {
-        setAberto(v);
-        // Reabrir sempre parte do que está gravado, não do que ficou na tela
-        // de uma edição abandonada.
-        if (v) {
-          setNotas(inicial);
-          setNota(notaInicial);
-        }
-      }}
-    >
-      <DialogTrigger asChild>
-        <Button size="sm" className="gap-1">
-          <Icone.evolucao className="h-4 w-4" />
-          {jaAvaliou ? "Rever" : "Avaliar"}
-        </Button>
-      </DialogTrigger>
+    <Dialog open onOpenChange={(v) => !v && aoFechar()}>
       <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Seu jogo este mês</DialogTitle>
+          <DialogTitle className="capitalize">{dataBonita}</DialogTitle>
         </DialogHeader>
 
         <p className="text-xs text-muted-foreground">
-          Zero é "não existe ainda"; cinco é "é o meu melhor". Compare com quem
-          treina no seu nível, não com o professor — a nota só vale se ela puder
-          descer no mês que vem.
+          Não é para acertar de cabeça — é o que você lembra. O app conta
+          eventos, não opinião, e por isso a conta aguenta um número torto: o
+          que manda é a tendência de várias semanas.
         </p>
 
         <div className="space-y-4">
-          {EIXOS.map((e) => (
-            <div key={e.slug}>
-              <div className="flex items-baseline justify-between gap-2">
-                <p className="text-sm font-bold">{e.nome}</p>
-                <span className="shrink-0 text-xs font-bold tabular-nums text-primary">
-                  {notas[e.slug] ?? 0}/{NOTA_MAXIMA}
+          {treino.parceiros.map((p) => (
+            <div key={p.id} className="rounded-xl border border-border/60 p-3">
+              <p className="text-sm font-bold">
+                {p.nome}
+                {p.faixa && (
+                  <span className="ml-1.5 text-xs font-normal text-muted-foreground">
+                    {p.faixa}
+                  </span>
+                )}
+                <span className="ml-1.5 text-xs font-normal text-muted-foreground">
+                  · {p.rolas} {p.rolas === 1 ? "rola" : "rolas"}
                 </span>
+              </p>
+              <div className="mt-1 divide-y divide-border/40">
+                <Contador
+                  rotulo="Você passou a guarda dele"
+                  valor={respostas[p.id]?.passesFor ?? 0}
+                  aoMudar={(n) => mexer(p.id, "passesFor", n)}
+                />
+                <Contador
+                  rotulo="Ele passou a sua"
+                  valor={respostas[p.id]?.passesAgainst ?? 0}
+                  aoMudar={(n) => mexer(p.id, "passesAgainst", n)}
+                />
+                <Contador
+                  rotulo="Você raspou"
+                  valor={respostas[p.id]?.sweepsFor ?? 0}
+                  aoMudar={(n) => mexer(p.id, "sweepsFor", n)}
+                />
+                <Contador
+                  rotulo="Você finalizou"
+                  valor={respostas[p.id]?.subsFor ?? 0}
+                  aoMudar={(n) => mexer(p.id, "subsFor", n)}
+                />
+                <Contador
+                  rotulo="Ele te finalizou"
+                  valor={respostas[p.id]?.subsAgainst ?? 0}
+                  aoMudar={(n) => mexer(p.id, "subsAgainst", n)}
+                />
               </div>
-              <p className="mt-0.5 text-xs text-muted-foreground">{e.pergunta}</p>
-              <Slider
-                className="mt-2"
-                value={[notas[e.slug] ?? 0]}
-                min={0}
-                max={NOTA_MAXIMA}
-                step={1}
-                aria-label={`Nota de ${e.nome}`}
-                onValueChange={([v]) => setNotas((n) => ({ ...n, [e.slug]: v }))}
-              />
             </div>
           ))}
 
-          <div>
-            <Label htmlFor="avaliacao-nota">Observação do mês</Label>
-            <Input
-              id="avaliacao-nota"
-              value={nota}
-              onChange={(ev) => setNota(ev.target.value)}
-              placeholder="Ex.: voltei de lesão, treinei pouco"
-            />
-          </div>
+          {!treino.ritmoRespondido && (
+            <div className="rounded-xl border border-border/60 p-3">
+              <Label className="text-sm font-bold">Em que rola o ritmo caiu?</Label>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                Foram {treino.rolas} {treino.rolas === 1 ? "rola" : "rolas"} no total.
+              </p>
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setNaoCaiu(true);
+                    setCaiu(null);
+                  }}
+                  className={cn(
+                    "tap rounded-full border px-3 py-1.5 text-xs font-bold active:scale-95",
+                    naoCaiu
+                      ? "border-primary bg-primary/15 text-primary"
+                      : "border-border/60 text-muted-foreground",
+                  )}
+                >
+                  Não caiu
+                </button>
+                {Array.from({ length: Math.max(1, treino.rolas) }, (_, i) => i + 1).map(
+                  (n) => (
+                    <button
+                      key={n}
+                      type="button"
+                      onClick={() => {
+                        setNaoCaiu(false);
+                        setCaiu(n);
+                      }}
+                      className={cn(
+                        "tap min-w-9 rounded-full border px-3 py-1.5 text-xs font-bold tabular-nums active:scale-95",
+                        !naoCaiu && caiu === n
+                          ? "border-primary bg-primary/15 text-primary"
+                          : "border-border/60 text-muted-foreground",
+                      )}
+                    >
+                      {n}ª
+                    </button>
+                  ),
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         <DialogFooter>
@@ -124,11 +234,14 @@ function FormularioDaAvaliacao({
             className="w-full"
             disabled={salvando}
             onClick={async () => {
-              await aoSalvar(notas, nota);
-              setAberto(false);
+              await aoSalvar({
+                ritmoCaiuNa: naoCaiu ? null : caiu,
+                parceiros: Object.values(respostas),
+              });
+              aoFechar();
             }}
           >
-            {salvando ? "Salvando…" : "Salvar avaliação"}
+            {salvando ? "Salvando…" : "Fechar o treino"}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -138,14 +251,85 @@ function FormularioDaAvaliacao({
 
 /* ================================================================== */
 
-function Plano({
-  notas,
-  faixa,
-}: {
-  notas: NotasDoHexagono;
-  faixa: string | undefined;
-}) {
-  const p = prescricaoDoMes(notas, faixa);
+/** O que a semana deixou aberto. É daqui que o hexágono se alimenta. */
+export function FechamentoDaSemana() {
+  const { pendencias, ready, responder } = usePendenciasDaSemana();
+  const [abertoId, setAbertoId] = useState<string | null>(null);
+
+  if (!ready || pendencias.length === 0) return null;
+
+  const emAberto = pendencias.find((p) => p.trainingId === abertoId) ?? null;
+
+  return (
+    <Card className="border-primary/40 bg-primary/5">
+      <CardContent className="p-4">
+        <div className="flex items-center gap-2">
+          <Icone.treino className="h-4 w-4 shrink-0 text-primary" />
+          <p className="text-sm font-bold">
+            {pendencias.length === 1
+              ? "1 treino desta semana para fechar"
+              : `${pendencias.length} treinos desta semana para fechar`}
+          </p>
+        </div>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Um minuto cada. É o que faz o seu hexágono se mexer — sem isso ele
+          fica calado, que é melhor do que ele chutar.
+        </p>
+
+        <ul className="mt-3 space-y-1.5">
+          {pendencias.map((p) => (
+            <li key={p.trainingId}>
+              <button
+                onClick={() => setAbertoId(p.trainingId)}
+                className="tap flex w-full items-center gap-2 rounded-xl border border-border/60 bg-card/60 p-3 text-left active:scale-[0.99]"
+              >
+                <span className="min-w-0 flex-1">
+                  <span className="block text-sm font-bold capitalize">
+                    {new Date(`${p.data}T00:00:00`).toLocaleDateString("pt-BR", {
+                      weekday: "long",
+                      day: "2-digit",
+                      month: "2-digit",
+                    })}
+                  </span>
+                  <span className="block text-xs text-muted-foreground">
+                    {p.parceiros.length > 0
+                      ? `${p.parceiros.length} ${p.parceiros.length === 1 ? "parceiro" : "parceiros"} sem números`
+                      : "falta só o ritmo"}
+                  </span>
+                </span>
+                <Icone.avancar className="h-4 w-4 shrink-0 text-muted-foreground" />
+              </button>
+            </li>
+          ))}
+        </ul>
+      </CardContent>
+
+      {emAberto && (
+        <FecharTreino
+          key={emAberto.trainingId}
+          treino={emAberto}
+          aoFechar={() => setAbertoId(null)}
+          salvando={responder.isPending}
+          aoSalvar={async (r) => {
+            await responder.mutateAsync({ trainingId: emAberto.trainingId, ...r });
+          }}
+        />
+      )}
+    </Card>
+  );
+}
+
+/* ================================================================== */
+
+function Plano({ h, faixa }: { h: HexagonoDerivado; faixa: string | undefined }) {
+  // O plano só aponta para eixo que TEM dado. Mandar alguém treinar defesa
+  // porque o app não sabe nada sobre a defesa dela seria pior que não mandar.
+  const comDado = Object.fromEntries(
+    EIXOS.filter((e) => h[e.slug]?.temDado).map((e) => [e.slug, h[e.slug].nota]),
+  );
+  if (Object.keys(comDado).length < 2) return null;
+
+  const p = prescricaoDoMes(comDado, faixa);
   if (!p) return null;
 
   return (
@@ -153,16 +337,15 @@ function Plano({
       <CardContent className="p-4">
         <div className="flex items-center gap-2">
           <Icone.tecnica className="h-4 w-4 shrink-0 text-primary" />
-          <p className="text-sm font-bold">O mês aponta para {p.eixo.nome.toLowerCase()}</p>
+          <p className="text-sm font-bold">
+            O mês aponta para {p.eixo.nome.toLowerCase()}
+          </p>
         </div>
         <p className="mt-1.5 text-xs text-muted-foreground">{p.porque}</p>
 
         <ol className="mt-3 space-y-2">
           {p.semanas.map((s) => (
-            <li
-              key={s.semana}
-              className="rounded-xl border border-border/60 p-3"
-            >
+            <li key={s.semana} className="rounded-xl border border-border/60 p-3">
               <div className="flex items-baseline gap-2">
                 <span className="shrink-0 text-[10px] font-black uppercase tracking-[0.18em] text-primary">
                   Semana {s.semana}
@@ -176,8 +359,6 @@ function Plano({
 
         <p className="mt-3 text-xs text-muted-foreground">{p.comoSaber}</p>
 
-        {/* Por que as semanas alternam em vez de empilhar. Sem esta linha o
-            plano parece desorganizado — e é justamente o contrário. */}
         <details className="reveal mt-3">
           <summary className="cursor-pointer text-xs font-bold text-primary">
             Por que alterna entre dois temas?
@@ -185,12 +366,11 @@ function Plano({
           <p className="mt-2 text-xs text-muted-foreground">
             Porque treinar dois assuntos alternados rende mais que fechar um de
             cada vez, mesmo parecendo pior durante o mês. O intervalo entre a
-            semana 1 e a semana 3 é o que faz o aprendizado ficar — é o mesmo
-            motivo pelo qual estudar espaçado bate estudar em bloco. E cada
-            semana é rola posicional com regra, não repetição no boneco: no
-            jiu-jitsu a técnica aparece resolvendo um problema, não copiando um
-            movimento. São {minutosDirigidos(faixa)} minutos por semana dentro
-            do treino que você já faz.
+            semana 1 e a semana 3 é o que faz o aprendizado ficar. E cada semana
+            é rola posicional com regra, não repetição no boneco: no jiu-jitsu a
+            técnica aparece resolvendo um problema, não copiando um movimento.
+            São {minutosDirigidos(faixa)} minutos por semana dentro do treino que
+            você já faz.
           </p>
         </details>
       </CardContent>
@@ -200,134 +380,146 @@ function Plano({
 
 /* ================================================================== */
 
+function idadeDe(nascimento: string | null | undefined): number | null {
+  if (!nascimento) return null;
+  const d = new Date(`${nascimento}T00:00:00`);
+  if (Number.isNaN(d.getTime())) return null;
+  return Math.floor((Date.now() - d.getTime()) / (365.25 * 86400000));
+}
+
 /**
- * O painel do jogo: hexágono, comparação e plano.
+ * O hexágono calculado.
  *
- * Substitui a linha da média dos pontos fracos. A média de seis habilidades é
- * o número que mais esconde — quem melhorou a passagem e piorou a defesa
- * aparecia parado, e "parado" era a leitura errada.
+ * `compacto` é a versão do Início: o desenho, sem a tabela e sem o plano —
+ * quem quer o detalhe toca e vai para Evolução.
  */
-export function PainelDoJogo() {
-  const { avaliacoes, atual, anterior, inicial, ready, salvar } = useAvaliacoes();
+export function PainelDoJogo({ compacto = false }: { compacto?: boolean }) {
+  const { sinais, ready } = useSinaisDoJogo();
   const { perfil } = usePerfil();
-  const [comparadoCom, setComparadoCom] = useState<string>("");
 
-  const emFoco: AvaliacaoDoMes | null = atual ?? avaliacoes[0] ?? null;
+  const h = useMemo(
+    () =>
+      derivarHexagono(sinais, {
+        faixa: String(perfil?.belt ?? "Branca"),
+        idade: idadeDe(perfil?.birthDate),
+      }),
+    [sinais, perfil?.belt, perfil?.birthDate],
+  );
 
-  const candidatos = avaliacoes.filter((a) => a.mes !== emFoco?.mes);
-  const escolhido =
-    candidatos.find((a) => a.mes === comparadoCom) ??
-    (emFoco === atual ? anterior : candidatos[0]) ??
-    null;
+  const semDado = EIXOS.filter((e) => !h[e.slug]?.temDado).map((e) => e.slug);
+  const quantos = eixosComDado(h);
 
   if (!ready) {
-    return (
-      <div className="h-64 w-full animate-pulse rounded-2xl bg-muted/40" aria-hidden />
-    );
+    return <div className="h-64 w-full animate-pulse rounded-2xl bg-muted/40" aria-hidden />;
   }
 
-  /* --- ainda não avaliou nada --- */
-  if (!emFoco) {
+  /* --- nada ainda --- */
+  if (quantos === 0) {
+    if (compacto) return null;
     return (
       <Card className="border-dashed border-primary/40 bg-transparent">
         <CardContent className="p-6 text-center">
           <Icone.evolucao className="mx-auto mb-2 h-6 w-6 text-primary" />
-          <p className="text-sm font-bold">Onde está o seu jogo?</p>
+          <p className="text-sm font-bold">Seu hexágono ainda está calado</p>
           <p className="mx-auto mt-1 max-w-xs text-sm text-muted-foreground">
-            Seis notas, uma vez por mês. Não é para acertar — é para ver o
-            formato mudar. Daqui a seis meses este é o gráfico que vai te dizer
-            no que você virou bom sem perceber.
+            Ele não pergunta o quanto você acha que é bom — ele conta o que
+            aconteceu nas suas rolas. Registre um treino com parceiros e feche os
+            números; em três rolas ele começa a falar.
           </p>
-          <div className="mt-4 flex justify-center">
-            <FormularioDaAvaliacao
-              inicial={inicial}
-              notaInicial=""
-              jaAvaliou={false}
-              salvando={salvar.isPending}
-              aoSalvar={async (notas, nota) => {
-                await salvar.mutateAsync({ notas, nota });
-              }}
-            />
-          </div>
+          <Button asChild size="sm" className="mt-4 gap-1">
+            <Link to="/diario">
+              <Icone.adicionar className="h-4 w-4" /> Registrar treino
+            </Link>
+          </Button>
         </CardContent>
       </Card>
     );
   }
 
-  const precisaAvaliar = !atual;
+  const grafico = (
+    <HexagonoDoJogo
+      className="mt-2"
+      agora={notasDe(h)}
+      rotuloAgora={`${SEMANAS_DA_JANELA} semanas`}
+      semDado={semDado}
+    />
+  );
+
+  if (compacto) {
+    return (
+      <Card className="border-border/60 bg-card/70">
+        <CardContent className="p-4">
+          <Link to="/metas" className="tap block active:scale-[0.99]">
+            <div className="flex items-center justify-between gap-2">
+              <div className="min-w-0">
+                <p className="text-sm font-bold">Seu jogo</p>
+                <p className="truncate text-xs text-muted-foreground">
+                  Das últimas {SEMANAS_DA_JANELA} semanas de rola
+                </p>
+              </div>
+              <Icone.avancar className="h-4 w-4 shrink-0 text-muted-foreground" />
+            </div>
+            {grafico}
+          </Link>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <div className="space-y-3">
       <Card className="border-border/60 bg-card/70">
         <CardContent className="p-4">
-          <div className="flex items-start justify-between gap-2">
-            <div className="min-w-0">
-              <p className="text-sm font-bold">Seu jogo</p>
-              <p className="truncate text-xs text-muted-foreground">
-                {nomeDoMes(emFoco.mes)}
-                {precisaAvaliar && " · ainda não avaliado este mês"}
-              </p>
-            </div>
-            <FormularioDaAvaliacao
-              inicial={inicial}
-              notaInicial={atual?.nota ?? ""}
-              jaAvaliou={Boolean(atual)}
-              salvando={salvar.isPending}
-              aoSalvar={async (notas, nota) => {
-                await salvar.mutateAsync({ notas, nota });
-              }}
-            />
-          </div>
+          <p className="text-sm font-bold">Seu jogo</p>
+          <p className="text-xs text-muted-foreground">
+            Calculado das suas rolas das últimas {SEMANAS_DA_JANELA} semanas.
+          </p>
 
-          <HexagonoDoJogo
-            className="mt-2"
-            agora={emFoco.notas}
-            rotuloAgora={mesCurto(emFoco.mes)}
-            antes={escolhido?.notas}
-            rotuloAntes={escolhido ? mesCurto(escolhido.mes) : undefined}
-          />
-
-          {candidatos.length > 0 && (
-            <div className="mt-2">
-              <Label htmlFor="comparar-com" className="text-xs text-muted-foreground">
-                Comparar com
-              </Label>
-              <Select
-                value={escolhido?.mes ?? ""}
-                onValueChange={setComparadoCom}
-              >
-                <SelectTrigger id="comparar-com" aria-label="Comparar com" className="mt-1">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {candidatos.map((a) => (
-                    <SelectItem key={a.mes} value={a.mes}>
-                      {nomeDoMes(a.mes)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
+          {grafico}
 
           <div className="mt-4">
-            <TabelaDoHexagono
-              agora={emFoco.notas}
-              antes={escolhido?.notas}
-              rotuloAgora={mesCurto(emFoco.mes)}
-              rotuloAntes={escolhido ? mesCurto(escolhido.mes) : undefined}
-            />
+            <TabelaDoHexagono agora={notasDe(h)} rotuloAgora="Nota" semDado={semDado} />
           </div>
 
-          {emFoco.nota && (
-            <p className={cn("mt-3 text-xs italic text-muted-foreground")}>
-              “{emFoco.nota}”
-            </p>
-          )}
+          {/* A régua, escrita. Um número que ninguém consegue explicar é um
+              número que ninguém deveria usar. */}
+          <details className="reveal mt-4">
+            <summary className="cursor-pointer text-xs font-bold text-primary">
+              Como esta nota é calculada?
+            </summary>
+            <div className="mt-2 space-y-2 text-xs text-muted-foreground">
+              <p>
+                Ela não vem de auto-avaliação. Vem do que você registrou:
+                passagens, raspadas, finalizações, e em que rola o ritmo caiu.
+                Três coisas a tornam comparável:
+              </p>
+              <p>
+                <strong className="text-foreground">A faixa do parceiro.</strong> Ser
+                finalizado por um preta quando você é branca é o esperado, e quase
+                não conta contra. Ser finalizado por quem está abaixo pesa o dobro.
+                Vale até dois degraus de diferença.
+              </p>
+              <p>
+                <strong className="text-foreground">O tamanho da amostra.</strong> Com
+                poucas rolas a nota fica perto do meio da escala e vai se afastando
+                conforme você registra. Uma noite boa não faz um 5 — e é por isso
+                que ela merece confiança.
+              </p>
+              <p>
+                <strong className="text-foreground">O tempo.</strong> As últimas
+                semanas pesam mais; o que tem quatro semanas pesa metade. Quem para
+                de passar guarda vê a passagem cair sozinha.
+              </p>
+              <p>
+                A idade entra só no gás — segurar o ritmo aos 45 vale mais que aos
+                20.
+              </p>
+            </div>
+          </details>
         </CardContent>
       </Card>
 
-      <Plano notas={emFoco.notas} faixa={perfil?.belt} />
+      <Plano h={h} faixa={perfil?.belt} />
     </div>
   );
 }
