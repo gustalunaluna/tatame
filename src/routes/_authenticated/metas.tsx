@@ -1,10 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Suspense, lazy, useState, type CSSProperties } from "react";
+import { useState, type CSSProperties } from "react";
 import { Icone } from "@/design/icones";
 import { RotaDeGraduacao } from "@/components/RotaDeGraduacao";
 import { estiloDaFaixa } from "@/lib/faixa-cores";
 import { toast } from "sonner";
 import { PageShell } from "@/components/PageShell";
+import { PainelDoJogo } from "@/components/PainelDoJogo";
+import { PrazoDaIBJJF } from "@/components/PrazoDaIBJJF";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,7 +40,6 @@ import { FAIXAS, type Faixa } from "@/lib/bjj-types";
 import { Confirmar } from "@/components/Confirmar";
 import { cn } from "@/lib/utils";
 
-const GraficoEvolucao = lazy(() => import("@/components/GraficoEvolucao"));
 
 export const Route = createFileRoute("/_authenticated/metas")({
   head: () => ({
@@ -393,7 +394,6 @@ function Pontos({ kind }: { kind: "fraco" | "forte" }) {
 function MetasPage() {
   const hydrated = useHydrated();
   const { ativas, concluidas, ready } = useMetas();
-  const { items } = useWeakPoints();
   const { items: treinos } = useTrainings();
   const { start, set: setStart } = useGoalStart();
   const { ciclo, execucao } = useCicloAtual();
@@ -407,7 +407,6 @@ function MetasPage() {
     Math.floor((Date.now() - inicio.getTime()) / 86400000),
   );
 
-  const chartData = items.length ? aggregateHistory(items) : [];
 
   return (
     <PageShell title="Metas" subtitle="Onde você quer chegar.">
@@ -473,30 +472,11 @@ function MetasPage() {
         </Card>
       </Link>
 
-      <Pontos kind="fraco" />
+      <PrazoDaIBJJF />
 
-      {chartData.length > 1 && (
-        <Card className="border-border/60 bg-card/70">
-          <CardContent className="p-4">
-            <div className="mb-2 flex items-center gap-2">
-              <Icone.evolucao className="h-4 w-4 text-primary" />
-              <p className="text-sm font-semibold">Evolução dos pontos</p>
-            </div>
-            <div className="h-40">
-              <Suspense
-                fallback={
-                  <div
-                    className="h-full w-full animate-pulse rounded-xl bg-muted/40"
-                    aria-hidden="true"
-                  />
-                }
-              >
-                <GraficoEvolucao dados={chartData} />
-              </Suspense>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      <PainelDoJogo />
+
+      <Pontos kind="fraco" />
 
       <Pontos kind="forte" />
 
@@ -519,20 +499,3 @@ function MetasPage() {
   );
 }
 
-function aggregateHistory(items: { history: { date: string; score: number }[] }[]) {
-  const map = new Map<string, { total: number; n: number }>();
-  for (const w of items) {
-    for (const h of w.history) {
-      const cur = map.get(h.date) ?? { total: 0, n: 0 };
-      cur.total += h.score;
-      cur.n += 1;
-      map.set(h.date, cur);
-    }
-  }
-  return Array.from(map.entries())
-    .sort(([a], [b]) => (a < b ? -1 : 1))
-    .map(([date, v]) => ({
-      date: date.slice(5),
-      média: +(v.total / v.n).toFixed(2),
-    }));
-}

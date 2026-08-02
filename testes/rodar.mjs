@@ -98,9 +98,14 @@ for (const arquivo of arquivos) {
   process.stdout.write(`  ${nome.padEnd(24)} `);
   const inicio = Date.now();
   try {
-    execFileSync("node", [`testes/${arquivo}`], {
+    execFileSync("node", ["--experimental-strip-types", `testes/${arquivo}`], {
       stdio: "pipe",
-      env: { ...process.env, BASE },
+      // A flag vale para todos, e não só para quem precisa: é o que deixa um
+      // teste importar direto de `src/*.ts` em vez de reescrever a regra em
+      // JavaScript ao lado dela. Duas cópias da mesma regra foi exatamente
+      // como a escada de graduação errou antes — e a cópia com nome era a
+      // morta.
+      env: { ...process.env, BASE, NODE_NO_WARNINGS: "1" },
       timeout: 180_000,
     });
     console.log(`ok    ${((Date.now() - inicio) / 1000).toFixed(1)}s`);
