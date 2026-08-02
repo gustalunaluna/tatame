@@ -205,6 +205,18 @@ tela ter que costurar o topo na mão. Quem não tem conta aparece com o que se
 sabe dele (`linhagem_externa`: nome, academia, faixa) e **não vira link**. A tela
 diz "fora do app" em vez de inventar uma faixa branca para um Maeda.
 
+O formulário de `/meus-mestres` pede faixa, grau e academia **só quando o mestre
+não tem conta**, e some com os três campos quando tem — a graduação de quem usa
+o app é dele, e deixar outra pessoa declarar seria o mesmo erro que a 021
+desfez. Os três são opcionais: ninguém é obrigado a saber a graduação exata do
+mestre do mestre, e exigir faria a pessoa inventar.
+
+Isso ficou aberto por três migrações. `linhagem_externa` existia desde a 019 e o
+formulário nunca escrevia nela — salvava `mestre_nome`, um texto avulso —, e a
+`mestres_de` nem lia a coluna. Um mestre de fora aparecia no perfil como uma
+linha só com o nome, sem faixa e sem academia, mesmo quando quem cadastrou sabia
+as duas coisas.
+
 ### A navegação
 
 Cada elo com conta leva ao perfil daquela pessoa. O perfil tem a caixa "Mestres",
@@ -245,7 +257,7 @@ níveis e não acontece em academia nenhuma.
 | `matriz_id` existe mas nenhuma tela mostra filiação | Baixo | Tela |
 | Não há convite de mestre por link | Médio | Fluxo |
 | Não há verificação: qualquer um se declara aluno de qualquer um | **Alto** | Fluxo de aceite, espelhando parceria |
-| `master` (texto) coexiste com `master_links` | Baixo — declarado e tratado | Decisão de migração |
+| `master` (texto) coexiste com `master_links` | Resolvido na 023: onde existe vínculo, o texto sai | — |
 
 O buraco de verificação é o mais sério. Hoje eu posso cadastrar Rickson Gracie
 como meu mestre e a linhagem inteira aparece no meu perfil sem ele saber. A
