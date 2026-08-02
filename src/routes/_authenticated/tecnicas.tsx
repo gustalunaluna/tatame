@@ -245,7 +245,7 @@ function TechniqueDialog({
         <div>
           <Label>Categoria</Label>
           <Select value={category} onValueChange={(v) => setCategory(v as TechniqueCategory)}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectTrigger aria-label="Categoria"><SelectValue /></SelectTrigger>
             <SelectContent>
               {TECHNIQUE_CATEGORIES.map((c) => (
                 <SelectItem key={c} value={c}>{c}</SelectItem>

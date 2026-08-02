@@ -130,7 +130,7 @@ export function CadastrarMedalha({
                 value={modalidade}
                 onValueChange={(v) => setModalidade(v as Modalidade)}
               >
-                <SelectTrigger>
+                <SelectTrigger aria-label="Modalidade">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -154,7 +154,7 @@ export function CadastrarMedalha({
           <div>
             <Label>Representando</Label>
             <Select value={equipeId} onValueChange={setEquipeId}>
-              <SelectTrigger>
+              <SelectTrigger aria-label="Representando">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

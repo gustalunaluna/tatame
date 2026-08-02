@@ -1021,6 +1021,10 @@ export function useMeusMestres() {
     mutationFn: async (novo: {
       mestreId?: string | null;
       mestreNome?: string;
+      /** Só para mestre de fora do app — quem tem conta mantém o próprio perfil. */
+      mestreBelt?: string;
+      mestreGraus?: number;
+      mestreAcademia?: string;
       teamId?: string | null;
       papel?: VinculoDeMestre["papel"];
       principal?: boolean;
@@ -1030,10 +1034,43 @@ export function useMeusMestres() {
       const { data: sessao } = await supabase.auth.getUser();
       const eu = sessao.user?.id;
       if (!eu) throw new Error("Entre para cadastrar seu mestre.");
+
+      const nome = (novo.mestreNome ?? "").trim();
+      const academia = (novo.mestreAcademia ?? "").trim();
+      const belt = (novo.mestreBelt ?? "").trim();
+
+      // Mestre de fora do app com faixa ou academia declarada ganha ficha
+      // própria em `linhagem_externa`. O `mestre_nome` avulso guarda só um
+      // nome — e era por isso que a Emy aparecia sem faixa e sem academia no
+      // perfil, mesmo o dono do vínculo sabendo as duas coisas.
+      //
+      // Sem faixa nem academia não vale criar ficha: seria uma linha vazia com
+      // a mesma informação que o texto já carrega.
+      let externoId: string | null = null;
+      if (!novo.mestreId && nome && (belt || academia)) {
+        const { data, error } = await supabase
+          .from("linhagem_externa" as never)
+          .insert({
+            nome,
+            academia,
+            belt: belt || null,
+            degrees: belt ? (novo.mestreGraus ?? 0) : null,
+            criado_por: eu,
+          } as never)
+          .select("id")
+          .single();
+        if (error) throw error;
+        externoId = (data as unknown as { id: string }).id;
+      }
+
       const { error } = await supabase.from("master_links" as never).insert({
         aluno_id: eu,
         mestre_id: novo.mestreId ?? null,
-        mestre_nome: (novo.mestreNome ?? "").trim(),
+        mestre_externo_id: externoId,
+        // O nome fica mesmo com a ficha externa criada: é o que sobra se a
+        // ficha for apagada (`on delete set null`), e o CHECK da tabela exige
+        // que reste ao menos uma das três origens.
+        mestre_nome: novo.mestreId ? "" : nome,
         team_id: novo.teamId ?? null,
         papel: novo.papel ?? "mestre",
         principal: novo.principal ?? false,

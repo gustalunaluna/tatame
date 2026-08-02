@@ -33,6 +33,8 @@ import {
 import type { VinculoDeMestre } from "@/lib/social-types";
 import { usePerfil } from "@/lib/bjj-storage";
 import { podeSerInstrutor } from "@/lib/titulos";
+import { FAIXAS, type Faixa } from "@/lib/bjj-types";
+import { ajustarGrau, explicacaoDaFaixa, grausValidos } from "@/lib/graduacao";
 
 export const Route = createFileRoute("/_authenticated/meus-mestres")({
   head: () => ({
@@ -48,6 +50,9 @@ export const Route = createFileRoute("/_authenticated/meus-mestres")({
 });
 
 const SEM_EQUIPE = "__nenhuma__";
+// "Não sei" precisa de um valor: o Select do Radix trata string vazia como
+// "nenhuma opção escolhida" e o rótulo sumiria do gatilho.
+const SEM_FAIXA = "__nao_sei__";
 
 const PAPEIS = [
   { valor: "mestre", rotulo: "Mestre", ajuda: "Quem responde por você e te gradua" },
@@ -77,6 +82,13 @@ function CadastrarMestre({ gatilho }: { gatilho: React.ReactNode }) {
   const [equipeId, setEquipeId] = useState(SEM_EQUIPE);
   const [nota, setNota] = useState("");
 
+  // Só para quem não usa o app. Quem tem conta mantém a própria faixa, e
+  // deixar outra pessoa declarar a graduação dele seria o mesmo erro que a
+  // migração 021 desfez.
+  const [belt, setBelt] = useState<"" | Faixa>("");
+  const [graus, setGraus] = useState(0);
+  const [academia, setAcademia] = useState("");
+
   const valido = Boolean(escolhido) || nome.trim().length >= 2;
 
   function limpar() {
@@ -88,6 +100,9 @@ function CadastrarMestre({ gatilho }: { gatilho: React.ReactNode }) {
     setDesde("");
     setEquipeId(SEM_EQUIPE);
     setNota("");
+    setBelt("");
+    setGraus(0);
+    setAcademia("");
   }
 
   return (
@@ -162,13 +177,90 @@ function CadastrarMestre({ gatilho }: { gatilho: React.ReactNode }) {
             )}
           </div>
 
+          {/* Faixa e academia só aparecem para mestre de fora do app. Quem tem
+              conta traz isso do próprio perfil, e é ele quem mantém.
+
+              São opcionais de propósito: ninguém é obrigado a saber a graduação
+              exata do mestre, e exigir faria a pessoa inventar. Mas quem sabe
+              precisava ter onde escrever — sem estes campos o mestre aparecia
+              no perfil só com o nome, sem faixa e sem academia. */}
+          {!escolhido && (
+            <div className="space-y-3 rounded-xl border border-border/60 p-3">
+              <p className="text-xs text-muted-foreground">
+                Ele não usa o app. O que você souber dele fica registrado aqui —
+                e passa a valer se um dia ele criar conta.
+              </p>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label>Faixa dele</Label>
+                  <Select
+                    value={belt || SEM_FAIXA}
+                    onValueChange={(v) => {
+                      const nova = v === SEM_FAIXA ? "" : (v as Faixa);
+                      setBelt(nova);
+                      setGraus(nova ? ajustarGrau(nova, graus) : 0);
+                    }}
+                  >
+                    <SelectTrigger aria-label="Faixa dele">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={SEM_FAIXA}>Não sei</SelectItem>
+                      {FAIXAS.map((f) => (
+                        <SelectItem key={f} value={f}>
+                          {f}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Grau</Label>
+                  <Select
+                    value={String(graus)}
+                    onValueChange={(v) => setGraus(Number(v))}
+                    disabled={!belt}
+                  >
+                    <SelectTrigger aria-label="Grau">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {grausValidos(belt || "Branca").map((n) => (
+                        <SelectItem key={n} value={String(n)}>
+                          {n === 0 ? "A faixa (sem grau)" : `${n}º grau`}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {belt && explicacaoDaFaixa(belt, graus) && (
+                <p className="text-xs text-muted-foreground">
+                  {explicacaoDaFaixa(belt, graus)}
+                </p>
+              )}
+
+              <div>
+                <Label htmlFor="mestre-academia">Academia dele</Label>
+                <Input
+                  id="mestre-academia"
+                  value={academia}
+                  onChange={(e) => setAcademia(e.target.value)}
+                  placeholder="Ex.: Team Thome"
+                />
+              </div>
+            </div>
+          )}
+
           <div>
             <Label>Como era</Label>
             <Select
               value={papel}
               onValueChange={(v) => setPapel(v as VinculoDeMestre["papel"])}
             >
-              <SelectTrigger>
+              <SelectTrigger aria-label="Como era">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -194,7 +286,7 @@ function CadastrarMestre({ gatilho }: { gatilho: React.ReactNode }) {
             <div>
               <Label>Academia</Label>
               <Select value={equipeId} onValueChange={setEquipeId}>
-                <SelectTrigger>
+                <SelectTrigger aria-label="Academia">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -248,6 +340,9 @@ function CadastrarMestre({ gatilho }: { gatilho: React.ReactNode }) {
                 // Com conta escolhida o nome fica vazio de propósito: o perfil
                 // dele é a fonte, e ele mesmo mantém aquilo atualizado.
                 mestreNome: escolhido ? "" : nome.trim(),
+                mestreBelt: escolhido ? "" : belt,
+                mestreGraus: escolhido ? 0 : graus,
+                mestreAcademia: escolhido ? "" : academia.trim(),
                 teamId: equipeId === SEM_EQUIPE ? null : equipeId,
                 papel,
                 principal,

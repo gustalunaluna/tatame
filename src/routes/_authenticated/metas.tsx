@@ -97,7 +97,7 @@ function NovaMeta() {
           <div>
             <Label>Tipo</Label>
             <Select value={kind} onValueChange={(v) => setKind(v as TipoMeta)}>
-              <SelectTrigger>
+              <SelectTrigger aria-label="Tipo">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -113,7 +113,7 @@ function NovaMeta() {
             <div>
               <Label>Qual faixa</Label>
               <Select value={belt} onValueChange={(v) => setBelt(v as Faixa)}>
-                <SelectTrigger>
+                <SelectTrigger aria-label="Qual faixa">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>

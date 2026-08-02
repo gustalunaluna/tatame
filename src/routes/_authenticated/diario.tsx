@@ -322,7 +322,7 @@ function TrainingDialog({
           <div>
             <Label>Tipo</Label>
             <Select value={type} onValueChange={(v) => setType(v as TrainingType)}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectTrigger aria-label="Tipo"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="Gi">Gi (Kimono)</SelectItem>
                 <SelectItem value="No-Gi">No-Gi</SelectItem>

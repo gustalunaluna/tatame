@@ -659,7 +659,7 @@ function EditarPerfil({
                 set("degrees", ajustarGrau(nova, f.degrees));
               }}
             >
-              <SelectTrigger>
+              <SelectTrigger aria-label="Faixa">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -677,7 +677,7 @@ function EditarPerfil({
               value={String(f.degrees)}
               onValueChange={(v) => set("degrees", Number(v))}
             >
-              <SelectTrigger>
+              <SelectTrigger aria-label="Graus">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

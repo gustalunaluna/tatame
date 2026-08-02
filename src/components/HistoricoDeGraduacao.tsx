@@ -217,7 +217,7 @@ export function CadastrarGraduacao({
                   setDegrees(ajustarGrau(nova, degrees));
                 }}
               >
-                <SelectTrigger>
+                <SelectTrigger aria-label="Faixa">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -235,7 +235,7 @@ export function CadastrarGraduacao({
                 value={String(degrees)}
                 onValueChange={(v) => setDegrees(Number(v))}
               >
-                <SelectTrigger>
+                <SelectTrigger aria-label="Grau">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -331,7 +331,7 @@ export function CadastrarGraduacao({
           <div>
             <Label>Academia na época</Label>
             <Select value={equipeId} onValueChange={setEquipeId}>
-              <SelectTrigger>
+              <SelectTrigger aria-label="Academia na época">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
