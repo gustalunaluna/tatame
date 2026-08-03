@@ -56,9 +56,26 @@ await p.reload({ waitUntil: "load" });
 const controlada = await p.evaluate(() => !!navigator.serviceWorker.controller);
 conferir("o service worker controla a página", controlada);
 
-// Espera o precache terminar de gravar. Sem isto o teste corre contra um cache
-// pela metade e falha por corrida, não por defeito.
-await p.waitForTimeout(1500);
+// Espera o precache terminar de gravar.
+//
+// Isto era `waitForTimeout(1500)` e falhava sozinho quando a suíte inteira
+// roda junto: com a máquina ocupada, 1,5s não bastava, o teste ia offline
+// contra um cache pela metade e acusava defeito que não existia. Espera
+// baseada em relógio é sempre uma aposta na velocidade da máquina.
+//
+// Agora a condição é a que interessa de verdade: o cache existe e tem o
+// app dentro.
+await p.waitForFunction(
+  async () => {
+    for (const nome of await caches.keys()) {
+      const c = await caches.open(nome);
+      if ((await c.keys()).length > 10) return true;
+    }
+    return false;
+  },
+  null,
+  { timeout: 20000 },
+);
 
 /* --- 2. recarregar offline ainda pinta ----------------------------------- */
 
