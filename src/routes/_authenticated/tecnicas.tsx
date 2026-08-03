@@ -38,7 +38,11 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useTechniques, useHydrated } from "@/lib/bjj-storage";
-import { useGaleriaDeTecnicas, desdeQuando } from "@/lib/tecnicas-storage";
+import {
+  useGaleriaDeTecnicas,
+  desdeQuando,
+  useAnotacoesDaTecnica,
+} from "@/lib/tecnicas-storage";
 import {
   TECHNIQUE_CATEGORIES,
   type Technique,
@@ -192,6 +196,8 @@ function TechniquesPage() {
               {t.notes && (
                 <p className="mt-2 text-xs text-muted-foreground">{t.notes}</p>
               )}
+
+              <AnotacoesDoTreino id={t.id} quantos={uso.get(t.id)?.treinos ?? 0} />
               <div className="mt-3 flex items-center justify-between">
                 <MasteryStars
                   value={t.mastery}
@@ -297,5 +303,47 @@ function TechniqueDialog({
         </Button>
       </DialogFooter>
     </DialogContent>
+  );
+}
+
+/**
+ * O que foi escrito sobre esta técnica em cada treino.
+ *
+ * Fechado por padrão: numa galeria de vinte técnicas, vinte históricos abertos
+ * viram parede de texto. Aberto ao toque é o que faz a informação existir sem
+ * atrapalhar quem está só procurando um nome.
+ */
+function AnotacoesDoTreino({ id, quantos }: { id: string; quantos: number }) {
+  const [aberto, setAberto] = useState(false);
+  const { anotacoes } = useAnotacoesDaTecnica(aberto ? id : null);
+
+  if (!quantos) return null;
+
+  return (
+    <details
+      className="reveal mt-2"
+      open={aberto}
+      onToggle={(e) => setAberto((e.currentTarget as HTMLDetailsElement).open)}
+    >
+      <summary className="cursor-pointer text-xs font-bold text-primary">
+        O que você anotou nos treinos
+      </summary>
+      {aberto && anotacoes.length === 0 && (
+        <p className="mt-2 text-xs text-muted-foreground">
+          Nenhuma anotação ainda. Da próxima vez que treinar isto, escreva o
+          detalhe que fez funcionar.
+        </p>
+      )}
+      <ul className="mt-2 space-y-2">
+        {anotacoes.map((a) => (
+          <li key={a.data} className="border-l border-border/60 pl-2.5">
+            <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+              {new Date(a.data + "T00:00:00").toLocaleDateString("pt-BR")}
+            </p>
+            <p className="whitespace-pre-wrap text-xs">{a.nota}</p>
+          </li>
+        ))}
+      </ul>
+    </details>
   );
 }

@@ -330,7 +330,12 @@ function TrainingDialog({
   useEffect(() => {
     if (tecnicasProntas)
       setTecnicasDoDia(
-        tecnicasSalvas.map((t) => ({ id: t.id, nome: t.name, categoria: t.category })),
+        tecnicasSalvas.map((t) => ({
+          id: t.id,
+          nome: t.name,
+          categoria: t.category,
+          nota: t.nota,
+        })),
       );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tecnicasProntas, treino?.id]);
@@ -391,10 +396,24 @@ function TrainingDialog({
           </div>
         </div>
         <ParceirosDoTreino linhas={parceiros} aoMudar={setParceiros} />
+        {/* O campo de texto livre volta a ser o que sempre foi: a anotação
+            rápida do treino. Ele não some porque não estava quebrado — quem
+            só quer escrever "DLR → costas" continua escrevendo. */}
+        <div>
+          <Label htmlFor="treino-tecnicas">Técnicas trabalhadas</Label>
+          <Textarea
+            id="treino-tecnicas"
+            rows={2}
+            value={techniques}
+            onChange={(e) => setTechniques(e.target.value)}
+            placeholder="Ex: DLR → costas, tesourinha"
+          />
+        </div>
+
         <SeletorDeTecnicas valor={tecnicasDoDia} aoMudar={setTecnicasDoDia} />
         <div>
-          <Label>Como me senti / observações</Label>
-          <Textarea rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Sensações, o que travou, o que fluiu…" />
+          <Label htmlFor="treino-notas">Como me senti / observações</Label>
+          <Textarea id="treino-notas" rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Sensações, o que travou, o que fluiu…" />
         </div>
       </div>
       <DialogFooter className="flex-col gap-2 sm:flex-col">

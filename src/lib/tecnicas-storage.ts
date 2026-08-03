@@ -77,6 +77,7 @@ export interface TecnicaDoTreino {
   id: string;
   name: string;
   category: string;
+  nota: string;
 }
 
 /**
@@ -101,6 +102,7 @@ export function useTecnicasDoTreino(trainingId: string | null | undefined) {
         id: String(r.id),
         name: String(r.name ?? ""),
         category: String(r.category ?? ""),
+        nota: String(r.nota ?? ""),
       }));
     },
   });
@@ -113,12 +115,13 @@ export function useTecnicasDoTreino(trainingId: string | null | undefined) {
   };
 
   const registrar = useMutation({
-    mutationFn: async (t: { nome: string; categoria?: string }) => {
+    mutationFn: async (t: { nome: string; categoria?: string; nota?: string }) => {
       if (!trainingId) throw new Error("Salve o treino antes de anotar técnica.");
       const { error } = await supabase.rpc("registrar_tecnica_do_treino" as never, {
         p_treino: trainingId,
         p_nome: t.nome,
         p_categoria: t.categoria ?? "",
+        p_nota: t.nota ?? "",
       } as never);
       if (error) throw error;
     },
@@ -151,6 +154,14 @@ export interface RascunhoTecnica {
   id?: string;
   nome: string;
   categoria: string;
+  /**
+   * Como foi ESTE treino. Não é a descrição da técnica.
+   *
+   * Se morasse em `techniques.notes`, a anotação de hoje apagaria a de três
+   * semanas atrás — e é a sequência delas que conta como a pessoa aprendeu
+   * aquilo. Por isso a nota fica no vínculo.
+   */
+  nota: string;
 }
 
 /**
@@ -189,6 +200,7 @@ export async function salvarTecnicasDoTreino(
       p_treino: trainingId,
       p_nome: r.nome.trim(),
       p_categoria: r.categoria ?? "",
+      p_nota: r.nota ?? "",
     } as never);
     if (error) throw error;
   }
@@ -201,4 +213,36 @@ export async function salvarTecnicasDoTreino(
     } as never);
     if (error) throw error;
   }
+}
+
+/* ================================================================== */
+
+export interface AnotacaoDaTecnica {
+  data: string;
+  nota: string;
+}
+
+/**
+ * O que a pessoa escreveu sobre uma técnica, treino a treino.
+ *
+ * É a história de como ela aprendeu aquilo — e é exatamente o que
+ * `techniques.notes` sozinho apagava, porque lá só cabe uma frase e a última
+ * sempre vence.
+ */
+export function useAnotacoesDaTecnica(tecnicaId: string | null) {
+  const query = useQuery({
+    queryKey: ["anotacoes_da_tecnica", tecnicaId],
+    enabled: Boolean(tecnicaId),
+    queryFn: async (): Promise<AnotacaoDaTecnica[]> => {
+      const { data, error } = await supabase.rpc("anotacoes_da_tecnica" as never, {
+        p_tecnica: tecnicaId,
+      } as never);
+      if (error) throw error;
+      return ((data ?? []) as unknown as Record<string, unknown>[]).map((r) => ({
+        data: String(r.data ?? ""),
+        nota: String(r.nota ?? ""),
+      }));
+    },
+  });
+  return { anotacoes: query.data ?? [], ready: query.isSuccess };
 }

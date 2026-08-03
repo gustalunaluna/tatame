@@ -554,3 +554,57 @@ ele continua guardando as chaves da definição antiga.
 **`.single()` pede objeto, não lista.** O primeiro mock do teste devolvia
 `[{id}]` para o `POST /trainings`, a leitura do id falhava, e o salvamento
 morria em silêncio. Foi assim que o teste pegou a si mesmo.
+
+### O botão, e por que não é um campo
+
+A primeira versão disto trocou o campo "Técnicas trabalhadas" por uma busca com
+sugestões aparecendo enquanto se digita. Duas coisas erradas:
+
+1. **Mexia no formulário que já funcionava.** Registrar treino é a tarefa mais
+   repetida do app e estava resolvida. Campo novo com comportamento novo no meio
+   do caminho é atrito onde não havia.
+2. **Não deixava descrever nada.** Dava para dizer o *nome* e mais nada — e o
+   que vale guardar de um treino não é que você viu armlock, é o detalhe que fez
+   o armlock sair naquele dia.
+
+Agora o campo de texto livre voltou a ser o que sempre foi, e ao lado dele há um
+botão **"Adicionar técnica"**. Quem não quer anotar não vê nada além do botão;
+quem quer abre um diálogo com **Nome**, **Como foi** e **Categoria** (opcional).
+
+### "Como foi" é do DIA, não da técnica
+
+**Migração 028.** A tentação era gravar a descrição em `techniques.notes`, que
+já existe. Está errado, e de um jeito que só aparece na terceira vez:
+
+```
+1ª vez que registra armlock:  "consegui do 100 quilos"
+2ª vez, três semanas depois:  "hoje travou, a pegada escapou"
+```
+
+Em `techniques.notes` a segunda **apaga** a primeira — e a primeira era a mais
+valiosa das duas, porque é a que descreve o que funcionou.
+
+A descrição é da **sessão**. A mesma técnica rende observações diferentes a cada
+treino, e é justamente a sequência delas que conta a história de como a pessoa
+aprendeu aquilo. Por isso a nota vai em `training_techniques.nota`, e a galeria
+ganhou **"O que você anotou nos treinos"** — fechado por padrão, porque vinte
+históricos abertos numa galeria de vinte técnicas viram parede de texto.
+
+`techniques.notes` continua sendo o que era: a descrição geral, editada na
+galeria. As duas coisas convivem porque são duas coisas.
+
+### Três armadilhas de Postgres, todas anotadas no código
+
+**A variável que sombreia a coluna.** `declare nota text` dentro da função, e um
+`on conflict do update set nota = case when nota <> '' …` — o `nota` do `case`
+passaria a ler a variável em vez do valor que está chegando. Bug silencioso, só
+visível na segunda gravação do mesmo treino. A variável se chama `nota_do_dia`.
+
+**`do nothing` que engole o dado.** O `on conflict` do vínculo era `do nothing`;
+com a nota nova, isso faria a segunda gravação do mesmo treino perder o que a
+pessoa acabou de escrever. Agora atualiza — mas só quando há algo novo a dizer,
+para um salvamento sem alteração não zerar o que estava lá.
+
+**`create or replace` não muda tipo de retorno.** Acrescentar uma coluna à tabela
+de retorno é mudança de tipo, e o Postgres recusa com *"cannot change return
+type"*. Tem que `drop` antes.

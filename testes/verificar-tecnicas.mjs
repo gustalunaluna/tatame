@@ -2,11 +2,11 @@
  * A técnica do treino indo para a galeria.
  *
  * O que este teste prende:
- *   1. digitar sugere o que já existe, com a última vez que apareceu — é o que
- *      faz a pessoa tocar no que existe em vez de criar uma quase-duplicata
- *   2. o que já está no treino não é oferecido de novo
- *   3. técnica nova pode ser criada, com categoria OPCIONAL
- *   4. salvar chama o achar-ou-criar do banco por técnica escolhida
+ *   1. o formulário de treino continua o que era — o campo de texto livre
+ *      "Técnicas trabalhadas" não sumiu
+ *   2. o botão abre um diálogo onde dá para NOMEAR e DESCREVER
+ *   3. digitar sugere o que já existe, com a última vez que apareceu
+ *   4. salvar chama o achar-ou-criar do banco levando nome, categoria e nota
  *   5. tirar uma técnica do treino desliga o VÍNCULO, não apaga a técnica
  *   6. a normalização do cliente bate com a do banco — as duas existem, e se
  *      divergirem o cliente acha que são duas e o banco acha que é uma
@@ -140,11 +140,25 @@ await p.waitForTimeout(1200);
 await p.getByRole("button", { name: /Novo/i }).first().click();
 await p.waitForTimeout(500);
 
-const campo = p.getByLabel("Técnicas do dia");
-conferir("o diário pede as técnicas do dia", await campo.isVisible());
+/* --- 1. o formulário de antes continua ali ------------------------------ */
+conferir(
+  "o campo de texto livre do treino não sumiu",
+  await p.getByLabel("Técnicas trabalhadas").isVisible(),
+);
+conferir(
+  "e as técnicas do dia são um BOTÃO, não um campo no meio do caminho",
+  (await p.getByRole("button", { name: /Adicionar técnica/ }).count()) === 1,
+);
 
-/* --- 1. sugere o que já existe ------------------------------------------ */
-await campo.fill("arm");
+/* --- 2 e 3. o diálogo: nomear, descrever, categorizar -------------------- */
+await p.getByRole("button", { name: /Adicionar técnica/ }).click();
+await p.waitForTimeout(500);
+
+const nome = p.getByLabel("Nome");
+conferir("o diálogo pede o nome", await nome.isVisible());
+conferir("e deixa descrever como foi", await p.getByLabel("Como foi").isVisible());
+
+await nome.fill("arm");
 await p.waitForTimeout(500);
 const sugestao = p.getByRole("button", { name: /Armlock/ });
 conferir("digitar sugere a técnica que já está na galeria", (await sugestao.count()) >= 1);
@@ -154,42 +168,37 @@ conferir(
   /h[áa] 3 dias/.test(textoSugestao),
   textoSugestao.replace(/\n/g, " | "),
 );
+// Digitar sem acento não devolve SUGESTÃO: devolve RECONHECIMENTO. "triangulo"
+// e "Triângulo" são a mesma chave, então não há o que sugerir — o app avisa
+// que aquilo já está na galeria, que é o que impede a duplicata.
+await nome.fill("triangulo");
+await p.waitForTimeout(500);
 conferir(
-  "sem acento também encontra",
-  await (async () => {
-    await campo.fill("triangulo");
-    await p.waitForTimeout(400);
-    return (await p.getByRole("button", { name: /Triângulo/ }).count()) >= 1;
-  })(),
+  "sem acento, o app reconhece a que já existe",
+  await p.getByText(/Já está na sua galeria/).isVisible(),
 );
 
-/* --- 3. criar nova, com categoria opcional ------------------------------ */
-await campo.fill("Berimbolo");
-await p.waitForTimeout(400);
-const criar = p.getByRole("button", { name: /Criar/ });
-conferir("o que não existe pode ser criado", (await criar.count()) === 1);
+await nome.fill("Berimbolo");
+await p.getByLabel("Como foi").fill("saiu do gancho, com a mão na lapela");
+await p.waitForTimeout(300);
 conferir(
   "a categoria é oferecida, não exigida",
   (await p.getByRole("button", { name: "Guarda", exact: true }).count()) === 1,
 );
 await p.getByRole("button", { name: "Guarda", exact: true }).click();
 await p.waitForTimeout(200);
-await criar.click();
-await p.waitForTimeout(400);
+await p.getByRole("button", { name: /Adicionar ao treino/ }).click();
+await p.waitForTimeout(500);
 
-/* --- 2. o que já está no treino não volta a ser oferecido ---------------- */
-await campo.fill("Berimbolo");
-await p.waitForTimeout(400);
+// A anotada vira linha, com o que foi escrito visível e como sair dela.
+const listado = await p.locator("li", { hasText: "Berimbolo" }).first().innerText();
 conferir(
-  "técnica já escolhida não é oferecida de novo",
-  (await p.getByRole("button", { name: /Criar/ }).count()) === 0,
+  "a técnica anotada aparece com a descrição",
+  /Berimbolo/.test(listado) && /saiu do gancho/.test(listado),
+  listado.replace(/\n/g, " | "),
 );
-await campo.fill("");
-await p.waitForTimeout(200);
-
-// E a escolhida vira chip, com como sair dela.
 conferir(
-  "a escolhida vira etiqueta no formulário",
+  "e dá para tirar do treino",
   (await p.getByRole("button", { name: /Tirar Berimbolo/ }).count()) === 1,
 );
 
@@ -212,14 +221,19 @@ conferir(
   chamadas.registrar[0]?.p_categoria === "Guarda",
   JSON.stringify(chamadas.registrar[0]),
 );
+conferir(
+  "e com a descrição do dia",
+  chamadas.registrar[0]?.p_nota === "saiu do gancho, com a mão na lapela",
+  JSON.stringify(chamadas.registrar[0]),
+);
 
 /* --- 5. tirar desliga o vínculo, não apaga a técnica --------------------- */
 chamadas.registrar = [];
 chamadas.desligar = [];
 // Agora o treino já tem duas ligadas; a pessoa vai tirar uma.
 ligadas = [
-  { id: "aaa", name: "Armlock", category: "Finalização" },
-  { id: "bbb", name: "Triângulo", category: "Finalização" },
+  { id: "aaa", name: "Armlock", category: "Finalização", nota: "do 100 quilos" },
+  { id: "bbb", name: "Triângulo", category: "Finalização", nota: "" },
 ];
 
 await p.reload({ waitUntil: "load" });
