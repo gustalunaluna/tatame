@@ -60,11 +60,11 @@ await pagina.route(`https://${REF}.supabase.co/**`, async (rota) => {
       data: "2026-07-29", rolls: 5, subs_for: 3, subs_against: 1 },
   ]);
   if (url.includes("/rpc/cartao_publico")) return json([
-    { user_id: "u2", handle: "joaozinho123", nickname: "Joãozinho", belt: "Branca", degrees: 2, gym: "Bonsai", photo_url: "" },
+    { user_id: "u2", questionario_em: "2026-07-30T01:32:14.123065+00:00", handle: "joaozinho123", nickname: "Joãozinho", belt: "Branca", degrees: 2, gym: "Bonsai", photo_url: "" },
   ]);
   if (url.includes("/rpc/membros_da_equipe")) return json([
-    { user_id: "u1", handle: "gustavo", nickname: "Gustavo", belt: "Branca", degrees: 3, photo_url: "", role: "dono", status: "ativo" },
-    { user_id: "u2", handle: "joaozinho123", nickname: "Joãozinho", belt: "Branca", degrees: 2, photo_url: "", role: "membro", status: "ativo" },
+    { user_id: "u1", questionario_em: "2026-07-30T01:32:14.123065+00:00", handle: "gustavo", nickname: "Gustavo", belt: "Branca", degrees: 3, photo_url: "", role: "dono", status: "ativo" },
+    { user_id: "u2", questionario_em: "2026-07-30T01:32:14.123065+00:00", handle: "joaozinho123", nickname: "Joãozinho", belt: "Branca", degrees: 2, photo_url: "", role: "membro", status: "ativo" },
   ]);
   if (url.includes("/rest/v1/partnerships")) return json([
     { id: "p1", requester_id: "u1", addressee_id: "u2", status: "aceito", created_at: "2026-07-01" },
@@ -77,7 +77,7 @@ await pagina.route(`https://${REF}.supabase.co/**`, async (rota) => {
     { team_id: "e1", user_id: "u1", role: "dono", status: "ativo" },
   ]);
   if (url.includes("/rest/v1/profiles"))
-    return json([{ user_id: "u1", seeded: true, nickname: "Gustavo", belt: "Branca", degrees: 3,
+    return json([{ user_id: "u1", questionario_em: "2026-07-30T01:32:14.123065+00:00", seeded: true, nickname: "Gustavo", belt: "Branca", degrees: 3,
       master: "Gui", gym: "Bonsai", photo_url: "", birth_date: "2000-01-01",
       fights_won: 0, fights_lost: 0, goal_start: "2025-10-13" }]);
   if (url.includes("/rest/v1/analyses"))

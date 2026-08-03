@@ -65,7 +65,7 @@ await pagina.route(`https://${REF}.supabase.co/**`, async (rota) => {
 
   if (url.includes("/rest/v1/profiles"))
     return json([{
-      user_id: atual.id, seeded: true, ...atual.perfil,
+      user_id: atual.id, questionario_em: "2026-07-30T01:32:14.123065+00:00", seeded: true, ...atual.perfil,
       handle: atual === CONTAS.a ? "gustavo" : "joaozinho",
       bio: "", photo_url: "", birth_date: "2000-01-01",
       master: "", fights_won: 0, fights_lost: 0, goal_start: "2025-10-13",

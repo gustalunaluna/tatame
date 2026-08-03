@@ -31,7 +31,7 @@ await pagina.route(`https://${REF}.supabase.co/**`, async (rota) => {
     return json({ message: "permission denied for table trainings", code: "42501" }, 403);
   }
   if (url.includes("/auth/v1/user")) return json({ id: "u1", email: "t@e.com", aud: "authenticated" });
-  if (url.includes("/rest/v1/profiles")) return json([{ user_id: "u1", seeded: true }]);
+  if (url.includes("/rest/v1/profiles")) return json([{ user_id: "u1", questionario_em: "2026-07-30T01:32:14.123065+00:00", seeded: true }]);
   return json([]);
 });
 

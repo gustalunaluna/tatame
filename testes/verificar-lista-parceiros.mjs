@@ -36,7 +36,7 @@ await pagina.route(`https://${REF}.supabase.co/**`, async (rota) => {
       : { id: "p1", requester_id: "u1", addressee_id: "u2", status: "aceito", created_at: "2026-07-01" },
   ]);
   if (url.includes("/rpc/cartao_publico")) return json([
-    { user_id: "u2", handle: "joaozinho", nickname: "Joãozinho", belt: "Branca",
+    { user_id: "u2", questionario_em: "2026-07-30T01:32:14.123065+00:00", handle: "joaozinho", nickname: "Joãozinho", belt: "Branca",
       degrees: 2, gym: "Academia Teste", photo_url: "", bio: "" },
   ]);
 
@@ -45,7 +45,7 @@ await pagina.route(`https://${REF}.supabase.co/**`, async (rota) => {
   if (url.includes("/rpc/registros_a_confirmar")) return json([]);
 
   if (url.includes("/rest/v1/profiles")) return json([
-    { user_id: "u1", seeded: true, nickname: "Eu", handle: "eu", belt: "Branca",
+    { user_id: "u1", questionario_em: "2026-07-30T01:32:14.123065+00:00", seeded: true, nickname: "Eu", handle: "eu", belt: "Branca",
       degrees: 3, gym: "", master: "", photo_url: "", bio: "", birth_date: null,
       fights_won: 0, fights_lost: 0, goal_start: "2025-10-13" },
   ]);

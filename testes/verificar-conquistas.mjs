@@ -52,7 +52,7 @@ await pagina.route(`https://${REF}.supabase.co/**`, async (rota) => {
     rota.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(body) });
   if (url.includes("/auth/v1/user")) return json({ id: "u1", email: "teste@exemplo.com" });
   if (url.includes("/rest/v1/achievements")) return json(conquistas);
-  if (url.includes("/rest/v1/profiles")) return json([{ user_id: "u1", seeded: true }]);
+  if (url.includes("/rest/v1/profiles")) return json([{ user_id: "u1", questionario_em: "2026-07-30T01:32:14.123065+00:00", seeded: true }]);
   return json([]);
 });
 

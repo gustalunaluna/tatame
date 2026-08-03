@@ -21,6 +21,7 @@ export type Database = {
           handle: string | null;
           perfil_jogo: Json;
           questionario_em: string | null;
+          treinos_por_semana: number | null;
           verificado: boolean;
           birth_date: string | null;
           photo_url: string;
@@ -43,6 +44,7 @@ export type Database = {
           handle?: string | null;
           perfil_jogo?: Json;
           questionario_em?: string | null;
+          treinos_por_semana?: number | null;
           verificado?: boolean;
           birth_date?: string | null;
           photo_url?: string;
@@ -65,6 +67,7 @@ export type Database = {
           handle?: string | null;
           perfil_jogo?: Json;
           questionario_em?: string | null;
+          treinos_por_semana?: number | null;
           verificado?: boolean;
           birth_date?: string | null;
           photo_url?: string;

@@ -40,7 +40,7 @@ await pagina.route(`https://${REF}.supabase.co/**`, async (rota) => {
   if (url.includes("/rpc/semear_conquistas")) return json(0);
   if (url.includes("/rpc/recalcular_conquistas")) return json(0);
   if (url.includes("/rest/v1/profiles"))
-    return json([{ user_id: "u1", seeded: true, nickname: "Gustavo", belt: "Branca",
+    return json([{ user_id: "u1", questionario_em: "2026-07-30T01:32:14.123065+00:00", seeded: true, nickname: "Gustavo", belt: "Branca",
       degrees: 3, master: "Gui", gym: "Bonsai", photo_url: "", birth_date: "2000-01-01",
       fights_won: 0, fights_lost: 0, goal_start: "2025-10-13" }]);
 

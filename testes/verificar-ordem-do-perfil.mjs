@@ -53,7 +53,7 @@ async function ordemDoPerfil({ caminho, comDestaque }) {
       return json({ ouro: comDestaque ? 1 : 1, prata: 0, bronze: 0, total: 1 });
     if (url.includes("/rpc/historico_de_graduacao")) return json([]);
     if (url.includes("/rpc/perfil_publico"))
-      return json([{ user_id: "u2", handle: "joaozinho", nickname: "Joãozinho",
+      return json([{ user_id: "u2", questionario_em: "2026-07-30T01:32:14.123065+00:00", handle: "joaozinho", nickname: "Joãozinho",
         belt: "Azul", degrees: 1, bio: "", photo_url: "", idade: 26,
         gym: "Academia Teste", master: "Mestre Silva", verificado: false,
         equipe_oficial: true, team_slug: "academia-teste",
@@ -62,7 +62,7 @@ async function ordemDoPerfil({ caminho, comDestaque }) {
         parceiros: 20, treinos: 39, fights_won: 3, fights_lost: 1,
         conquistas_feitas: 40, conquistas_total: 1006, sou_parceiro: true }]);
     if (url.includes("/rest/v1/profiles"))
-      return json([{ user_id: "u1", seeded: true, nickname: "Gustavo", belt: "Branca",
+      return json([{ user_id: "u1", questionario_em: "2026-07-30T01:32:14.123065+00:00", seeded: true, nickname: "Gustavo", belt: "Branca",
         degrees: 3, handle: "gustavo", master: "Gui", gym: "Academia Teste",
         photo_url: "", birth_date: "2000-01-01", fights_won: 0, fights_lost: 0,
         goal_start: "2025-10-13" }]);

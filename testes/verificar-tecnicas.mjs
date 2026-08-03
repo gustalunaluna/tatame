@@ -130,7 +130,7 @@ await p.route(`https://${REF}.supabase.co/**`, (rota) => {
   if (url.includes("/rest/v1/trainings") && req.method() === "POST")
     return json({ id: "treino-1" });
   if (url.includes("/rest/v1/profiles"))
-    return json([{ user_id: EU, handle: "eu", nickname: "Eu", belt: "Roxa", degrees: 0 }]);
+    return json([{ user_id: EU, questionario_em: "2026-07-30T01:32:14.123065+00:00", handle: "eu", nickname: "Eu", belt: "Roxa", degrees: 0 }]);
   return json([]);
 });
 

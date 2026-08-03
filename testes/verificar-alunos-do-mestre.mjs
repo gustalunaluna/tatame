@@ -14,7 +14,7 @@ const G = JSON.parse(readFileSync("fixtures/gustavo.json", "utf8"));
 mkdirSync("telas", { recursive: true });
 
 const atleta = (handle, nome, belt, graus) => ({
-  user_id: `u-${handle}`, handle, nickname: nome, belt, degrees: graus,
+  user_id: `u-${handle}`, questionario_em: "2026-07-30T01:32:14.123065+00:00", handle, nickname: nome, belt, degrees: graus,
   photo_url: "", verificado: belt === "Preta", equipe_oficial: true,
   team_nome: "Academia Teste",
 });
@@ -87,7 +87,7 @@ for (const caso of CASOS) {
     if (u.includes("/rpc/parceiros_publicos")) return j(PARCEIROS);
     if (u.includes("/rpc/perfil_publico"))
       return j([{
-        user_id: `u-${caso.handle}`, handle: caso.handle, nickname: caso.apelido,
+        user_id: `u-${caso.handle}`, questionario_em: "2026-07-30T01:32:14.123065+00:00", handle: caso.handle, nickname: caso.apelido,
         bio: "", belt: "Preta", degrees: 2, photo_url: "", verificado: true,
         idade: 44, gym: "Academia Teste", master: "", team_id: "e1",
         team_name: "Academia Teste", team_crest: "", team_status: "aprovada",

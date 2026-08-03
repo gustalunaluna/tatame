@@ -70,7 +70,12 @@ export function BottomNav() {
   // Fora da sessão não há para onde navegar. A barra aparecia na tela de
   // entrada, cobrindo o botão de criar conta e oferecendo seis telas que
   // devolviam a pessoa para cá.
-  const foraDaSessao = pathname.startsWith("/auth");
+  //
+  // O mesmo vale para as boas-vindas: a guarda devolve para lá quem ainda não
+  // respondeu, então cada atalho da barra viraria um caminho que não leva a
+  // lugar nenhum — e o botão "Começar" fica logo embaixo dela.
+  const foraDaSessao =
+    pathname.startsWith("/auth") || pathname.startsWith("/boas-vindas");
 
   // Fecha ao trocar de tela
   useEffect(() => setAberto(false), [pathname]);

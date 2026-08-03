@@ -9,6 +9,7 @@ import { Progress } from "@/components/ui/progress";
 import { Bar } from "@/components/ui/bar";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
+import { limparMemoriaDoQuestionario } from "@/lib/questionario";
 import {
   useAchievementStats,
   useEnsureSeeded,
@@ -75,6 +76,10 @@ function Home() {
     // Limpa na hora, sem esperar o ouvinte de sessão: ninguém deve ver um
     // frame sequer com os dados da conta que acabou de sair.
     queryClient.clear();
+    // A memória de "já respondeu o questionário" é da aba, não da conta. Sem
+    // limpar aqui, a próxima pessoa a entrar nesta mesma aba herdaria a
+    // resposta de quem saiu e pularia as boas-vindas.
+    limparMemoriaDoQuestionario();
     navigate({ to: "/auth", replace: true });
   }
 

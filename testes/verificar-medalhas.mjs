@@ -78,7 +78,7 @@ await pagina.route(`https://${REF}.supabase.co/**`, async (rota) => {
   if (url.includes("/rpc/medalhas_da_equipe")) return json(daEquipe);
 
   if (url.includes("/rpc/perfil_publico"))
-    return json([{ user_id: "u2", handle: "joaozinho", nickname: "Joãozinho",
+    return json([{ user_id: "u2", questionario_em: "2026-07-30T01:32:14.123065+00:00", handle: "joaozinho", nickname: "Joãozinho",
       belt: "Azul", degrees: 1, bio: "", photo_url: "", idade: 26,
       gym: "Academia Teste", master: "Mestre Silva", verificado: false,
       equipe_oficial: true, team_slug: "academia-teste", master_handle: "",
@@ -91,7 +91,7 @@ await pagina.route(`https://${REF}.supabase.co/**`, async (rota) => {
       titulos: 26, vitorias: 0, derrotas: 0, sou_membro: true, sou_dono: false,
       meu_status: "ativo" }]);
   if (url.includes("/rest/v1/profiles"))
-    return json([{ user_id: "u1", seeded: true, nickname: "Gustavo", belt: "Branca",
+    return json([{ user_id: "u1", questionario_em: "2026-07-30T01:32:14.123065+00:00", seeded: true, nickname: "Gustavo", belt: "Branca",
       degrees: 3, handle: "gustavo", master: "Gui", gym: "Academia Teste",
       photo_url: "", birth_date: "2000-01-01", fights_won: 0, fights_lost: 0,
       goal_start: "2025-10-13" }]);

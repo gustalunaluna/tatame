@@ -88,7 +88,7 @@ await p.route(`https://${REF}.supabase.co/**`, (rota) => {
   if (url.includes("/auth/v1/user")) return json({ id: EU, aud: "authenticated" });
   if (url.includes("/rpc/sinais_do_jogo")) return json(sinais);
   if (url.includes("/rest/v1/profiles"))
-    return json([{ user_id: EU, handle: "eu", nickname: "Eu", belt: "Branca", degrees: 0, birth_date: "1996-01-01" }]);
+    return json([{ user_id: EU, questionario_em: "2026-07-30T01:32:14.123065+00:00", handle: "eu", nickname: "Eu", belt: "Branca", degrees: 0, birth_date: "1996-01-01" }]);
   return json([]);
 });
 

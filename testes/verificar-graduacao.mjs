@@ -54,14 +54,14 @@ await pagina.route(`https://${REF}.supabase.co/**`, async (rota) => {
   if (url.includes("/rpc/semear_conquistas")) return json(0);
   if (url.includes("/rpc/recalcular_conquistas")) return json(0);
   if (url.includes("/rpc/perfil_publico"))
-    return json([{ user_id: "u2", handle: "mariana.teste", nickname: "Mariana",
+    return json([{ user_id: "u2", questionario_em: "2026-07-30T01:32:14.123065+00:00", handle: "mariana.teste", nickname: "Mariana",
       belt: "Roxa", degrees: 1, bio: "", photo_url: "", idade: 30,
       gym: "Academia Teste", master: "Mestre Silva", verificado: false,
       equipe_oficial: true, team_slug: "academia-teste", master_handle: "mestre.silva",
       master_nickname: "Mestre Silva", parceiros: 12, treinos: 200,
       conquistas_feitas: 90, conquistas_total: 1006, sou_parceiro: true }]);
   if (url.includes("/rest/v1/profiles"))
-    return json([{ user_id: "u1", seeded: true, nickname: "Gustavo", belt: "Branca",
+    return json([{ user_id: "u1", questionario_em: "2026-07-30T01:32:14.123065+00:00", seeded: true, nickname: "Gustavo", belt: "Branca",
       degrees: 3, handle: "gustavo", master: "", gym: "", photo_url: "",
       birth_date: "2000-01-01", fights_won: 0, fights_lost: 0, goal_start: "2025-10-13" }]);
   return json([]);
