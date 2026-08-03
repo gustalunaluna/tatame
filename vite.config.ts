@@ -36,7 +36,30 @@ export default defineConfig({
         // Sem isto, abrir /diario offline devolve 404: não há servidor para
         // responder, e as rotas são todas do cliente.
         navigateFallback: "/index.html",
-        globPatterns: ["**/*.{js,css,html,svg,png,ico,webmanifest}"],
+
+        /**
+         * Só o esqueleto entra no precache: o HTML, o CSS, o pedaço do app e o
+         * das dependências. Os 57 pedaços de rota ficam de fora.
+         *
+         * A primeira versão levava `**\/*.js` e precarregava os 60 arquivos de
+         * uma vez — 1 MB em rajada no primeiro acesso, justamente no wi-fi de
+         * academia que motivou tudo isto. E, quando a pessoa navegava antes de
+         * a rajada terminar, as requisições em voo eram abortadas: no navegador
+         * isso é só ruído no console, mas era ruído suficiente para derrubar
+         * quatro suítes que conferem "nenhum erro de página".
+         *
+         * As rotas entram no cache conforme são visitadas, pela regra de
+         * `assets` mais abaixo. Quem abriu uma tela uma vez a tem offline.
+         */
+        globPatterns: [
+          "index.html",
+          "assets/index-*.css",
+          "assets/index-*.js",
+          "assets/deps-*.js",
+          "manifest.webmanifest",
+          "icon-*.png",
+          "favicon.ico",
+        ],
 
         runtimeCaching: [
           {
@@ -68,6 +91,24 @@ export default defineConfig({
               cacheName: "supabase-leitura",
               networkTimeoutSeconds: 3,
               expiration: { maxEntries: 200, maxAgeSeconds: 60 * 60 * 24 * 7 },
+              cacheableResponse: { statuses: [200] },
+            },
+          },
+          {
+            /**
+             * Os pedaços de rota, guardados conforme são visitados.
+             *
+             * O nome do arquivo carrega o hash do conteúdo, então a versão em
+             * cache nunca fica velha: um build novo gera um nome novo. Por isso
+             * serve do cache primeiro e revalida atrás, sem risco de servir
+             * código antigo.
+             */
+            urlPattern: ({ url, sameOrigin }) =>
+              sameOrigin && url.pathname.startsWith("/assets/"),
+            handler: "StaleWhileRevalidate",
+            options: {
+              cacheName: "rotas",
+              expiration: { maxEntries: 80, maxAgeSeconds: 60 * 60 * 24 * 30 },
               cacheableResponse: { statuses: [200] },
             },
           },

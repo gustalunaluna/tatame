@@ -32,7 +32,12 @@ function conferir(nome, condicao, detalhe = "") {
 }
 
 const b = await abrirNavegador();
-const ctx = await b.newContext({ viewport: { width: 390, height: 844 } });
+// `serviceWorkers: "allow"` porque aqui ele É o objeto do teste. O padrão do
+// navegador de teste é bloquear — ver o comentário em navegador.mjs.
+const ctx = await b.newContext({
+  viewport: { width: 390, height: 844 },
+  serviceWorkers: "allow",
+});
 const p = await ctx.newPage();
 
 /* --- 1. o service worker assume ------------------------------------------ */

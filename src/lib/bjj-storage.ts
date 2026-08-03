@@ -716,6 +716,13 @@ export function usePerfil() {
         fightsLost: data?.fights_lost ?? 0,
         goalStart: data?.goal_start ?? new Date().toISOString().slice(0, 10),
         instrutor: Boolean(extra?.instrutor),
+        // `data` nulo = ainda não há linha de perfil. Deixar `undefined` aqui
+        // é o que separa "não sei" de "nunca respondeu"; sem essa diferença, a
+        // conta recém-criada seria mandada para as boas-vindas antes de
+        // `ensureSeeded` inserir a linha.
+        questionarioEm: data
+          ? ((extra?.questionario_em as string | null) ?? null)
+          : undefined,
       };
     },
   });

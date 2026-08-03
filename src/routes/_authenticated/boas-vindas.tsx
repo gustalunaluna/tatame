@@ -1,8 +1,8 @@
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { marcarQueRespondeu } from "@/lib/questionario";
 import { Button } from "@/components/ui/button";
 import { Faixa as FaixaVisual } from "@/components/Faixa";
 import { ajustarGrau, grausValidos, nomeDaGraduacao } from "@/lib/graduacao";
@@ -90,6 +90,7 @@ function escolha(selecionado: boolean) {
 
 function BoasVindasPage() {
   const navigate = useNavigate();
+  const qc = useQueryClient();
 
   const [faixa, setFaixa] = useState<Faixa>("Branca");
   const [graus, setGraus] = useState(0);
@@ -140,10 +141,9 @@ function BoasVindasPage() {
       return;
     }
 
-    // A guarda memoriza "já respondeu" para não consultar o banco a cada
-    // navegação. Sem avisá-la aqui, quem acabou de responder seria mandado de
-    // volta para esta tela até recarregar a página.
-    marcarQueRespondeu();
+    // A guarda lê o carimbo do cache de `usePerfil`. Sem invalidar, quem
+    // acabou de responder seria mandado de volta para cá até a entrada expirar.
+    await qc.invalidateQueries({ queryKey: ["perfil"] });
     toast.success("Pronto. Bom treino.");
     navigate({ to: "/" });
   }

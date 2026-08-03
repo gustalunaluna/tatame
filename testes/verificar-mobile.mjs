@@ -42,7 +42,7 @@ const dados = {
     partners: "Gui", techniques: "guarda fechada", notes: "boa aula",
   })),
   profiles: [{
-    user_id: "u1", seeded: true, nickname: "Gustavo", handle: "gustavo", belt: "Branca", degrees: 3,
+    user_id: "u1", seeded: true, questionario_em: "2026-07-30T01:32:14.123065+00:00", nickname: "Gustavo", handle: "gustavo", belt: "Branca", degrees: 3,
     bio: "Comecei em outubro de 2025. Guardeiro, De La Riva e costas.",
     master: "Gui", gym: "Bonsai", photo_url: "", birth_date: "2000-01-01",
     fights_won: 0, fights_lost: 0, goal_start: "2025-10-13",

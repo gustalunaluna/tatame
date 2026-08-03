@@ -28,6 +28,14 @@ export interface Perfil {
   goalStart: string;
   /** Declaração de quem dá aula. O banco só aceita da roxa em diante. */
   instrutor: boolean;
+  /**
+   * Quando a pessoa respondeu o questionário de boas-vindas.
+   *
+   * Os três estados são distintos e a distinção importa — ver
+   * `precisaResponderQuestionario`. `undefined` é "não há linha de perfil
+   * ainda", `null` é "existe linha e nunca respondeu".
+   */
+  questionarioEm?: string | null;
 }
 
 export type TrainingType = "Gi" | "No-Gi";

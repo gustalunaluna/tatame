@@ -1,5 +1,5 @@
 /**
- * A guarda de sessão e o questionário, com e sem rede.
+ * A guarda de sessão sem rede, e a regra do questionário.
  *
  * Por que este teste não usa navegador: a primeira versão usava, e plantava
  * uma sessão no localStorage no formato interno do supabase-js. Ela passava com
@@ -11,11 +11,7 @@
  * mentira que reproduzem os estados que existem de verdade.
  */
 import { resolverUsuario } from "../src/lib/sessao.ts";
-import {
-  faltaResponderQuestionario,
-  limparMemoriaDoQuestionario,
-  marcarQueRespondeu,
-} from "../src/lib/questionario.ts";
+import { precisaResponderQuestionario } from "../src/lib/questionario.ts";
 
 const falhas = [];
 const ok = [];
@@ -110,65 +106,21 @@ conferir(
 
 /* ====================== o questionário =================================== */
 
-const nuncaRespondeu = async () => ({ questionario_em: null });
-const jaRespondeu = async () => ({ questionario_em: "2026-08-01T10:00:00Z" });
-const semPerfilAinda = async () => null;
-const semRede = async () => {
-  throw new TypeError("Failed to fetch");
-};
-
-limparMemoriaDoQuestionario();
+// Os três estados são distintos de propósito. O que quase passou batido:
+// `undefined` (ainda não há linha de perfil) NÃO pode contar como "nunca
+// respondeu" — senão a conta recém-criada é mandada para as boas-vindas antes
+// de `ensureSeeded` inserir a linha, e a tela pisca sem motivo.
 conferir(
-  "quem nunca respondeu vai para as boas-vindas",
-  (await faltaResponderQuestionario(nuncaRespondeu, EU.id)) === true,
-);
-
-limparMemoriaDoQuestionario();
-conferir(
-  "conta nova, sem linha de perfil, também vai",
-  (await faltaResponderQuestionario(semPerfilAinda, EU.id)) === true,
-);
-
-limparMemoriaDoQuestionario();
-conferir(
-  "quem já respondeu não é mandado de novo",
-  (await faltaResponderQuestionario(jaRespondeu, EU.id)) === false,
-);
-
-// Sem rede a consulta falha. Mandar para as boas-vindas aqui prenderia a
-// pessoa numa tela cujo botão "Começar" também não consegue gravar.
-limparMemoriaDoQuestionario();
-conferir(
-  "sem rede, ninguém fica preso nas boas-vindas",
-  (await faltaResponderQuestionario(semRede, EU.id)) === false,
-);
-
-// Depois de responder, a guarda não pode continuar mandando de volta — e não
-// pode consultar o banco a cada navegação.
-limparMemoriaDoQuestionario();
-marcarQueRespondeu();
-let consultas = 0;
-const contando = async () => {
-  consultas++;
-  return { questionario_em: null };
-};
-const depoisDeResponder = await faltaResponderQuestionario(contando, EU.id);
-conferir(
-  "quem acabou de responder não volta para as boas-vindas",
-  depoisDeResponder === false,
+  "linha existe e carimbo vazio: precisa responder",
+  precisaResponderQuestionario(null) === true,
 );
 conferir(
-  "e a guarda não consulta o banco de novo",
-  consultas === 0,
-  `${consultas} consultas`,
+  "já respondeu: não precisa",
+  precisaResponderQuestionario("2026-08-01T10:00:00Z") === false,
 );
-
-// A memória é da aba, não da conta: quem sai e entra com outra conta na mesma
-// aba tem que ser perguntado.
-limparMemoriaDoQuestionario();
 conferir(
-  "depois de sair, a pergunta volta a valer",
-  (await faltaResponderQuestionario(nuncaRespondeu, EU.id)) === true,
+  "sem linha de perfil ainda: não decide sem informação",
+  precisaResponderQuestionario(undefined) === false,
 );
 
 console.log(ok.map((o) => `  ok   ${o}`).join("\n"));
