@@ -46,7 +46,7 @@ function MeuArroba() {
       <Card className="border-primary/40 bg-primary/5">
         <CardContent className="flex items-center justify-between gap-3 p-4">
           <div className="min-w-0">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-primary">
+            <p className="text-xs font-bold uppercase tracking-widest text-primary">
               Seu @
             </p>
             <p className="truncate text-lg font-black">@{handle}</p>
@@ -245,7 +245,7 @@ function Confirmacoes() {
                 Você finalizou ele <b>{r.subsAgainst}x</b>
               </span>
             </div>
-            <p className="text-[11px] text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               {r.diasRestantes <= 0
                 ? "Entra no placar hoje."
                 : r.diasRestantes === 1
@@ -295,12 +295,12 @@ function Convites() {
         <span className="min-w-0 flex-1 text-sm font-bold">
           Convites
           {recebidos.length > 0 && (
-            <span className="ml-1.5 rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-black text-primary-foreground">
+            <span className="ml-1.5 rounded-full bg-primary px-1.5 py-0.5 text-xs font-black text-primary-foreground">
               {recebidos.length}
             </span>
           )}
         </span>
-        <span className="shrink-0 text-[11px] text-muted-foreground">
+        <span className="shrink-0 text-xs text-muted-foreground">
           {recebidos.length} recebido{recebidos.length === 1 ? "" : "s"} ·{" "}
           {enviados.length} enviado{enviados.length === 1 ? "" : "s"}
         </span>
@@ -316,7 +316,7 @@ function Convites() {
               cartao ?? { nickname: "Atleta", handle: "", belt: "Branca", degrees: 0 }
             }
             detalhe={
-              <p className="mt-1 text-[11px] text-primary">quer treinar com você</p>
+              <p className="mt-1 text-xs text-primary">quer treinar com você</p>
             }
             acao={
               <div className="flex gap-1.5">
@@ -345,7 +345,7 @@ function Convites() {
 
         {enviados.length > 0 && (
           <>
-            <p className="pt-1 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+            <p className="pt-1 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
               Que você enviou
             </p>
             {enviados.map(({ parceria, cartao }, i) => (
@@ -357,7 +357,7 @@ function Convites() {
                   cartao ?? { nickname: "Atleta", handle: "", belt: "Branca", degrees: 0 }
                 }
                 detalhe={
-                  <p className="mt-1 text-[11px] text-muted-foreground">
+                  <p className="mt-1 text-xs text-muted-foreground">
                     aguardando resposta
                   </p>
                 }
@@ -437,7 +437,7 @@ function Placar() {
                   ) : (
                     <p className="truncate font-bold">{p.partnerName}</p>
                   )}
-                  <p className="text-[11px] text-muted-foreground">
+                  <p className="text-xs text-muted-foreground">
                     {cartao ? `@${cartao.handle}` : "não usa o app"}
                     {p.ultimoTreino
                       ? ` · último ${new Date(
@@ -451,7 +451,7 @@ function Placar() {
                 </div>
               </div>
 
-              <p className="mt-2 text-[11px] text-muted-foreground">
+              <p className="mt-2 text-xs text-muted-foreground">
                 {p.sessoes === 0
                   ? "Ainda não treinaram juntos"
                   : `${p.sessoes} ${p.sessoes === 1 ? "treino juntos" : "treinos juntos"} · ${p.rolls} ${p.rolls === 1 ? "rola" : "rolas"}`}
@@ -468,7 +468,7 @@ function Placar() {
                   gatilho={
                     <button
                       type="button"
-                      className="tap mt-2 text-[11px] text-muted-foreground underline underline-offset-2"
+                      className="tap mt-2 text-xs text-muted-foreground underline underline-offset-2"
                     >
                       Desfazer parceria
                     </button>

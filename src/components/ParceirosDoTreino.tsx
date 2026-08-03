@@ -31,7 +31,7 @@ function Contador({
 }) {
   return (
     <div className="min-w-0">
-      <p className="mb-1 text-center text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+      <p className="mb-1 text-center text-xs font-semibold uppercase tracking-wide text-muted-foreground">
         {rotulo}
       </p>
       <div className="flex items-center justify-center gap-1">
@@ -232,7 +232,7 @@ export function ParceirosDoTreino({
             </div>
 
             {cartao && (
-              <p className="text-[11px] text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 @{cartao.handle} vai receber para confirmar.
               </p>
             )}
@@ -252,14 +252,14 @@ export function ParceirosDoTreino({
       </Button>
 
       {ready && aceitos.length === 0 && linhas.length > 0 && (
-        <p className="text-[11px] text-muted-foreground">
+        <p className="text-xs text-muted-foreground">
           Você ainda não tem parceiros cadastrados. Vá em Parceiros para
           adicionar pelo @ e o placar passa a valer para os dois.
         </p>
       )}
 
       {disponiveis.length === 0 && aceitos.length > 0 && linhas.length > 0 && (
-        <p className="text-[11px] text-muted-foreground">
+        <p className="text-xs text-muted-foreground">
           Todos os seus parceiros já estão neste treino.
         </p>
       )}

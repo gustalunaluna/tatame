@@ -59,6 +59,7 @@ import {
   useTrainings,
 } from "@/lib/bjj-storage";
 import { FAIXAS, type Faixa, type Perfil } from "@/lib/bjj-types";
+import { FotoDoAtleta } from "@/components/FotoDoAtleta";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/perfil")({
@@ -123,19 +124,12 @@ function PerfilPage() {
       <div>
         <div className="flex items-start gap-4">
             <div className="relative shrink-0">
-              <div className="grid h-24 w-24 place-items-center overflow-hidden rounded-2xl bg-secondary ring-2 ring-primary/50">
-                {perfil?.photoUrl ? (
-                  <img
-                    src={perfil.photoUrl}
-                    alt={`Foto de ${perfil.nickname || "perfil"}`}
-                    width={96}
-                    height={96}
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <Icone.perfil className="h-9 w-9 text-muted-foreground" />
-                )}
-              </div>
+              <FotoDoAtleta
+                url={perfil?.photoUrl}
+                nome={perfil?.nickname}
+                className="h-24 w-24 rounded-2xl ring-2 ring-primary/50"
+                classeDasIniciais="text-2xl"
+              />
               <button
                 onClick={() => inputFoto.current?.click()}
                 disabled={enviando}
@@ -203,19 +197,19 @@ function PerfilPage() {
               <p className="text-2xl font-black tabular-nums text-primary">
                 {perfil?.fightsWon ?? 0}
               </p>
-              <p className="text-[11px] text-muted-foreground">Vitórias</p>
+              <p className="text-xs text-muted-foreground">Vitórias</p>
             </div>
             <div className="rounded-xl bg-secondary/60 p-3">
               <p className="text-2xl font-black tabular-nums">
                 {perfil?.fightsLost ?? 0}
               </p>
-              <p className="text-[11px] text-muted-foreground">Derrotas</p>
+              <p className="text-xs text-muted-foreground">Derrotas</p>
             </div>
             <div className="rounded-xl bg-secondary/60 p-3">
               <p className="text-2xl font-black tabular-nums">
                 {aproveitamento === null ? "—" : `${aproveitamento}%`}
               </p>
-              <p className="text-[11px] text-muted-foreground">Aproveit.</p>
+              <p className="text-xs text-muted-foreground">Aproveit.</p>
             </div>
           </div>
           {totalLutas === 0 && (
@@ -223,7 +217,7 @@ function PerfilPage() {
               Ainda sem lutas oficiais. A estreia é a próxima conquista.
             </p>
           )}
-          <p className="mt-3 text-center text-[11px] text-muted-foreground">
+          <p className="mt-3 text-center text-xs text-muted-foreground">
             {treinos.length} treinos registrados
           </p>
         </CardContent>
@@ -269,7 +263,7 @@ function PerfilPage() {
               >
                 <Icone.conquista className="h-4 w-4 text-primary" />
                 <p className="mt-2 text-xs font-bold leading-tight">{d.title}</p>
-                <p className="mt-0.5 text-[10px] uppercase tracking-wider text-primary">
+                <p className="mt-0.5 text-xs uppercase tracking-wider text-primary">
                   Faixa {d.tier}
                 </p>
               </div>
@@ -352,7 +346,7 @@ function MeusMestresNoPerfil({ i, legado }: { i: number; legado: string }) {
               <SeloVerificado tipo="mestre" className="h-3.5 w-3.5" />
             )}
           </p>
-          <p className="text-[10px] text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             {mestres.length > 1
               ? `e mais ${mestres.length - 1}`
               : principal
@@ -519,7 +513,7 @@ function CaixasDoPerfil() {
                 )}
               </p>
               {!equipe && (
-                <p className="text-[10px] text-muted-foreground">declarada</p>
+                <p className="text-xs text-muted-foreground">declarada</p>
               )}
             </div>
           ) : null}
@@ -619,7 +613,7 @@ function EditarPerfil({
             onChange={(e) => set("bio", e.target.value)}
             placeholder="3x campeão paranaense · começou em 2025 · guardeiro"
           />
-          <p className="mt-1 text-right text-[11px] text-muted-foreground">
+          <p className="mt-1 text-right text-xs text-muted-foreground">
             {f.bio.length}/300
           </p>
         </div>
@@ -829,7 +823,7 @@ function EscolherDestaques({
               </span>
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-xs font-bold">{a.title}</span>
-                <span className="block text-[10px] uppercase tracking-wider text-primary">
+                <span className="block text-xs uppercase tracking-wider text-primary">
                   Faixa {a.tier}
                 </span>
               </span>

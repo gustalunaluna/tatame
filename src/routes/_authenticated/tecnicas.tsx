@@ -143,7 +143,7 @@ function TechniquesPage() {
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
                   <p className="truncate font-semibold">{t.name}</p>
-                  <p className="text-[11px] uppercase tracking-wider text-primary">
+                  <p className="text-xs uppercase tracking-wider text-primary">
                     {/* Técnica criada pelo diário pode não ter categoria: lá
                         escolher entre sete é atrito que faz não anotar. Aqui o
                         buraco fica visível e dá para arrumar. */}
@@ -153,7 +153,7 @@ function TechniquesPage() {
                     const u = uso.get(t.id);
                     if (!u || u.treinos === 0) return null;
                     return (
-                      <p className="mt-0.5 text-[11px] text-muted-foreground">
+                      <p className="mt-0.5 text-xs text-muted-foreground">
                         {u.treinos} {u.treinos === 1 ? "treino" : "treinos"} ·
                         última vez {desdeQuando(u.ultimaVez)}
                       </p>
@@ -337,7 +337,7 @@ function AnotacoesDoTreino({ id, quantos }: { id: string; quantos: number }) {
       <ul className="mt-2 space-y-2">
         {anotacoes.map((a) => (
           <li key={a.data} className="border-l border-border/60 pl-2.5">
-            <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+            <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
               {new Date(a.data + "T00:00:00").toLocaleDateString("pt-BR")}
             </p>
             <p className="whitespace-pre-wrap text-xs">{a.nota}</p>

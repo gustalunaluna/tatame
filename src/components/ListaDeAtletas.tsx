@@ -3,6 +3,7 @@ import type { CSSProperties } from "react";
 import { Faixa as FaixaVisual } from "@/components/Faixa";
 import { SeloDaPessoa } from "@/components/SeloVerificado";
 import type { Faixa } from "@/lib/bjj-types";
+import { FotoDoAtleta } from "@/components/FotoDoAtleta";
 
 export interface AtletaNaLista {
   userId: string;
@@ -33,18 +34,11 @@ export function LinhaDeAtleta({
       style={{ "--i": Math.min(i, 10) } as CSSProperties}
       className="rise-in list-perf tap flex items-center gap-3 rounded-2xl border border-border/50 bg-card/50 p-3 active:scale-[0.99]"
     >
-      {a.photoUrl ? (
-        <img
-          src={a.photoUrl}
-          alt=""
-          loading="lazy"
-          className="h-11 w-11 shrink-0 rounded-xl border border-border/60 object-cover"
-        />
-      ) : (
-        <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-secondary text-xs font-black text-muted-foreground">
-          {a.nickname.slice(0, 2).toUpperCase()}
-        </div>
-      )}
+      <FotoDoAtleta
+        url={a.photoUrl}
+        nome={a.nickname}
+        className="h-11 w-11 rounded-xl border border-border/60"
+      />
       <div className="min-w-0 flex-1">
         <p className="flex items-center gap-1 text-sm font-bold">
           <span className="truncate">{a.nickname}</span>
@@ -54,7 +48,7 @@ export function LinhaDeAtleta({
             className="h-3.5 w-3.5"
           />
         </p>
-        <p className="truncate text-[11px] text-muted-foreground">
+        <p className="truncate text-xs text-muted-foreground">
           @{a.handle}
           {detalhe && <span className="text-primary"> · {detalhe}</span>}
         </p>

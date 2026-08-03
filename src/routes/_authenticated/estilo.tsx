@@ -77,7 +77,7 @@ function EstiloPage() {
                 className="h-8 w-8 rounded-full border border-white/15"
                 style={{ background: acentoDaFaixa(f) }}
               />
-              <span className="text-[10px] font-bold leading-none">{f}</span>
+              <span className="text-xs font-bold leading-none">{f}</span>
             </button>
           ))}
         </div>
@@ -86,7 +86,7 @@ function EstiloPage() {
           className="rounded-2xl border border-primary/40 p-4"
           style={previa ? ({ "--faixa": acentoDaFaixa(previa) } as React.CSSProperties) : undefined}
         >
-          <p className="text-[10px] font-bold uppercase tracking-widest text-primary">
+          <p className="text-xs font-bold uppercase tracking-widest text-primary">
             {previa ?? "sua faixa"}
           </p>
           <p className="mt-1 text-2xl font-black text-primary">128h no tatame</p>
@@ -122,8 +122,8 @@ function EstiloPage() {
                 style={{ background: `var(--${def.css})` }}
               />
               <div className="min-w-0">
-                <p className="truncate text-[11px] font-bold">{nome}</p>
-                <p className="truncate text-[10px] text-muted-foreground">
+                <p className="truncate text-xs font-bold">{nome}</p>
+                <p className="truncate text-xs text-muted-foreground">
                   --{def.css}
                 </p>
               </div>
@@ -147,7 +147,7 @@ function EstiloPage() {
                 className="h-7 w-7"
                 style={{ color: `var(--${def.css})` }}
               />
-              <span className="text-[11px] font-bold capitalize">{nome}</span>
+              <span className="text-xs font-bold capitalize">{nome}</span>
             </div>
           ))}
         </div>
@@ -165,7 +165,7 @@ function EstiloPage() {
               className="flex flex-col items-center gap-1.5 rounded-xl border border-border/50 bg-card/50 p-2 text-center"
             >
               <Desenho className="h-5 w-5 text-primary" />
-              <span className="w-full truncate text-[9px] leading-tight text-muted-foreground">
+              <span className="w-full truncate text-xs leading-tight text-muted-foreground">
                 {nome}
               </span>
             </div>
@@ -182,7 +182,7 @@ function EstiloPage() {
                 className="h-12 w-12 border border-primary/50 bg-primary/10"
                 style={{ borderRadius: `var(--radius-${nome})` }}
               />
-              <span className="text-[10px] text-muted-foreground">{nome}</span>
+              <span className="text-xs text-muted-foreground">{nome}</span>
             </div>
           ))}
         </div>

@@ -26,6 +26,7 @@ import {
 import { useHistoricoDeGraduacao } from "@/lib/graduacao-storage";
 import { LinhaDeGraduacao } from "@/components/HistoricoDeGraduacao";
 import { cn } from "@/lib/utils";
+import { FotoDoAtleta } from "@/components/FotoDoAtleta";
 
 export const Route = createFileRoute("/_authenticated/atleta/$handle")({
   component: AtletaPage,
@@ -149,7 +150,7 @@ function MestresDoPerfil({
               <SeloVerificado tipo="mestre" className="h-3.5 w-3.5" />
             )}
           </p>
-          <p className="text-[10px] text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             {mestres.length > 1
               ? `e mais ${mestres.length - 1}`
               : principal.mestreHandle
@@ -170,7 +171,7 @@ function MestresDoPerfil({
               <SeloVerificado tipo="mestre" className="h-3.5 w-3.5" />
             )}
           </p>
-          <p className="text-[10px] text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             {perfil.masterHandle ? "da academia" : "declarado"}
           </p>
         </div>
@@ -224,14 +225,6 @@ function MedalhasDoPerfil({
   );
 }
 
-function iniciais(nome: string) {
-  return nome
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((p) => p[0]?.toUpperCase() ?? "")
-    .join("");
-}
 
 function AtletaPage() {
   const { handle } = Route.useParams();
@@ -280,21 +273,12 @@ function AtletaPage() {
           {/* ===== Cabeçalho, igual ao seu ===== */}
           <div>
             <div className="flex items-start gap-4">
-              <div className="grid h-24 w-24 shrink-0 place-items-center overflow-hidden rounded-2xl bg-secondary ring-2 ring-primary/50">
-                {perfil.photoUrl ? (
-                  <img
-                    src={perfil.photoUrl}
-                    alt={`Foto de ${perfil.nickname}`}
-                    width={96}
-                    height={96}
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <span className="text-2xl font-black text-muted-foreground">
-                    {iniciais(perfil.nickname) || <Icone.perfil className="h-9 w-9" />}
-                  </span>
-                )}
-              </div>
+              <FotoDoAtleta
+                url={perfil.photoUrl}
+                nome={perfil.nickname}
+                className="h-24 w-24 rounded-2xl ring-2 ring-primary/50"
+                classeDasIniciais="text-2xl"
+              />
 
               <div className="min-w-0 flex-1 pt-1">
                 <h1 className="flex items-center gap-1.5 text-2xl font-black leading-tight">
@@ -393,7 +377,7 @@ function AtletaPage() {
                     <p className="text-lg font-black leading-none">
                       {placar.rolls}
                     </p>
-                    <p className="mt-0.5 text-[10px] text-muted-foreground">
+                    <p className="mt-0.5 text-xs text-muted-foreground">
                       rolas
                     </p>
                   </div>
@@ -401,7 +385,7 @@ function AtletaPage() {
                     <p className="text-lg font-black leading-none text-primary">
                       {placar.subsFor}
                     </p>
-                    <p className="mt-0.5 text-[10px] text-muted-foreground">
+                    <p className="mt-0.5 text-xs text-muted-foreground">
                       você finalizou
                     </p>
                   </div>
@@ -409,12 +393,12 @@ function AtletaPage() {
                     <p className="text-lg font-black leading-none text-destructive">
                       {placar.subsAgainst}
                     </p>
-                    <p className="mt-0.5 text-[10px] text-muted-foreground">
+                    <p className="mt-0.5 text-xs text-muted-foreground">
                       ele finalizou
                     </p>
                   </div>
                 </div>
-                <p className="mt-2 text-center text-[11px] text-muted-foreground">
+                <p className="mt-2 text-center text-xs text-muted-foreground">
                   {placar.sessoes}{" "}
                   {placar.sessoes === 1 ? "treino juntos" : "treinos juntos"}
                   {placar.pendentes > 0 &&
@@ -436,22 +420,22 @@ function AtletaPage() {
                   <p className="text-2xl font-black tabular-nums text-primary">
                     {perfil.fightsWon}
                   </p>
-                  <p className="text-[11px] text-muted-foreground">Vitórias</p>
+                  <p className="text-xs text-muted-foreground">Vitórias</p>
                 </div>
                 <div className="rounded-xl bg-secondary/60 p-3">
                   <p className="text-2xl font-black tabular-nums">
                     {perfil.fightsLost}
                   </p>
-                  <p className="text-[11px] text-muted-foreground">Derrotas</p>
+                  <p className="text-xs text-muted-foreground">Derrotas</p>
                 </div>
                 <div className="rounded-xl bg-secondary/60 p-3">
                   <p className="text-2xl font-black tabular-nums">
                     {aproveitamento === null ? "—" : `${aproveitamento}%`}
                   </p>
-                  <p className="text-[11px] text-muted-foreground">Aproveit.</p>
+                  <p className="text-xs text-muted-foreground">Aproveit.</p>
                 </div>
               </div>
-              <p className="mt-3 text-center text-[11px] text-muted-foreground">
+              <p className="mt-3 text-center text-xs text-muted-foreground">
                 {perfil.treinos} treinos registrados
               </p>
             </CardContent>
@@ -499,7 +483,7 @@ function AtletaPage() {
                     )}
                   </p>
                   {!perfil.teamName && (
-                    <p className="text-[10px] text-muted-foreground">declarada</p>
+                    <p className="text-xs text-muted-foreground">declarada</p>
                   )}
                 </div>
               ) : null}
@@ -590,7 +574,7 @@ function AtletaPage() {
                     <p className="mt-2 text-xs font-bold leading-tight">
                       {d.title}
                     </p>
-                    <p className="mt-0.5 text-[10px] uppercase tracking-wider text-primary">
+                    <p className="mt-0.5 text-xs uppercase tracking-wider text-primary">
                       Faixa {d.tier}
                     </p>
                   </div>

@@ -7,6 +7,7 @@ import { Faixa } from "@/components/Faixa";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Bar } from "@/components/ui/bar";
+import { FotoDoAtleta } from "@/components/FotoDoAtleta";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -172,19 +173,12 @@ function Home() {
       <Card className="relative overflow-hidden border-primary/40 bg-gradient-to-br from-primary/15 via-card/80 to-card/80 shadow-[0_0_40px_-12px_var(--primary)]">
         <CardContent className="p-5">
           <Link to="/perfil" className="tap flex items-center gap-4 active:scale-[0.99]">
-            <div className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-2xl bg-secondary ring-2 ring-primary/40">
-              {perfil?.photoUrl ? (
-                <img
-                  src={perfil.photoUrl}
-                  alt={`Foto de ${perfil.nickname || "perfil"}`}
-                  width={64}
-                  height={64}
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <Icone.perfil className="h-7 w-7 text-muted-foreground" />
-              )}
-            </div>
+            <FotoDoAtleta
+              url={perfil?.photoUrl}
+              nome={perfil?.nickname}
+              className="h-16 w-16 rounded-2xl ring-2 ring-primary/40"
+              classeDasIniciais="text-lg"
+            />
 
             <div className="min-w-0 flex-1">
               <p className="truncate text-xl font-black leading-tight">
@@ -197,7 +191,7 @@ function Home() {
                   compacta
                 />
               </div>
-              <p className="mt-1 truncate text-[10px] text-muted-foreground">
+              <p className="mt-1 truncate text-xs text-muted-foreground">
                 {[
                   perfil?.gym || null,
                   `${Math.max(0, Math.floor(daysTraining / 30.44))} meses`,
@@ -214,12 +208,12 @@ function Home() {
           {/* Level — horas de tatame, que é como o jiu-jitsu mede de verdade */}
           <div className="mt-4 border-t border-border/50 pt-3">
             <div className="flex items-end justify-between">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-primary">
+              <p className="text-xs font-bold uppercase tracking-widest text-primary">
                 Level {nivel.level}
               </p>
               <p className="text-sm font-black tabular-nums">
                 {hydrated ? horasEmTexto(nivel.horas) : "—"}{" "}
-                <span className="text-[10px] font-semibold text-muted-foreground">
+                <span className="text-xs font-semibold text-muted-foreground">
                   no tatame
                 </span>
               </p>
@@ -229,7 +223,7 @@ function Home() {
               className="mt-2 h-1.5"
               label={`Progresso para o level ${nivel.level + 1}`}
             />
-            <p className="mt-1 text-[10px] text-muted-foreground">
+            <p className="mt-1 text-xs text-muted-foreground">
               {nivel.faltam}h para o level {nivel.level + 1}
             </p>
           </div>
@@ -244,7 +238,7 @@ function Home() {
               >
                 <span
                   className={cn(
-                    "text-[10px] font-bold",
+                    "text-xs font-bold",
                     d.isToday ? "text-primary" : "text-muted-foreground",
                   )}
                 >
@@ -280,35 +274,35 @@ function Home() {
       <div className="grid grid-cols-3 gap-2">
         <Card className="border-border/50 bg-card/60">
           <CardContent className="p-3">
-            <div className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+            <div className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               <Icone.sequencia className="h-3.5 w-3.5 text-primary" /> Sequência
             </div>
             <p className="mt-1 text-2xl font-black text-primary tabular-nums">
               {hydrated ? streakAnimado : "—"}
             </p>
-            <p className="text-[10px] text-muted-foreground">dias</p>
+            <p className="text-xs text-muted-foreground">dias</p>
           </CardContent>
         </Card>
         <Card className="border-border/50 bg-card/60">
           <CardContent className="p-3">
-            <div className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+            <div className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               <Icone.plano className="h-3.5 w-3.5 text-primary" /> Mês
             </div>
             <p className="mt-1 text-2xl font-black tabular-nums">
               {hydrated ? mesAnimado : "—"}
             </p>
-            <p className="text-[10px] text-muted-foreground">treinos</p>
+            <p className="text-xs text-muted-foreground">treinos</p>
           </CardContent>
         </Card>
         <Card className="border-border/50 bg-card/60">
           <CardContent className="p-3">
-            <div className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+            <div className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               <Icone.treino className="h-3.5 w-3.5 text-primary" /> Total
             </div>
             <p className="mt-1 text-2xl font-black tabular-nums">
               {hydrated ? totalAnimado : "—"}
             </p>
-            <p className="text-[10px] text-muted-foreground">dias</p>
+            <p className="text-xs text-muted-foreground">dias</p>
           </CardContent>
         </Card>
       </div>
@@ -336,7 +330,7 @@ function Home() {
               <span className="text-xs font-black text-primary">{achPct}%</span>
             </div>
             <Progress value={achPct} className="mt-2 h-1.5" />
-            <p className="mt-1 text-[10px] text-muted-foreground">
+            <p className="mt-1 text-xs text-muted-foreground">
               {unlockedAch}/{totalAch} conquistas
             </p>
           </div>
@@ -349,7 +343,7 @@ function Home() {
           <CardContent className="p-4">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
                   Semana {semanaAtual} · {ciclo.titulo}
                 </p>
                 <p className="mt-1 truncate font-bold">
@@ -364,7 +358,7 @@ function Home() {
               </Link>
             </div>
             <Progress value={execucao} className="mt-3 h-1.5" />
-            <p className="mt-1 text-[10px] text-muted-foreground">
+            <p className="mt-1 text-xs text-muted-foreground">
               {feitosDaSemana}/{itensDaSemana.length} desta semana · {execucao}% do mês
             </p>
           </CardContent>
@@ -421,7 +415,7 @@ function Home() {
                 />
               )}
             {metaPct != null && <Progress className="mt-3 h-1.5" value={metaPct} />}
-            <p className="mt-1 text-[10px] text-muted-foreground">
+            <p className="mt-1 text-xs text-muted-foreground">
               {diasRestantesMeta != null
                 ? diasRestantesMeta >= 0
                   ? `${daysTraining} dias no tatame · faltam ${diasRestantesMeta}`

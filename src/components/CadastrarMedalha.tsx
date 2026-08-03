@@ -166,7 +166,7 @@ export function CadastrarMedalha({
                 ))}
               </SelectContent>
             </Select>
-            <p className="mt-1 text-[11px] text-muted-foreground">
+            <p className="mt-1 text-xs text-muted-foreground">
               A medalha também aparece no perfil da academia, com o seu nome do
               lado.
             </p>

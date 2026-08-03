@@ -144,7 +144,7 @@ export function BottomNav() {
               style={{ paddingTop: "max(1rem, calc(var(--safe-t) + 1.25rem))" }}
             >
               <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.25em] text-primary">
+                <p className="text-xs font-black uppercase tracking-[0.25em] text-primary">
                   Ponteira
                 </p>
                 <p className="text-sm font-bold">Menu</p>
@@ -165,7 +165,7 @@ export function BottomNav() {
             <nav className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-2 pb-[max(1rem,var(--safe-b))]">
               {MENU.map(({ grupo, itens }, g) => (
                 <section key={grupo} className={g > 0 ? "mt-5" : ""}>
-                  <h2 className="px-3 pb-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
+                  <h2 className="px-3 pb-1.5 text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">
                     {grupo}
                   </h2>
                   <ul>
@@ -228,7 +228,7 @@ export function BottomNav() {
                 <Link
                   to={to}
                   className={cn(
-                    "tap relative flex flex-col items-center gap-0.5 rounded-xl px-0.5 py-2 text-[10px] font-semibold active:scale-95",
+                    "tap relative flex flex-col items-center gap-0.5 rounded-xl px-0.5 py-2 text-xs font-semibold active:scale-95",
                     on ? "text-primary" : "text-muted-foreground hover:text-foreground",
                   )}
                 >
@@ -257,7 +257,7 @@ export function BottomNav() {
               aria-label="Abrir menu"
               aria-expanded={aberto}
               className={cn(
-                "tap flex w-full flex-col items-center gap-0.5 rounded-xl px-0.5 py-2 text-[10px] font-semibold active:scale-95",
+                "tap flex w-full flex-col items-center gap-0.5 rounded-xl px-0.5 py-2 text-xs font-semibold active:scale-95",
                 aberto ? "text-primary" : "text-muted-foreground hover:text-foreground",
               )}
             >

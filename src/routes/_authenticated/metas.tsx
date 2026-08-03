@@ -257,7 +257,7 @@ function CartaoMeta({
       <CardContent className="p-4">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-primary">
+            <p className="text-xs font-bold uppercase tracking-widest text-primary">
               {ROTULO[meta.kind]}
             </p>
             <p className="mt-0.5 truncate text-lg font-black">{meta.title}</p>

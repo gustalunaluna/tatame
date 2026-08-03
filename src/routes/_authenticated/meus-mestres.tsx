@@ -400,7 +400,7 @@ function LinhaDeMestre({ v }: { v: VinculoDeMestre }) {
             <Link
               to="/atleta/$handle"
               params={{ handle: v.mestreHandle }}
-              className="tap mt-1 inline-block text-[11px] font-bold text-primary"
+              className="tap mt-1 inline-block text-xs font-bold text-primary"
             >
               ver perfil
             </Link>
@@ -423,13 +423,13 @@ function LinhaDeMestre({ v }: { v: VinculoDeMestre }) {
       </div>
 
       {v.principal ? (
-        <p className="mt-2 flex items-center gap-1.5 rounded-lg bg-primary/10 px-2.5 py-1.5 text-[11px] font-bold text-primary">
+        <p className="mt-2 flex items-center gap-1.5 rounded-lg bg-primary/10 px-2.5 py-1.5 text-xs font-bold text-primary">
           <Icone.destaque className="h-3.5 w-3.5" /> A sua linhagem sobe por aqui
         </p>
       ) : (
         <button
           onClick={() => void tornarPrincipal.mutateAsync(v.id)}
-          className="tap mt-2 w-full rounded-lg border border-border/60 py-1.5 text-[11px] font-bold text-muted-foreground active:scale-[0.99]"
+          className="tap mt-2 w-full rounded-lg border border-border/60 py-1.5 text-xs font-bold text-muted-foreground active:scale-[0.99]"
         >
           Tornar meu mestre principal
         </button>

@@ -2,18 +2,11 @@ import type { CSSProperties, ReactNode } from "react";
 import { Faixa } from "@/components/Faixa";
 import { Link } from "@tanstack/react-router";
 import { SeloDaPessoa } from "@/components/SeloVerificado";
+import { FotoDoAtleta } from "@/components/FotoDoAtleta";
 import { cn } from "@/lib/utils";
 import type { CartaoPublico } from "@/lib/social-types";
 
 /** Iniciais para quando a pessoa não tem foto */
-function iniciais(nome: string) {
-  return nome
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((p) => p[0]?.toUpperCase() ?? "")
-    .join("");
-}
 
 /**
  * Como uma pessoa aparece para outra: foto, apelido, @ e faixa.
@@ -45,18 +38,11 @@ export function CartaoAtleta({
         className,
       )}
     >
-      {atleta.photoUrl ? (
-        <img
-          src={atleta.photoUrl}
-          alt=""
-          loading="lazy"
-          className="h-12 w-12 shrink-0 rounded-xl border border-border/60 object-cover"
-        />
-      ) : (
-        <div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl border border-border/60 bg-secondary text-sm font-black text-muted-foreground">
-          {iniciais(atleta.nickname) || "?"}
-        </div>
-      )}
+      <FotoDoAtleta
+        url={atleta.photoUrl}
+        nome={atleta.nickname}
+        className="h-12 w-12 rounded-xl border border-border/60"
+      />
 
       <div className="min-w-0 flex-1">
         {/* O nome leva ao perfil da pessoa. Só quando ela tem @ — sem @ não
@@ -75,7 +61,7 @@ export function CartaoAtleta({
                 className="h-4 w-4"
               />
             </p>
-            <p className="truncate text-[11px] text-muted-foreground">
+            <p className="truncate text-xs text-muted-foreground">
               @{atleta.handle}
               {atleta.gym ? ` · ${atleta.gym}` : ""}
             </p>

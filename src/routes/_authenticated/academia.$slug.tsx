@@ -8,6 +8,7 @@ import { SeloDaPessoa, SeloVerificado } from "@/components/SeloVerificado";
 import { usePerfilEquipe } from "@/lib/social-storage";
 import { useResumoMedalhasDaEquipe } from "@/lib/medalhas-storage";
 import { cn } from "@/lib/utils";
+import { FotoDoAtleta } from "@/components/FotoDoAtleta";
 
 export const Route = createFileRoute("/_authenticated/academia/$slug")({
   component: AcademiaPage,
@@ -32,7 +33,7 @@ function Numero({
       >
         {valor}
       </p>
-      <p className="mt-0.5 text-[11px] leading-tight text-muted-foreground">
+      <p className="mt-0.5 text-xs leading-tight text-muted-foreground">
         {rotulo}
       </p>
     </div>
@@ -63,18 +64,11 @@ function Atleta({
       style={{ "--i": Math.min(i, 10) } as CSSProperties}
       className="rise-in list-perf tap flex items-center gap-3 rounded-2xl border border-border/50 bg-card/50 p-3 active:scale-[0.99]"
     >
-      {a.photoUrl ? (
-        <img
-          src={a.photoUrl}
-          alt=""
-          loading="lazy"
-          className="h-11 w-11 shrink-0 rounded-xl border border-border/60 object-cover"
-        />
-      ) : (
-        <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-secondary text-xs font-black text-muted-foreground">
-          {a.nickname.slice(0, 2).toUpperCase()}
-        </div>
-      )}
+      <FotoDoAtleta
+        url={a.photoUrl}
+        nome={a.nickname}
+        className="h-11 w-11 rounded-xl border border-border/60"
+      />
       <div className="min-w-0 flex-1">
         <p className="flex items-center gap-1 text-sm font-bold">
           <span className="truncate">{a.nickname}</span>
@@ -84,7 +78,7 @@ function Atleta({
             className="h-3.5 w-3.5"
           />
         </p>
-        <p className="truncate text-[11px] text-muted-foreground">
+        <p className="truncate text-xs text-muted-foreground">
           @{a.handle}
           {papel && papel !== "membro" && (
             <span className="text-primary">
@@ -189,7 +183,7 @@ function AcademiaPage() {
             />
             {medalhas.total > 0 ? (
               <>
-                <p className="mt-2 text-[11px] text-muted-foreground">
+                <p className="mt-2 text-xs text-muted-foreground">
                   {medalhas.total}{" "}
                   {medalhas.total === 1 ? "medalha" : "medalhas"} de{" "}
                   {medalhas.atletas}{" "}
@@ -206,7 +200,7 @@ function AcademiaPage() {
                 </Link>
               </>
             ) : (
-              <p className="mt-2 text-[11px] text-muted-foreground">
+              <p className="mt-2 text-xs text-muted-foreground">
                 Nenhuma medalha ainda. Elas aparecem aqui quando um atleta
                 registra o pódio e aponta esta academia.
               </p>
@@ -223,7 +217,7 @@ function AcademiaPage() {
               <Numero valor={equipe.faixasPretas} rotulo="faixas pretas" />
               <Numero valor={equipe.competidores} rotulo="competidores" />
             </div>
-            <p className="mt-2 text-[11px] text-muted-foreground">
+            <p className="mt-2 text-xs text-muted-foreground">
               Competidor é quem tem medalha registrada aqui. O app não confirma
               resultado de competição — quem responde por cada medalha é o
               atleta cujo nome está nela.

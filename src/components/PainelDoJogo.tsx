@@ -347,7 +347,7 @@ function Plano({ h, faixa }: { h: HexagonoDerivado; faixa: string | undefined })
           {p.semanas.map((s) => (
             <li key={s.semana} className="rounded-xl border border-border/60 p-3">
               <div className="flex items-baseline gap-2">
-                <span className="shrink-0 text-[10px] font-black uppercase tracking-[0.18em] text-primary">
+                <span className="shrink-0 text-xs font-black uppercase tracking-[0.18em] text-primary">
                   Semana {s.semana}
                 </span>
                 <span className="min-w-0 truncate text-xs font-bold">{s.foco}</span>

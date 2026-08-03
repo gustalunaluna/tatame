@@ -60,7 +60,7 @@ export function LinhaDeGraduacao({
         <p className="text-xs font-black tabular-nums">
           {g.data.slice(0, 4)}
         </p>
-        <p className="text-[10px] text-muted-foreground">
+        <p className="text-xs text-muted-foreground">
           {new Date(g.data + "T00:00:00").toLocaleDateString("pt-BR", {
             day: "2-digit",
             month: "short",
@@ -129,7 +129,7 @@ export function LinhaDeGraduacao({
           <Link
             to="/academia/$slug"
             params={{ slug: g.teamSlug }}
-            className="tap mt-1 inline-flex items-center gap-1.5 text-[11px] font-bold text-primary"
+            className="tap mt-1 inline-flex items-center gap-1.5 text-xs font-bold text-primary"
           >
             {g.teamCrest && (
               <img
@@ -313,7 +313,7 @@ export function CadastrarGraduacao({
                         <span className="min-w-0 flex-1 truncate text-sm font-bold">
                           {achado.nickname}
                         </span>
-                        <span className="shrink-0 text-[11px] text-primary">
+                        <span className="shrink-0 text-xs text-primary">
                           vincular perfil
                         </span>
                       </button>

@@ -123,7 +123,7 @@ function MinhaEquipe({ equipe }: { equipe: Equipe }) {
         <CardContent className="p-5">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-primary">
+              <p className="text-xs font-bold uppercase tracking-widest text-primary">
                 Sua equipe
               </p>
               <h2 className="mt-1 flex items-center gap-1.5 text-2xl font-black">
@@ -208,7 +208,7 @@ function MinhaEquipe({ equipe }: { equipe: Equipe }) {
             atleta={m}
             detalhe={
               m.role !== "membro" ? (
-                <p className="mt-1 text-[11px] font-bold text-primary">
+                <p className="mt-1 text-xs font-bold text-primary">
                   {m.role === "dono" ? "dono" : "mestre da academia"}
                 </p>
               ) : undefined

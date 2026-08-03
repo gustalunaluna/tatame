@@ -279,7 +279,7 @@ export function SeletorDeTecnicas({
               >
                 <span className="block truncate text-sm font-bold">{t.nome}</span>
                 {t.categoria && (
-                  <span className="block text-[11px] uppercase tracking-wider text-primary">
+                  <span className="block text-xs uppercase tracking-wider text-primary">
                     {t.categoria}
                   </span>
                 )}

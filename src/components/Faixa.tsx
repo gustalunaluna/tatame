@@ -41,7 +41,13 @@ export function Faixa({
         className={cn(
           "relative overflow-hidden rounded-sm border border-white/15",
           compacta ? "h-3.5" : "h-5",
-          cheia ? "w-full" : compacta ? "w-20" : "w-28",
+          // 56px no compacto, não 80px. No cartão do Início sobram ~92px para
+          // o desenho MAIS o rótulo depois da foto e da seta, e "Branca ·
+          // 3 graus" precisa de ~110px: com 80px de faixa o rótulo quebrava em
+          // duas linhas e amassava a linha da academia logo abaixo. A ponteira
+          // continua com 32px, então o que encolhe é só o tecido — e o
+          // desenho segue legível como faixa.
+          cheia ? "w-full" : compacta ? "w-14" : "w-28",
         )}
         role="img"
         aria-label={`Faixa ${nomeDaGraduacao(belt, degrees)}`}
@@ -66,8 +72,11 @@ export function Faixa({
         )}
       </div>
 
+      {/* `whitespace-nowrap`: o rótulo é curto e identifica a graduação —
+          quebrá-lo entre "3" e "graus" não economiza espaço útil, só desalinha
+          a linha. Se faltar largura, quem cede é o contêiner. */}
       {comTexto && (
-        <span className={cn("font-bold", compacta ? "text-[11px]" : "text-xs")}>
+        <span className="whitespace-nowrap text-xs font-bold">
           {belt}
           {degrees > 0 && (
             <span className="text-muted-foreground">

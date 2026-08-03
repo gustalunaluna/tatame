@@ -160,7 +160,7 @@ function EscolherObjetivo({
             >
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-bold">{o.nome}</p>
-                <p className="text-[11px] text-muted-foreground">{o.descricao}</p>
+                <p className="text-xs text-muted-foreground">{o.descricao}</p>
               </div>
               <Icone.avancar className="h-4 w-4 shrink-0 text-muted-foreground" />
             </button>
@@ -249,7 +249,7 @@ function Historico({ itens }: { itens: Ciclo[] }) {
           <CardContent className="flex items-center justify-between gap-3 p-3">
             <div className="min-w-0">
               <p className="truncate text-sm font-bold">{c.titulo}</p>
-              <p className="text-[11px] text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 {new Date(c.inicio + "T00:00:00").toLocaleDateString("pt-BR", {
                   month: "short",
                   year: "numeric",
@@ -323,7 +323,7 @@ function PlanoPage() {
           <CardContent className="p-4">
             <div className="flex items-end justify-between gap-3">
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-primary">
+                <p className="text-xs font-bold uppercase tracking-widest text-primary">
                   Execução do mês
                 </p>
                 <p className="mt-1 text-4xl font-black leading-none">
@@ -359,7 +359,7 @@ function PlanoPage() {
                 <span className="text-primary">Semana {s}</span>
                 {foco && <span className="text-muted-foreground"> · {foco}</span>}
               </h2>
-              <span className="shrink-0 text-[11px] text-muted-foreground">
+              <span className="shrink-0 text-xs text-muted-foreground">
                 {feitos}/{daSemana.length}
               </span>
             </div>

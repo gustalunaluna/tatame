@@ -82,7 +82,7 @@ function AchievementRow({ a, i = 0 }: { a: Achievement; i?: number }) {
             {a.title}
           </p>
           {a.unlocked && (
-            <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-primary/20 px-2 py-0.5 text-[10px] font-bold text-primary">
+            <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-primary/20 px-2 py-0.5 text-xs font-bold text-primary">
               <Icone.confirmar className="h-3 w-3" />
               {formatDate(a.unlockedDate)}
             </span>
@@ -97,7 +97,7 @@ function AchievementRow({ a, i = 0 }: { a: Achievement; i?: number }) {
               value={progressPct}
               fillClassName={a.unlocked ? "bg-primary" : "bg-primary/70"}
             />
-            <p className="mt-0.5 text-[10px] font-semibold text-muted-foreground">
+            <p className="mt-0.5 text-xs font-semibold text-muted-foreground">
               {a.unlocked ? a.target : a.progress}/{a.target} · {progressPct}%
             </p>
           </div>
@@ -179,7 +179,7 @@ function ConquistasPage() {
         <CardContent className="p-5">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-primary">
+              <p className="text-xs font-bold uppercase tracking-widest text-primary">
                 Rumo ao topo
               </p>
               <p className="mt-1 text-4xl font-black leading-none">
@@ -254,7 +254,7 @@ function ConquistasPage() {
                   <div className="flex items-center gap-2">
                     <span
                       className={cn(
-                        "rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase tracking-widest",
+                        "rounded-full px-2.5 py-0.5 text-xs font-black uppercase tracking-widest",
                         TIER_STYLE[tier].chip,
                       )}
                     >

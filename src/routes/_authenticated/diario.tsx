@@ -165,7 +165,7 @@ function DiaryPage() {
                       month: "short",
                     })}
                   </p>
-                  <div className="mt-1 flex flex-wrap gap-1.5 text-[11px]">
+                  <div className="mt-1 flex flex-wrap gap-1.5 text-xs">
                     <span className="rounded-full bg-primary/15 px-2 py-0.5 font-semibold text-primary">
                       {t.type}
                     </span>

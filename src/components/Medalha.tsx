@@ -78,14 +78,14 @@ export function MedalhaEmDestaque({ m, i = 0 }: { m: Medalha; i?: number }) {
       )}
     >
       <SeloDeMedalha colocacao={m.colocacao} className="h-9 w-9" />
-      <p className={cn("text-[11px] font-black uppercase tracking-wide", c.texto)}>
+      <p className={cn("text-xs font-black uppercase tracking-wide", c.texto)}>
         {c.nome}
         {m.absoluto && " · abs"}
       </p>
-      <p className="line-clamp-2 text-[11px] font-semibold leading-tight">
+      <p className="line-clamp-2 text-xs font-semibold leading-tight">
         {m.evento}
       </p>
-      <p className="text-[10px] text-muted-foreground">{dataCurta(m.data)}</p>
+      <p className="text-xs text-muted-foreground">{dataCurta(m.data)}</p>
     </div>
   );
 }
@@ -116,11 +116,11 @@ export function LinhaDeMedalha({
             {c.nome}
           </span>
           {m.absoluto && (
-            <span className="rounded-full bg-primary/15 px-1.5 text-[10px] font-bold text-primary">
+            <span className="rounded-full bg-primary/15 px-1.5 text-xs font-bold text-primary">
               absoluto
             </span>
           )}
-          <span className="text-[10px] text-muted-foreground">
+          <span className="text-xs text-muted-foreground">
             {m.modalidade}
           </span>
         </p>
@@ -128,7 +128,7 @@ export function LinhaDeMedalha({
         {m.categoria && (
           <p className="text-xs text-muted-foreground">{m.categoria}</p>
         )}
-        <p className="mt-0.5 text-[11px] text-muted-foreground">
+        <p className="mt-0.5 text-xs text-muted-foreground">
           {new Date(m.data + "T00:00:00").toLocaleDateString("pt-BR")}
           {m.federacao && ` · ${m.federacao}`}
         </p>
@@ -137,7 +137,7 @@ export function LinhaDeMedalha({
           <Link
             to="/atleta/$handle"
             params={{ handle: m.atletaHandle }}
-            className="tap mt-1.5 inline-flex items-center gap-1.5 text-[11px] font-bold text-primary"
+            className="tap mt-1.5 inline-flex items-center gap-1.5 text-xs font-bold text-primary"
           >
             {m.atletaFoto && (
               <img
@@ -154,7 +154,7 @@ export function LinhaDeMedalha({
             <Link
               to="/academia/$slug"
               params={{ slug: m.teamSlug }}
-              className="tap mt-1.5 inline-flex items-center gap-1.5 text-[11px] font-bold text-primary"
+              className="tap mt-1.5 inline-flex items-center gap-1.5 text-xs font-bold text-primary"
             >
               {m.teamCrest && (
                 <img
@@ -209,7 +209,7 @@ export function PlacarDeMedalhas({
           >
             <SeloDeMedalha colocacao={colocacao} className="h-8 w-8" />
             <p className={cn("text-2xl font-black tabular-nums", c.texto)}>{n}</p>
-            <p className="text-[10px] uppercase tracking-wide text-muted-foreground">
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">
               {c.nome}
             </p>
           </div>

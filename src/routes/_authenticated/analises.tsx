@@ -40,14 +40,14 @@ function AnaliseCard({ a, aberta, i }: { a: Analysis; aberta: boolean; i: number
               <Icone.plano className="h-4 w-4" />
             </span>
             <div className="min-w-0 flex-1">
-              <p className="text-[11px] font-bold uppercase tracking-wider text-primary">
+              <p className="text-xs font-bold uppercase tracking-wider text-primary">
                 {formatDate(a.date)}
               </p>
               <h2 className="truncate text-sm font-bold leading-tight">{a.title}</h2>
               <p className="mt-1 line-clamp-2 text-xs text-muted-foreground group-open:hidden">
                 {resumo(a.content)}
               </p>
-              <p className="mt-1 hidden text-[11px] font-semibold text-primary group-open:block">
+              <p className="mt-1 hidden text-xs font-semibold text-primary group-open:block">
                 Toque para fechar
               </p>
             </div>
@@ -78,14 +78,14 @@ function AnalisesPage() {
               <Icone.evolucao className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-[11px] uppercase tracking-wider text-muted-foreground">
+              <p className="text-xs uppercase tracking-wider text-muted-foreground">
                 Total de análises
               </p>
               <p className="text-2xl font-black leading-none">{total}</p>
             </div>
           </div>
           <div className="text-right">
-            <p className="text-[11px] uppercase tracking-wider text-muted-foreground">
+            <p className="text-xs uppercase tracking-wider text-muted-foreground">
               Última
             </p>
             <p className="text-sm font-semibold">{last ? formatDate(last) : "—"}</p>
