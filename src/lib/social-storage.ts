@@ -15,6 +15,7 @@ import type {
   MembroEquipe,
   PapelMembro,
   Parceria,
+  PedidoDeAluno,
   RascunhoParceiro,
   RegistroAConfirmar,
   ResumoParceiro,
@@ -944,6 +945,7 @@ const paraVinculo = (r: Record<string, unknown>): VinculoDeMestre => ({
   teamSlug: (r.team_slug as string) ?? "",
   teamNome: (r.team_nome as string) ?? "",
   souDono: Boolean(r.sou_dono),
+  situacao: ((r.situacao as string) ?? "aceito") as VinculoDeMestre["situacao"],
 });
 
 /**
@@ -1115,4 +1117,64 @@ export function useMeusMestres() {
   });
 
   return { adicionar, tornarPrincipal, remover };
+}
+
+/**
+ * Os pedidos que chegaram para mim, como mestre.
+ *
+ * Existe porque o vínculo de mestre passou a nascer pendente (migração 032):
+ * antes, quem se declarasse seu aluno entrava na sua lista e na sua linhagem
+ * sem você saber. Agora a declaração vira um pedido, e o pedido precisa de
+ * um lugar onde ser visto — é este.
+ *
+ * A consulta não é cara e a lista é curta por natureza: são pessoas apontando
+ * para você, não o seu histórico inteiro.
+ */
+export function usePedidosDeAluno() {
+  const qc = useQueryClient();
+
+  const query = useQuery({
+    queryKey: ["pedidos_de_aluno"],
+    queryFn: async (): Promise<PedidoDeAluno[]> => {
+      const { data, error } = await supabase.rpc("pedidos_de_aluno" as never);
+      if (error) throw error;
+      return ((data ?? []) as unknown as Record<string, unknown>[]).map((r) => ({
+        id: r.id as string,
+        alunoHandle: (r.aluno_handle as string) ?? "",
+        alunoNome: (r.aluno_nome as string) ?? "",
+        alunoBelt: ((r.aluno_belt as string) ?? "") as PedidoDeAluno["alunoBelt"],
+        alunoGraus: Number(r.aluno_graus ?? 0),
+        alunoFoto: (r.aluno_foto as string) ?? "",
+        papel: (r.papel as string) ?? "mestre",
+        desde: (r.desde as string) ?? null,
+        pedidoEm: (r.pedido_em as string) ?? "",
+      }));
+    },
+  });
+
+  const responder = useMutation({
+    mutationFn: async ({ id, aceitar }: { id: string; aceitar: boolean }) => {
+      const { error } = await supabase.rpc("responder_pedido_de_aluno" as never, {
+        p_id: id,
+        p_aceitar: aceitar,
+      } as never);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["pedidos_de_aluno"] });
+      // A resposta muda o que aparece em três telas: a lista de mestres do
+      // aluno, a corrente da linhagem e a lista de alunos deste mestre.
+      qc.invalidateQueries({ queryKey: ["mestres_de"] });
+      qc.invalidateQueries({ queryKey: ["linhagem_de"] });
+      qc.invalidateQueries({ queryKey: ["alunos_de"] });
+    },
+    onError: aoFalhar("responder ao pedido"),
+  });
+
+  return {
+    pedidos: query.data ?? [],
+    ready: query.isSuccess,
+    responder: (id: string, aceitar: boolean) => responder.mutate({ id, aceitar }),
+    respondendo: responder.isPending,
+  };
 }

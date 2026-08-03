@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { Icone } from "@/design/icones";
 import { PageShell } from "@/components/PageShell";
+import { FotoDoAtleta } from "@/components/FotoDoAtleta";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -28,6 +29,7 @@ import {
   useEquipes,
   useMeuHandle,
   useMestresDe,
+  usePedidosDeAluno,
   useMeusMestres,
 } from "@/lib/social-storage";
 import type { VinculoDeMestre } from "@/lib/social-types";
@@ -393,6 +395,20 @@ function LinhaDeMestre({ v }: { v: VinculoDeMestre }) {
           <p className="mt-0.5 truncate text-xs capitalize text-muted-foreground">
             {[v.papel, v.teamNome, periodo].filter(Boolean).join(" · ")}
           </p>
+          {/* Só o aluno vê isto: em público o vínculo pendente não aparece.
+              Dizer "aguardando" é melhor que sumir com a linha — a pessoa
+              cadastrou e precisa saber que o cadastro existe e está de pé. */}
+          {v.situacao === "pendente" && (
+            <p className="mt-1 inline-flex items-center gap-1 rounded-full border border-border/60 px-2 py-0.5 text-xs text-muted-foreground">
+              <Icone.horario className="h-3 w-3" />
+              Aguardando {v.mestreNome.split(" ")[0]} confirmar
+            </p>
+          )}
+          {v.situacao === "recusado" && (
+            <p className="mt-1 inline-flex items-center gap-1 rounded-full border border-destructive/50 px-2 py-0.5 text-xs text-destructive">
+              Não confirmado
+            </p>
+          )}
           {v.nota && (
             <p className="mt-1 text-xs italic text-muted-foreground">“{v.nota}”</p>
           )}
@@ -448,6 +464,83 @@ function LinhaDeMestre({ v }: { v: VinculoDeMestre }) {
  * dez anos tem três ou quatro mestres, e o mais importante deles quase nunca é
  * o atual. Aqui cada vínculo é uma entrada, e um deles carrega a corrente.
  */
+/**
+ * Os pedidos que chegaram para mim.
+ *
+ * Mora nesta tela, e não numa própria, porque todo mestre é também aluno de
+ * alguém: quem tem pedido para responder já vem aqui ver a própria linhagem.
+ * Uma tela separada seria um destino a mais no menu para uma lista que passa
+ * a maior parte do tempo vazia.
+ *
+ * Quando não há pedido, não desenha nada — nem título, nem caixa vazia.
+ */
+function PedidosDeAluno() {
+  const { pedidos, ready, responder, respondendo } = usePedidosDeAluno();
+
+  if (!ready || pedidos.length === 0) return null;
+
+  return (
+    <section className="space-y-2" aria-labelledby="pedidos-de-aluno">
+      <h2 id="pedidos-de-aluno" className="text-sm font-bold">
+        {pedidos.length === 1
+          ? "1 pessoa diz que você é mestre dela"
+          : `${pedidos.length} pessoas dizem que você é mestre delas`}
+      </h2>
+      <p className="text-xs text-muted-foreground">
+        Enquanto você não responder, o vínculo não aparece no perfil de
+        ninguém nem na linhagem.
+      </p>
+
+      {pedidos.map((pedido) => (
+        <div
+          key={pedido.id}
+          className="rounded-2xl border border-primary/40 bg-primary/5 p-3"
+        >
+          <div className="flex items-start gap-3">
+            <FotoDoAtleta
+              url={pedido.alunoFoto}
+              nome={pedido.alunoNome}
+              className="h-11 w-11 rounded-xl"
+            />
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-bold">{pedido.alunoNome}</p>
+              <p className="mt-0.5 truncate text-xs capitalize text-muted-foreground">
+                {[
+                  pedido.alunoBelt &&
+                    `${pedido.alunoBelt}${pedido.alunoGraus ? ` · ${pedido.alunoGraus}º` : ""}`,
+                  pedido.papel,
+                ]
+                  .filter(Boolean)
+                  .join(" · ")}
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-3 flex gap-2">
+            <Button
+              size="sm"
+              className="flex-1"
+              disabled={respondendo}
+              onClick={() => responder(pedido.id, true)}
+            >
+              Confirmar
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="flex-1"
+              disabled={respondendo}
+              onClick={() => responder(pedido.id, false)}
+            >
+              Não sou
+            </Button>
+          </div>
+        </div>
+      ))}
+    </section>
+  );
+}
+
 function MeusMestresPage() {
   const { handle } = useMeuHandle();
   const { mestres, ready } = useMestresDe(handle);
@@ -469,6 +562,8 @@ function MeusMestresPage() {
         />
       }
     >
+      <PedidosDeAluno />
+
       {ready && mestres.length === 0 && (
         <Card className="border-dashed border-border/60 bg-transparent">
           <CardContent className="p-6 text-center text-sm text-muted-foreground">

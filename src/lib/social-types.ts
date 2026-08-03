@@ -250,6 +250,27 @@ export interface VinculoDeMestre {
   teamNome: string;
   /** Verdadeiro quando o vínculo é meu — só aí dá para editar. */
   souDono: boolean;
+  /**
+   * `aceito` é o único estado que aparece em público.
+   *
+   * `pendente` significa que o mestre tem conta e ainda não respondeu; quem
+   * vê esse estado é só o aluno (esperando) e o próprio mestre (para
+   * responder). Mestre sem conta nasce `aceito` — não há a quem perguntar.
+   */
+  situacao: "pendente" | "aceito" | "recusado";
+}
+
+/** Um pedido que chegou para mim, como mestre. */
+export interface PedidoDeAluno {
+  id: string;
+  alunoHandle: string;
+  alunoNome: string;
+  alunoBelt: Faixa | "";
+  alunoGraus: number;
+  alunoFoto: string;
+  papel: string;
+  desde: string | null;
+  pedidoEm: string;
 }
 
 /** Um degrau da corrente. Nível 0 é a própria pessoa. */
