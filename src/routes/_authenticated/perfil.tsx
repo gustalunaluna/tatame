@@ -570,6 +570,27 @@ function CaixasDoPerfil() {
           </div>
         ) : null}
       </CaixaDoPerfil>
+
+      {/* Conta e privacidade fecham o perfil.
+          A exclusão precisa ser ACHÁVEL — a Apple reprova quando o caminho
+          existe mas está escondido, e a LGPD não vale nada se ninguém encontra
+          o botão. Duas caixas iguais às outras, no fim da lista, onde quem
+          procura "como saio disso" naturalmente rola até. */}
+      <CaixaDoPerfil
+        titulo="Meus dados"
+        icone={<Icone.baixar className="h-4 w-4" />}
+        para="/meus-dados"
+        i={7}
+        vazio="Baixar tudo que é seu, ou excluir a conta."
+      />
+
+      <CaixaDoPerfil
+        titulo="Privacidade e termos"
+        icone={<Icone.privado className="h-4 w-4" />}
+        para="/privacidade"
+        i={8}
+        vazio="O que o app guarda, e as regras de uso."
+      />
     </div>
   );
 }

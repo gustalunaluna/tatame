@@ -1,4 +1,5 @@
 import {
+  AlertTriangle,
   ArrowLeft,
   AtSign,
   Award,
@@ -12,6 +13,7 @@ import {
   ChevronUp,
   ClipboardList,
   Clock,
+  Download,
   Dumbbell,
   ExternalLink,
   EyeOff,
@@ -106,6 +108,7 @@ export const Icone = {
   fechar: X,
   buscar: Search,
   ocultar: EyeOff,
+  baixar: Download,
 
   /* --- diversos ------------------------------------------------------- */
   local: MapPin,
@@ -114,6 +117,9 @@ export const Icone = {
   foto: Camera,
   horario: Clock,
   privado: Lock,
+  /* Só para o que não tem volta: a exclusão da conta. Se aparecer em mais
+     lugares, o aviso deixa de avisar. */
+  alerta: AlertTriangle,
 } as const satisfies Record<string, LucideIcon>;
 
 export type NomeDeIcone = keyof typeof Icone;

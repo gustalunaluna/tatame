@@ -74,8 +74,17 @@ export function BottomNav() {
   // O mesmo vale para as boas-vindas: a guarda devolve para lá quem ainda não
   // respondeu, então cada atalho da barra viraria um caminho que não leva a
   // lugar nenhum — e o botão "Começar" fica logo embaixo dela.
-  const foraDaSessao =
-    pathname.startsWith("/auth") || pathname.startsWith("/boas-vindas");
+  //
+  // As demais são as telas que existem SEM sessão: a recuperação de senha e as
+  // páginas legais, que as lojas abrem sem instalar o app.
+  const foraDaSessao = [
+    "/auth",
+    "/boas-vindas",
+    "/esqueci-a-senha",
+    "/nova-senha",
+    "/privacidade",
+    "/termos",
+  ].some((rota) => pathname.startsWith(rota));
 
   // Fecha ao trocar de tela
   useEffect(() => setAberto(false), [pathname]);

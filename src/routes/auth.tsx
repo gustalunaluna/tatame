@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -200,6 +200,35 @@ function AuthPage() {
                         : "Criar conta"}
                   </Button>
                 </form>
+
+                {/* Só no login: no cadastro não há senha para esquecer ainda. */}
+                {etapa === "login" ? (
+                  <Link
+                    to="/esqueci-a-senha"
+                    className="tap mt-4 block w-full text-center text-sm text-muted-foreground hover:text-foreground"
+                  >
+                    Esqueci minha senha
+                  </Link>
+                ) : (
+                  /* O aceite fica no cadastro, junto do botão que cria a conta:
+                     é onde ele significa alguma coisa. As duas lojas procuram
+                     por isto na revisão, e a LGPD pede que o texto esteja
+                     acessível ANTES do envio, não depois. */
+                  <p className="mt-4 text-center text-xs leading-relaxed text-muted-foreground">
+                    Ao criar a conta você aceita os{" "}
+                    <Link to="/termos" className="underline hover:text-foreground">
+                      Termos de Uso
+                    </Link>{" "}
+                    e a{" "}
+                    <Link
+                      to="/privacidade"
+                      className="underline hover:text-foreground"
+                    >
+                      Política de Privacidade
+                    </Link>
+                    .
+                  </p>
+                )}
 
                 <button
                   type="button"

@@ -307,6 +307,16 @@ export type Database = {
         Args: Record<string, never>;
         Returns: { total: number; unlocked: number }[];
       };
+      /** Exportação LGPD art. 18, V — ver migração 036. */
+      meus_dados: {
+        Args: Record<string, never>;
+        Returns: Json;
+      };
+      /** Exclusão LGPD art. 18, VI / App Store 5.1.1(v) — ver migração 036. */
+      excluir_minha_conta: {
+        Args: Record<string, never>;
+        Returns: undefined;
+      };
     };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;
