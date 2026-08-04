@@ -205,11 +205,14 @@ function Home() {
             <Icone.avancar className="h-5 w-5 shrink-0 text-muted-foreground" />
           </Link>
 
-          {/* Level — horas de tatame, que é como o jiu-jitsu mede de verdade */}
+          {/* Nível — horas de tatame, que é como o jiu-jitsu mede de verdade.
+              Era "LEVEL", em inglês, num app inteiramente em português e cuja
+              própria biblioteca se chama `nivel.ts`. E em versalete espaçado,
+              que é o mesmo maneirismo que saiu da faixa de estatísticas. */}
           <div className="mt-4 border-t border-border/50 pt-3">
             <div className="flex items-end justify-between">
-              <p className="text-xs font-bold uppercase tracking-widest text-primary">
-                Level {nivel.level}
+              <p className="text-sm font-black text-primary">
+                Nível {nivel.level}
               </p>
               <p className="text-sm font-black tabular-nums">
                 {hydrated ? horasEmTexto(nivel.horas) : "—"}{" "}
@@ -221,10 +224,10 @@ function Home() {
             <Bar
               value={nivel.progresso}
               className="mt-2 h-1.5"
-              label={`Progresso para o level ${nivel.level + 1}`}
+              label={`Progresso para o nível ${nivel.level + 1}`}
             />
             <p className="mt-1 text-xs text-muted-foreground">
-              {nivel.faltam}h para o level {nivel.level + 1}
+              {nivel.faltam}h para o nível {nivel.level + 1}
             </p>
           </div>
 
@@ -270,42 +273,56 @@ function Home() {
         Registrar treino
       </Link>
 
-      {/* Stat row */}
-      <div className="grid grid-cols-3 gap-2">
-        <Card className="border-border/50 bg-card/60">
-          <CardContent className="p-3">
-            <div className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              <Icone.sequencia className="h-3.5 w-3.5 text-primary" /> Sequência
+      {/**
+        * Os três números do mesmo assunto, numa faixa só.
+        *
+        * Eram três cartões idênticos lado a lado, cada um com rótulo em
+        * versalete espaçado, número grande e unidade embaixo — a grade de
+        * cartões iguais é o desenho mais previsível que existe, e três
+        * molduras para três números que se leem juntos criam separação onde
+        * não há diferença. Agora é uma superfície com dois filetes: o olho
+        * varre os três de uma vez.
+        *
+        * Os rótulos saíram do versalete e viraram frase: "em sequência" diz
+        * o que "SEQUÊNCIA" só sugeria, e num tamanho que se lê.
+        */}
+      <Card className="border-border/50 bg-card/60">
+        <CardContent className="grid grid-cols-3 divide-x divide-border/60 p-0">
+          {[
+            {
+              valor: hydrated ? streakAnimado : "—",
+              unidade: "dias",
+              rotulo: "em sequência",
+              destaque: true,
+            },
+            {
+              valor: hydrated ? mesAnimado : "—",
+              unidade: "treinos",
+              rotulo: "neste mês",
+            },
+            {
+              valor: hydrated ? totalAnimado : "—",
+              unidade: "dias",
+              rotulo: "no total",
+            },
+          ].map((e) => (
+            <div key={e.rotulo} className="px-3 py-3.5 text-center">
+              <p
+                className={cn(
+                  "text-2xl font-black leading-none tabular-nums",
+                  e.destaque && "text-primary",
+                )}
+              >
+                {e.valor}
+                <span className="ml-1 text-sm font-bold text-muted-foreground">
+                  {e.unidade}
+                </span>
+              </p>
+              <p className="mt-1.5 text-xs text-muted-foreground">{e.rotulo}</p>
             </div>
-            <p className="mt-1 text-2xl font-black text-primary tabular-nums">
-              {hydrated ? streakAnimado : "—"}
-            </p>
-            <p className="text-xs text-muted-foreground">dias</p>
-          </CardContent>
-        </Card>
-        <Card className="border-border/50 bg-card/60">
-          <CardContent className="p-3">
-            <div className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              <Icone.plano className="h-3.5 w-3.5 text-primary" /> Mês
-            </div>
-            <p className="mt-1 text-2xl font-black tabular-nums">
-              {hydrated ? mesAnimado : "—"}
-            </p>
-            <p className="text-xs text-muted-foreground">treinos</p>
-          </CardContent>
-        </Card>
-        <Card className="border-border/50 bg-card/60">
-          <CardContent className="p-3">
-            <div className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              <Icone.treino className="h-3.5 w-3.5 text-primary" /> Total
-            </div>
-            <p className="mt-1 text-2xl font-black tabular-nums">
-              {hydrated ? totalAnimado : "—"}
-            </p>
-            <p className="text-xs text-muted-foreground">dias</p>
-          </CardContent>
-        </Card>
-      </div>
+          ))}
+        </CardContent>
+      </Card>
 
       {/* O que a semana deixou aberto. Vem cedo de propósito: é ação
           pendente, e ação pendente enterrada no rodapé não é vista. */}
@@ -474,7 +491,7 @@ function Home() {
                   </p>
                 </div>
                 <span className="ml-3 shrink-0 rounded-full bg-primary/20 px-2 py-1 text-xs font-black text-primary">
-                  {t.rolls} rolos
+                  {t.rolls} {t.rolls === 1 ? "rola" : "rolas"}
                 </span>
               </CardContent>
             </Card>

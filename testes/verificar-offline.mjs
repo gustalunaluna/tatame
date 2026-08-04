@@ -87,10 +87,12 @@ const recarregouOffline = await p
   .catch(() => false);
 conferir("a página recarrega offline", recarregouOffline);
 
-conferir(
-  "a marca aparece offline",
-  (await p.getByRole("heading", { name: "Ponteira", level: 1 }).count()) === 1,
-);
+// Contar o cabeçalho logo depois do reload é apostar que o app já pintou.
+// Sozinha a suíte ganhava essa aposta; com as 30 rodando junto, perdia. O
+// `waitFor` espera o que interessa em vez de torcer pelo relógio.
+const marca = p.getByRole("heading", { name: "Ponteira", level: 1 });
+await marca.waitFor({ state: "visible", timeout: 15000 }).catch(() => {});
+conferir("a marca aparece offline", (await marca.count()) === 1);
 
 /* --- 3. rota interna offline --------------------------------------------- */
 

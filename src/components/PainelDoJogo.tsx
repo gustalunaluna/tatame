@@ -276,12 +276,17 @@ export function FechamentoDaSemana() {
           fica calado, que é melhor do que ele chutar.
         </p>
 
-        <ul className="mt-3 space-y-1.5">
+      {/* Lista com filetes, e não uma pilha de caixas.
+          Cada pendência era um retângulo com borda e fundo próprios, dentro
+          de um cartão que já tem borda e fundo — moldura dentro de moldura,
+          que separa o que deveria se ler como um conjunto. O filete faz a
+          divisão com um traço em vez de quatro. */}
+        <ul className="mt-3 divide-y divide-border/50">
           {pendencias.map((p) => (
             <li key={p.trainingId}>
               <button
                 onClick={() => setAbertoId(p.trainingId)}
-                className="tap flex w-full items-center gap-2 rounded-xl border border-border/60 bg-card/60 p-3 text-left active:scale-[0.99]"
+                className="tap flex w-full items-center gap-2 rounded-lg py-3 text-left active:scale-[0.99]"
               >
                 <span className="min-w-0 flex-1">
                   <span className="block text-sm font-bold capitalize">
@@ -345,7 +350,7 @@ function Plano({ h, faixa }: { h: HexagonoDerivado; faixa: string | undefined })
 
         <ol className="mt-3 space-y-2">
           {p.semanas.map((s) => (
-            <li key={s.semana} className="rounded-xl border border-border/60 p-3">
+            <li key={s.semana} className="py-3">
               <div className="flex items-baseline gap-2">
                 <span className="shrink-0 text-xs font-black uppercase tracking-[0.18em] text-primary">
                   Semana {s.semana}

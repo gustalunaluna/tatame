@@ -35,6 +35,7 @@ import {
   type RascunhoTecnica,
 } from "@/lib/tecnicas-storage";
 import { ParceirosDoTreino } from "@/components/ParceirosDoTreino";
+import { RelatoDoTreino } from "@/components/RelatoDoTreino";
 import type { RascunhoParceiro } from "@/lib/social-types";
 import type { Training, TrainingType } from "@/lib/bjj-types";
 
@@ -42,7 +43,7 @@ export const Route = createFileRoute("/_authenticated/diario")({
   head: () => ({
     meta: [
       { title: "Diário — Ponteira" },
-      { name: "description", content: "Registre cada treino: Gi/No-Gi, rolos, técnicas e sensações." },
+      { name: "description", content: "Registre cada treino: Gi/No-Gi, rolas, técnicas e sensações." },
     ],
   }),
   component: DiaryPage,
@@ -64,7 +65,7 @@ function DiaryPage() {
   return (
     <PageShell
       title="Diário"
-      subtitle="Cada rolo conta uma história."
+      subtitle="Cada rola conta uma história."
       action={
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
@@ -173,7 +174,7 @@ function DiaryPage() {
                       {t.durationMin} min
                     </span>
                     <span className="rounded-full bg-secondary px-2 py-0.5 text-secondary-foreground">
-                      {t.rolls} rolos
+                      {t.rolls} {t.rolls === 1 ? "rola" : "rolas"}
                     </span>
                   </div>
                 </div>
@@ -222,11 +223,7 @@ function DiaryPage() {
                   <b className="text-foreground">Técnicas:</b> {t.techniques}
                 </p>
               )}
-              {t.notes && (
-                <p className="mt-2 rounded-md border border-border/50 bg-background/40 p-2 text-xs italic text-muted-foreground">
-                  “{t.notes}”
-                </p>
-              )}
+              {t.notes && <RelatoDoTreino texto={t.notes} />}
             </CardContent>
           </Card>
         ))}
@@ -385,7 +382,7 @@ function TrainingDialog({
             />
           </div>
           <div>
-            <Label>Rolos</Label>
+            <Label>Rolas</Label>
             <Input
               type="number"
               inputMode="numeric"

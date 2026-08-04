@@ -9,7 +9,7 @@ import { abrirNavegador } from "./navegador.mjs";
 const REF = "jqcuysthbcdbohkavfeb";
 const BASE = process.env.BASE ?? "http://localhost:4183";
 
-// 30 treinos de 90min = 45h → level 3 (passou o degrau de 25h, não o de 50h)
+// 30 treinos de 90min = 45h → nível 3 (passou o degrau de 25h, não o de 50h)
 const treinos = Array.from({ length: 30 }, (_, i) => ({
   id: `t-${i}`, user_id: "u1",
   date: new Date(Date.now() - i * 86400000).toISOString().slice(0, 10),
@@ -84,7 +84,7 @@ const checagens = [
   ["NÃO mostra a tabela morta plan_weeks",  !tem("FOCO ANTIGO")],
   ["mostra a meta escolhida pelo usuário",  tem("Faixa Roxa até 2029")],
   ["NÃO mostra a faixa azul cravada",       !tem("Faixa Azul em 1 ano")],
-  ["level vem de horas, não de treinos",    /Level 3/i.test(texto)],
+  ["nível vem de horas, não de treinos",    /N[íi]vel 3/i.test(texto)],
   ["mostra as horas de tatame",             tem("45h")],
   ["sem erro de página",                    erros.length === 0],
 ];
