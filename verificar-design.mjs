@@ -67,13 +67,6 @@ const permitidos = new Set([
   "src/design/icones.ts",
   "src/design/tokens.css", // gerado
   "src/lib/faixa-cores.ts", // lê do JSON e devolve string CSS — é a ponte oficial
-  // O catálogo de peças do avatar. As cores dele são PIGMENTO DE DESENHO —
-  // tom de pele, cor de cabelo, tecido de kimono, bordado de patch — e não
-  // cor de interface: não seguem a faixa, não mudam com o tema e nenhuma
-  // outra tela as lê. Levá-las para tokens.json encheria o arquivo de design
-  // com 25 valores que só um componente usa. Mesmo papel de `icones.ts`
-  // logo acima: é o catálogo, não o consumidor.
-  "src/design/avatar.ts",
 ]);
 
 const comCorCrua = [];

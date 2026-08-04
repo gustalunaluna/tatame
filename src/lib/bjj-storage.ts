@@ -17,7 +17,6 @@ import type {
   WeakPoint,
 } from "./bjj-types";
 import { ACHIEVEMENT_TIERS } from "./bjj-types";
-import { lerAvatar } from "@/design/avatar";
 
 const uid = () =>
   typeof crypto !== "undefined" && "randomUUID" in crypto
@@ -724,7 +723,6 @@ export function usePerfil() {
         questionarioEm: data
           ? ((extra?.questionario_em as string | null) ?? null)
           : undefined,
-        avatar: lerAvatar(extra?.avatar),
       };
     },
   });
@@ -746,13 +744,6 @@ export function usePerfil() {
         ...(patch.fightsLost !== undefined && { fights_lost: patch.fightsLost }),
         ...(patch.goalStart !== undefined && { goal_start: patch.goalStart }),
         ...(patch.instrutor !== undefined && { instrutor: patch.instrutor }),
-        // O `Avatar` é uma interface com campos nomeados; `Json` exige
-        // assinatura de índice. São a mesma coisa em tempo de execução — a
-        // conversão diz isso ao compilador uma vez, aqui, em vez de afrouxar
-        // o tipo do avatar no resto do app.
-        ...(patch.avatar !== undefined && {
-          avatar: patch.avatar as unknown as Json,
-        }),
       };
       const { error } = await supabase
         .from("profiles")

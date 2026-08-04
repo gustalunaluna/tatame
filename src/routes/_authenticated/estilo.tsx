@@ -8,10 +8,6 @@ import { acentoDaFaixa } from "@/lib/faixa-cores";
 import tokens from "@/design/tokens.json";
 import type { Faixa } from "@/lib/bjj-types";
 import { cn } from "@/lib/utils";
-import { Avatar } from "@/components/Avatar";
-import { avatarSorteado, ESTILOS_DE_CABELO, CORES_DE_KIMONO, PATCHES, AVATAR_PADRAO, type PatchId } from "@/design/avatar";
-
-const FAIXAS_DO_GUIA: Faixa[] = ["Branca","Azul","Roxa","Marrom","Preta","Coral","Vermelha"];
 
 export const Route = createFileRoute("/_authenticated/estilo")({
   head: () => ({
@@ -61,98 +57,6 @@ function EstiloPage() {
       title="Estilo"
       subtitle="O sistema por trás das telas. Muda em design/tokens.json."
     >
-      {/* ===== Avatar ===== */}
-      <Card>
-        <CardContent className="p-4">
-          <h2 className="text-sm font-bold">Avatar</h2>
-          <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-            Retrato desenhado em SVG, sem imagem e sem rede. O aro é a faixa
-            de verdade da pessoa — vem do perfil, não se escolhe aqui.
-          </p>
-
-          <p className="mt-4 text-xs font-semibold text-muted-foreground">
-            A faixa no aro, da branca à vermelha
-          </p>
-          <div className="mt-2 flex flex-wrap gap-3">
-            {FAIXAS_DO_GUIA.map((f, i) => (
-              <div key={f} className="flex flex-col items-center gap-1">
-                <Avatar
-                  dados={avatarSorteado(`guia-${f}`)}
-                  belt={f}
-                  degrees={i % 5}
-                  className="h-16 w-16"
-                />
-                <span className="text-xs text-muted-foreground">{f}</span>
-              </div>
-            ))}
-          </div>
-
-          <p className="mt-5 text-xs font-semibold text-muted-foreground">
-            Cabelos
-          </p>
-          <div className="mt-2 flex flex-wrap gap-3">
-            {ESTILOS_DE_CABELO.map((e) => (
-              <div key={e.id} className="flex flex-col items-center gap-1">
-                <Avatar
-                  dados={{ ...AVATAR_PADRAO, cabelo: e.id }}
-                  belt="Roxa"
-                  degrees={2}
-                  className="h-14 w-14"
-                />
-                <span className="text-xs text-muted-foreground">{e.nome}</span>
-              </div>
-            ))}
-          </div>
-
-          <p className="mt-5 text-xs font-semibold text-muted-foreground">
-            Kimono e patches
-          </p>
-          <div className="mt-2 flex flex-wrap gap-3">
-            {CORES_DE_KIMONO.map((k) => (
-              <div key={k.id} className="flex flex-col items-center gap-1">
-                <Avatar
-                  dados={{ ...AVATAR_PADRAO, kimono: k.id, patches: ["brasil", "academia"] }}
-                  belt="Preta"
-                  degrees={3}
-                  className="h-14 w-14"
-                />
-                <span className="text-xs text-muted-foreground">{k.nome}</span>
-              </div>
-            ))}
-            {(Object.keys(PATCHES) as PatchId[])
-              .filter((id) => id !== "nenhum")
-              .map((id) => (
-                <div key={id} className="flex flex-col items-center gap-1">
-                  <Avatar
-                    dados={{ ...AVATAR_PADRAO, kimono: "preto", patches: [id, id] }}
-                    belt="Marrom"
-                    degrees={1}
-                    className="h-14 w-14"
-                  />
-                  <span className="text-xs text-muted-foreground">
-                    {PATCHES[id].nome}
-                  </span>
-                </div>
-              ))}
-          </div>
-
-          <p className="mt-5 text-xs font-semibold text-muted-foreground">
-            Sorteio por identificador — quem nunca abriu o editor
-          </p>
-          <div className="mt-2 flex flex-wrap gap-2">
-            {Array.from({ length: 12 }, (_, i) => (
-              <Avatar
-                key={i}
-                dados={avatarSorteado(`aluno-${i}`)}
-                belt="Azul"
-                degrees={i % 5}
-                className="h-12 w-12"
-              />
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
       {/* ---------------- A faixa como acento ---------------- */}
       <Secao
         titulo="A cor é a faixa"

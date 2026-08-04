@@ -3,8 +3,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Icone } from "@/design/icones";
 import { toast } from "sonner";
 import { PageShell } from "@/components/PageShell";
-import { EditorDeAvatar } from "@/components/EditorDeAvatar";
-import { AVATAR_PADRAO } from "@/design/avatar";
 import { Link } from "@tanstack/react-router";
 import { CaixaDoPerfil } from "@/components/CaixaDoPerfil";
 import { AmostraDeAtletas } from "@/components/ListaDeAtletas";
@@ -94,7 +92,6 @@ function PerfilPage() {
   const { items: treinos } = useTrainings();
   const inputFoto = useRef<HTMLInputElement>(null);
   const [enviando, setEnviando] = useState(false);
-  const [editandoAvatar, setEditandoAvatar] = useState(false);
 
   const anos = idade(perfil?.birthDate ?? null);
   const totalLutas = (perfil?.fightsWon ?? 0) + (perfil?.fightsLost ?? 0);
@@ -132,9 +129,6 @@ function PerfilPage() {
                 nome={perfil?.nickname}
                 className="h-24 w-24 rounded-2xl ring-2 ring-primary/50"
                 classeDasIniciais="text-2xl"
-                avatar={perfil?.avatar}
-                belt={perfil?.belt}
-                degrees={perfil?.degrees}
               />
               <button
                 onClick={() => inputFoto.current?.click()}
@@ -151,34 +145,6 @@ function PerfilPage() {
                 className="sr-only"
                 onChange={escolherFoto}
               />
-              {/* Dois caminhos para o retrato: mandar foto ou desenhar um.
-                  O de desenhar fica do lado esquerdo porque é o que funciona
-                  sem câmera, sem rede e sem ter que estar apresentável. */}
-              <Dialog open={editandoAvatar} onOpenChange={setEditandoAvatar}>
-                <DialogTrigger asChild>
-                  <button
-                    aria-label="Montar meu avatar"
-                    className="tap absolute -bottom-1 -left-1 grid h-8 w-8 place-items-center rounded-full border border-border bg-card text-foreground shadow active:scale-90"
-                  >
-                    <Icone.editar className="h-4 w-4" />
-                  </button>
-                </DialogTrigger>
-                <DialogContent className="max-h-[90vh] overflow-y-auto">
-                  <DialogHeader>
-                    <DialogTitle>Seu avatar</DialogTitle>
-                  </DialogHeader>
-                  <EditorDeAvatar
-                    inicial={perfil?.avatar ?? AVATAR_PADRAO}
-                    belt={perfil?.belt}
-                    degrees={perfil?.degrees}
-                    aoSalvar={(a) => {
-                      salvar({ avatar: a });
-                      setEditandoAvatar(false);
-                      toast.success("Avatar atualizado.");
-                    }}
-                  />
-                </DialogContent>
-              </Dialog>
             </div>
 
             <div className="min-w-0 flex-1 pt-1">

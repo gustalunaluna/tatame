@@ -1,8 +1,5 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import { Avatar } from "@/components/Avatar";
-import { avatarSorteado, type Avatar as DadosDoAvatar } from "@/design/avatar";
-import type { Faixa } from "@/lib/bjj-types";
 
 /**
  * A foto de quem está na tela, com o que fazer quando ela não vem.
@@ -39,29 +36,15 @@ export function FotoDoAtleta({
   nome,
   className,
   classeDasIniciais,
-  avatar,
-  semente,
-  belt,
-  degrees,
 }: {
   url?: string | null;
   nome?: string | null;
   /** Tamanho e forma vêm de quem chama: o cartão usa 2xl, a lista usa xl. */
   className?: string;
   classeDasIniciais?: string;
-  /** O retrato desenhado, quando a pessoa montou um. */
-  avatar?: DadosDoAvatar;
-  /**
-   * Identificador estável para sortear um retrato de quem ainda não montou.
-   * Sem ele, quem não tem foto nem avatar cai nas iniciais, como antes.
-   */
-  semente?: string | null;
-  belt?: Faixa | null;
-  degrees?: number;
 }) {
   const [falhou, setFalhou] = useState(false);
   const temFoto = Boolean(url) && !falhou;
-  const desenho = avatar ?? (semente ? avatarSorteado(semente) : null);
 
   return (
     <div
@@ -70,9 +53,6 @@ export function FotoDoAtleta({
         className,
       )}
     >
-      {/* Ordem: foto de verdade, depois retrato desenhado, depois iniciais.
-          A foto ganha porque é a pessoa; o desenho ganha das iniciais porque
-          duas letras não distinguem sessenta alunos numa lista de academia. */}
       {temFoto ? (
         <img
           src={url as string}
@@ -80,13 +60,6 @@ export function FotoDoAtleta({
           loading="lazy"
           onError={() => setFalhou(true)}
           className="h-full w-full object-cover"
-        />
-      ) : desenho ? (
-        <Avatar
-          dados={desenho}
-          belt={belt}
-          degrees={degrees}
-          className="h-full w-full"
         />
       ) : (
         <span

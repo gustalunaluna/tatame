@@ -178,9 +178,6 @@ function Home() {
               nome={perfil?.nickname}
               className="h-16 w-16 rounded-2xl ring-2 ring-primary/40"
               classeDasIniciais="text-lg"
-              avatar={perfil?.avatar}
-              belt={perfil?.belt}
-              degrees={perfil?.degrees}
             />
 
             <div className="min-w-0 flex-1">
@@ -277,53 +274,71 @@ function Home() {
       </Link>
 
       {/**
-        * Os três números do mesmo assunto, numa faixa só.
+        * Os três números, com hierarquia.
         *
-        * Eram três cartões idênticos lado a lado, cada um com rótulo em
-        * versalete espaçado, número grande e unidade embaixo — a grade de
-        * cartões iguais é o desenho mais previsível que existe, e três
-        * molduras para três números que se leem juntos criam separação onde
-        * não há diferença. Agora é uma superfície com dois filetes: o olho
-        * varre os três de uma vez.
+        * Foram três cartões idênticos, depois três colunas de peso igual. Mas
+        * elas não valem igual: SEQUÊNCIA é a única que muda de comportamento —
+        * é o número que a pessoa protege quando pensa em faltar. Mês e total
+        * são placar, e placar se confere.
         *
-        * Os rótulos saíram do versalete e viraram frase: "em sequência" diz
-        * o que "SEQUÊNCIA" só sugeria, e num tamanho que se lê.
+        * Então a sequência ganha o bloco grande, com um brilho da cor da faixa
+        * por trás; os outros dois viram duas linhas empilhadas ao lado. O olho
+        * pega a hierarquia antes de ler qualquer palavra — que é o que três
+        * caixas iguais nunca conseguem fazer.
         */}
-      <Card className="border-border/50 bg-card/60">
-        <CardContent className="grid grid-cols-3 divide-x divide-border/60 p-0">
-          {[
-            {
-              valor: hydrated ? streakAnimado : "—",
-              unidade: "dias",
-              rotulo: "em sequência",
-              destaque: true,
-            },
-            {
-              valor: hydrated ? mesAnimado : "—",
-              unidade: "treinos",
-              rotulo: "neste mês",
-            },
-            {
-              valor: hydrated ? totalAnimado : "—",
-              unidade: "dias",
-              rotulo: "no total",
-            },
-          ].map((e) => (
-            <div key={e.rotulo} className="px-3 py-3.5 text-center">
-              <p
-                className={cn(
-                  "text-2xl font-black leading-none tabular-nums",
-                  e.destaque && "text-primary",
-                )}
+      <Card className="overflow-hidden border-border/50 bg-card/60">
+        <CardContent className="grid grid-cols-[1.15fr_1fr] gap-0 p-0">
+          <div className="relative flex flex-col justify-center gap-1 p-4">
+            <span
+              aria-hidden
+              className="pointer-events-none absolute -left-6 -top-8 h-28 w-28 rounded-full bg-primary/15 blur-2xl"
+            />
+            <span className="relative flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+              <Icone.sequencia className="h-3.5 w-3.5 text-primary" />
+              em sequência
+            </span>
+            <p className="relative text-4xl font-black leading-none tabular-nums text-primary">
+              {hydrated ? streakAnimado : "—"}
+              <span className="ml-1.5 text-base font-bold text-muted-foreground">
+                {streakDays === 1 ? "dia" : "dias"}
+              </span>
+            </p>
+          </div>
+
+          <div className="divide-y divide-border/60 border-l border-border/60">
+            {[
+              {
+                icone: <Icone.plano className="h-3.5 w-3.5 text-primary" />,
+                valor: hydrated ? mesAnimado : "—",
+                unidade: thisMonth === 1 ? "treino" : "treinos",
+                rotulo: "neste mês",
+              },
+              {
+                icone: <Icone.treino className="h-3.5 w-3.5 text-primary" />,
+                valor: hydrated ? totalAnimado : "—",
+                unidade: totalTrainings === 1 ? "dia" : "dias",
+                rotulo: "no total",
+              },
+            ].map((e) => (
+              <div
+                key={e.rotulo}
+                className="flex items-baseline justify-between gap-2 px-3 py-3"
               >
-                {e.valor}
-                <span className="ml-1 text-sm font-bold text-muted-foreground">
-                  {e.unidade}
+                {/* `whitespace-nowrap`: na coluna estreita "neste mês"
+                    quebrava entre as duas palavras e desalinhava a linha. */}
+                <span className="flex items-center gap-1.5 whitespace-nowrap text-xs text-muted-foreground">
+                  {e.icone}
+                  {e.rotulo}
                 </span>
-              </p>
-              <p className="mt-1.5 text-xs text-muted-foreground">{e.rotulo}</p>
-            </div>
-          ))}
+                <p className="text-xl font-black leading-none tabular-nums">
+                  {e.valor}
+                  <span className="ml-1 text-xs font-semibold text-muted-foreground">
+                    {e.unidade}
+                  </span>
+                </p>
+              </div>
+            ))}
+          </div>
         </CardContent>
       </Card>
 

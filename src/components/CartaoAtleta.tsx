@@ -41,9 +41,6 @@ export function CartaoAtleta({
       <FotoDoAtleta
         url={atleta.photoUrl}
         nome={atleta.nickname}
-        semente={atleta.handle}
-        belt={atleta.belt}
-        degrees={atleta.degrees}
         className="h-12 w-12 rounded-xl border border-border/60"
       />
 
