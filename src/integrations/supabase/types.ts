@@ -15,6 +15,7 @@ export type Database = {
           goal_start: string;
           seeded: boolean;
           demonstracao: boolean;
+          avatar: Json;
           created_at: string;
           updated_at: string;
           nickname: string;
@@ -39,6 +40,7 @@ export type Database = {
           goal_start?: string;
           seeded?: boolean;
           demonstracao?: boolean;
+          avatar?: Json;
           created_at?: string;
           updated_at?: string;
           nickname?: string;
@@ -63,6 +65,7 @@ export type Database = {
           goal_start?: string;
           seeded?: boolean;
           demonstracao?: boolean;
+          avatar?: Json;
           created_at?: string;
           updated_at?: string;
           nickname?: string;

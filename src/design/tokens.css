@@ -82,6 +82,7 @@
   --t-faixa: 600ms;
 
   /* camadas — nunca escreva z-index solto */
+  --z-grudado: 30;
   --z-nav: 40;
   --z-sobreposicao: 50;
   --z-painel: 51;

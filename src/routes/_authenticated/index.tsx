@@ -178,6 +178,9 @@ function Home() {
               nome={perfil?.nickname}
               className="h-16 w-16 rounded-2xl ring-2 ring-primary/40"
               classeDasIniciais="text-lg"
+              avatar={perfil?.avatar}
+              belt={perfil?.belt}
+              degrees={perfil?.degrees}
             />
 
             <div className="min-w-0 flex-1">

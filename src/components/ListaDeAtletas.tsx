@@ -37,6 +37,9 @@ export function LinhaDeAtleta({
       <FotoDoAtleta
         url={a.photoUrl}
         nome={a.nickname}
+        semente={a.handle}
+        belt={a.belt}
+        degrees={a.degrees}
         className="h-11 w-11 rounded-xl border border-border/60"
       />
       <div className="min-w-0 flex-1">

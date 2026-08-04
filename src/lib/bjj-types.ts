@@ -36,6 +36,11 @@ export interface Perfil {
    * ainda", `null` é "existe linha e nunca respondeu".
    */
   questionarioEm?: string | null;
+  /**
+   * O retrato desenhado. Sempre normalizado por `lerAvatar` — quem lê nunca
+   * recebe um estilo que deixou de existir.
+   */
+  avatar?: import("@/design/avatar").Avatar;
 }
 
 export type TrainingType = "Gi" | "No-Gi";
