@@ -132,6 +132,29 @@ questionario as (
   where not demonstracao
     and created_at > timestamptz '2026-08-03'
     and questionario_em is null
+),
+
+-- 6. nenhuma equipe morre com quem a fundou ---------------------------------
+-- Descoberto ao escrever a exclusão de conta (migração 036): `teams.created_by`
+-- era NOT NULL com ON DELETE CASCADE. Uma pessoa exercendo o direito de apagar
+-- a PRÓPRIA conta levaria junto a equipe que fundou e, por cascata de
+-- `team_members`, o vínculo de todos os membros — dado de dezenas de
+-- terceiros, apagado por um clique legítimo de uma pessoa só.
+--
+-- A conferência não olha o dado, olha a REGRA: qualquer chave estrangeira de
+-- `teams` para `auth.users` que não seja SET NULL ('n') é a mesma armadilha
+-- voltando. Vale para a que existe hoje e para a que alguém criar amanhã sem
+-- lembrar deste parágrafo.
+equipes as (
+  select
+    'Nenhuma equipe morre com quem a fundou' as invariante,
+    count(*) as violacoes,
+    coalesce(string_agg(conname, ', '), '') as quais
+  from pg_constraint
+  where conrelid = 'public.teams'::regclass
+    and contype = 'f'
+    and confrelid = 'auth.users'::regclass
+    and confdeltype <> 'n'
 )
 
 select invariante,
@@ -144,6 +167,7 @@ from (
   union all select * from anon_politicas
   union all select * from plano
   union all select * from questionario
+  union all select * from equipes
 ) t
 order by (violacoes > 0) desc, invariante;
 
