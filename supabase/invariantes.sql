@@ -108,16 +108,30 @@ plano as (
 ),
 
 -- 5. o questionário de boas-vindas continua alcançável ----------------------
--- A coluna existiu por meses sem tela nenhuma que a preenchesse. Se ela voltar
--- a ficar sem nenhuma linha preenchida enquanto houver conta não semeada, é
--- sinal de que a tela quebrou ou o fluxo deixou de passar por ela.
+-- A coluna existiu por meses sem tela nenhuma que a preenchesse. Se uma conta
+-- REAL e NOVA passar pelo cadastro e sair sem responder, a tela quebrou ou o
+-- fluxo deixou de passar por ela.
+--
+-- Duas ressalvas viraram condição, e as duas custaram um alarme falso antes de
+-- serem escritas:
+--
+--   · `demonstracao`, e não `seeded`. As 101 contas têm `seeded = true`, que só
+--     quer dizer "o seed de técnicas já rodou aqui" — vale para toda conta que
+--     abriu o app uma vez. Usar isso como marca de conta de teste dava zero
+--     contas reais e uma conferência que nunca conferia nada.
+--
+--   · a data de corte. A única conta real nasceu em 30/07, e o questionário só
+--     passou a existir na migração 029, em 03/08. Cobrar dela uma resposta que
+--     não tinha onde ser dada é acusar o passado.
 questionario as (
   select
-    'Conta real que existe respondeu o questionário' as invariante,
+    'Conta real criada após o questionário respondeu' as invariante,
     count(*) as violacoes,
     coalesce(string_agg(left(user_id::text, 8), ', '), '') as quais
   from public.profiles
-  where not seeded and questionario_em is null
+  where not demonstracao
+    and created_at > timestamptz '2026-08-03'
+    and questionario_em is null
 )
 
 select invariante,
@@ -132,3 +146,27 @@ from (
   union all select * from questionario
 ) t
 order by (violacoes > 0) desc, invariante;
+
+-- ============================================================================
+-- Consultas soltas — não são invariantes, são as perguntas que se faz
+-- ============================================================================
+-- Quantas pessoas de verdade existem, e o que elas fizeram.
+--
+--   select count(*) filter (where not demonstracao) as reais,
+--          count(*) filter (where demonstracao)     as demonstracao
+--     from public.profiles;
+--
+-- Quem é real, e quando entrou pela última vez. `auth.users` é a fonte do
+-- login; `profiles.created_at` não serve para ordenar, porque as contas
+-- semeadas foram criadas todas no mesmo microssegundo.
+--
+--   select u.email, u.created_at, u.last_sign_in_at, p.nickname, p.belt
+--     from public.profiles p
+--     join auth.users u on u.id = p.user_id
+--    where not p.demonstracao
+--    order by u.last_sign_in_at desc nulls last;
+--
+-- Para marcar uma conta nova como demonstração:
+--
+--   update public.profiles set demonstracao = true where handle = '<handle>';
+-- ============================================================================
