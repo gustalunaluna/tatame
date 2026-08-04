@@ -151,7 +151,8 @@ function BoasVindasPage() {
   const completo = meses !== null && porSemana !== null;
 
   return (
-    <div className="topo-seguro rodape-seguro lados-seguros mx-auto flex min-h-dvh w-full max-w-md flex-col gap-7 pb-16">
+    // `<main>` pelo mesmo motivo do PageShell: esta tela não passa por ele.
+    <main className="topo-seguro rodape-seguro lados-seguros mx-auto flex min-h-dvh w-full max-w-md flex-col gap-7 pb-16">
       <header>
         <p className="text-sm font-medium text-muted-foreground">
           Antes de começar
@@ -275,6 +276,6 @@ function BoasVindasPage() {
           </p>
         )}
       </div>
-    </div>
+    </main>
   );
 }

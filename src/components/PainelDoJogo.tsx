@@ -132,7 +132,7 @@ function FecharTreino({
           <DialogTitle className="capitalize">{dataBonita}</DialogTitle>
         </DialogHeader>
 
-        <p className="text-xs text-muted-foreground">
+        <p className="text-sm leading-relaxed text-muted-foreground">
           Não é para acertar de cabeça — é o que você lembra. O app conta
           eventos, não opinião, e por isso a conta aguenta um número torto: o
           que manda é a tendência de várias semanas.
@@ -271,7 +271,7 @@ export function FechamentoDaSemana() {
               : `${pendencias.length} treinos desta semana para fechar`}
           </p>
         </div>
-        <p className="mt-1 text-xs text-muted-foreground">
+        <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
           Um minuto cada. É o que faz o seu hexágono se mexer — sem isso ele
           fica calado, que é melhor do que ele chutar.
         </p>
@@ -368,7 +368,7 @@ function Plano({ h, faixa }: { h: HexagonoDerivado; faixa: string | undefined })
           <summary className="cursor-pointer text-xs font-bold text-primary">
             Por que alterna entre dois temas?
           </summary>
-          <p className="mt-2 text-xs text-muted-foreground">
+          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
             Porque treinar dois assuntos alternados rende mais que fechar um de
             cada vez, mesmo parecendo pior durante o mês. O intervalo entre a
             semana 1 e a semana 3 é o que faz o aprendizado ficar. E cada semana

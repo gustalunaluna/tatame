@@ -396,6 +396,16 @@ function TrainingDialog({
         {/* O campo de texto livre volta a ser o que sempre foi: a anotação
             rápida do treino. Ele não some porque não estava quebrado — quem
             só quer escrever "DLR → costas" continua escrevendo. */}
+        {/* Os DOIS campos de técnica continuam aqui, e é de propósito.
+            "Técnicas trabalhadas" é o caminho rápido: uma linha, sem abrir
+            diálogo, para quem está de pé no vestiário. "Técnicas do dia" é o
+            caminho que alimenta a galeria.
+
+            Cheguei a esconder o primeiro em treino novo, achando que dois
+            campos para o mesmo assunto confundem. Confundem mesmo — mas a
+            confusão se resolve dizendo para que serve cada um, e escondê-lo
+            custava o caminho rápido, que é o que se usa com a mão suada.
+            A suíte de técnicas prende isso desde que o estruturado nasceu. */}
         <div>
           <Label htmlFor="treino-tecnicas">Técnicas trabalhadas</Label>
           <Textarea
@@ -405,6 +415,10 @@ function TrainingDialog({
             onChange={(e) => setTechniques(e.target.value)}
             placeholder="Ex: DLR → costas, tesourinha"
           />
+          <p className="mt-1 text-xs text-muted-foreground">
+            Anotação rápida, em texto. Para a técnica entrar na sua galeria,
+            use “Técnicas do dia” logo abaixo.
+          </p>
         </div>
 
         <SeletorDeTecnicas valor={tecnicasDoDia} aoMudar={setTecnicasDoDia} />

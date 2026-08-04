@@ -12,7 +12,18 @@ export function PageShell({
   children: ReactNode;
 }) {
   return (
-    <div className="topo-seguro rodape-seguro lados-seguros mx-auto flex min-h-dvh w-full max-w-md flex-col gap-5">
+    /**
+     * `<main>`, e não `<div>`.
+     *
+     * Nenhuma das 23 telas autenticadas tinha marco de conteúdo principal —
+     * só a de entrada. Leitor de tela oferece "pular para o principal" a
+     * partir desse marco; sem ele, a única forma de chegar ao conteúdo é
+     * percorrer tudo desde o começo, em toda navegação.
+     *
+     * É uma palavra de diferença, e vale para o app inteiro porque todas as
+     * telas passam por aqui.
+     */
+    <main className="topo-seguro rodape-seguro lados-seguros mx-auto flex min-h-dvh w-full max-w-md flex-col gap-5">
       {/* `items-start`, e não `items-center`: com o título em duas linhas o
           botão de ação subia junto e ficava desalinhado do começo do texto. */}
       <header className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
@@ -39,6 +50,6 @@ export function PageShell({
         {action && <div className="shrink-0">{action}</div>}
       </header>
       {children}
-    </div>
+    </main>
   );
 }
