@@ -1,7 +1,11 @@
 {
+  "id": "/",
   "name": "Ponteira — seu jiu-jitsu, registrado",
   "short_name": "Ponteira",
   "description": "Diário de treino, graduações, medalhas e parceiros de rola. A cor do app é a sua faixa.",
+  "lang": "pt-BR",
+  "dir": "ltr",
+  "categories": ["sports", "health", "lifestyle"],
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
@@ -26,6 +30,22 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Registrar treino",
+      "short_name": "Treino",
+      "description": "Anotar o treino de hoje",
+      "url": "/diario",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Plano do mês",
+      "short_name": "Plano",
+      "description": "O que treinar nesta semana",
+      "url": "/plano",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
     }
   ]
 }

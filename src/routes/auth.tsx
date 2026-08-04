@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Icone } from "@/design/icones";
 import { EscadaDeFaixas, MarcaPonteira } from "@/components/MarcaPonteira";
 import { supabase } from "@/integrations/supabase/client";
+import { baseDeRedirecionamento } from "@/lib/nativo";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -54,7 +55,10 @@ function AuthPage() {
         const { error } = await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: `${window.location.origin}/` },
+          // Na web volta para o site; dentro do app da loja volta para o app.
+          // Ver o comentário longo em lib/nativo.ts — é o detalhe que faz a
+          // confirmação de cadastro funcionar nos dois lugares.
+          options: { emailRedirectTo: baseDeRedirecionamento() },
         });
         if (error) throw error;
         toast.success("Conta criada. Bora treinar!");

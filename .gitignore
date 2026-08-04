@@ -8,3 +8,28 @@ capturas-mobile
 
 # capturas geradas por verificar-contas-reais.mjs
 telas/
+
+# ---------------------------------------------------------------------------
+# Projetos nativos (Capacitor)
+# ---------------------------------------------------------------------------
+# android/ e ios/ FICAM versionados: são configuração de verdade — o esquema
+# de link do e-mail, ícones, orientação, permissões. Perder isso significa
+# reconfigurar tudo à mão no próximo `cap add`.
+#
+# O que sai é só o que a máquina regenera: saída de build, dependências
+# nativas e o `dist/` copiado para dentro por `cap sync`.
+android/app/build/
+android/build/
+android/.gradle/
+android/local.properties
+android/app/src/main/assets/public/
+android/app/src/main/assets/capacitor.config.json
+android/app/src/main/res/xml/config.xml
+ios/App/build/
+ios/App/Pods/
+ios/App/App/public/
+ios/App/App/capacitor.config.json
+ios/App/App/config.xml
+ios/.build/
+DerivedData/
+*.xcuserstate

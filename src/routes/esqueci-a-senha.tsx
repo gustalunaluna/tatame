@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PortaDeEntrada } from "@/components/PortaDeEntrada";
 import { supabase } from "@/integrations/supabase/client";
+import { baseDeRedirecionamento } from "@/lib/nativo";
 
 export const Route = createFileRoute("/esqueci-a-senha")({
   head: () => ({
@@ -30,7 +31,9 @@ function EsqueciASenha() {
     setEnviando(true);
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/nova-senha`,
+        // Web: /nova-senha no site. App da loja: o esquema próprio, que o
+        // sistema entrega de volta ao app. Ver lib/nativo.ts.
+        redirectTo: `${baseDeRedirecionamento()}nova-senha`,
       });
       if (error) throw error;
       setEnviado(true);

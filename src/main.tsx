@@ -17,3 +17,10 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     <RouterProvider router={router} />
   </StrictMode>,
 );
+
+/**
+ * Depois do render, e sem `await`: os ajustes da casca nativa (barra de
+ * status, splash, links do e-mail) não podem atrasar a primeira pintura, e na
+ * web a função retorna no primeiro `if` sem carregar plugin nenhum.
+ */
+void import("./lib/nativo").then(({ iniciarNativo }) => iniciarNativo());
