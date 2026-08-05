@@ -208,7 +208,11 @@ export function referenciaDeGas(idade: number | null): number {
   return Math.max(0.45, 0.7 - Math.max(0, idade - 20) * 0.005);
 }
 
-function notaDeGas(sinais: SinalDeRola[], hoje: Date, idade: number | null): NotaDerivada {
+function notaDeGas(
+  sinais: SinalDeRola[],
+  pesoDe: (data: string) => number,
+  idade: number | null,
+): NotaDerivada {
   // Uma leitura por SESSÃO, não por parceiro: o ritmo é da noite inteira, e
   // contar uma vez por parceiro daria peso quádruplo a quem anotou quatro.
   const porSessao = new Map<string, SinalDeRola>();
@@ -219,7 +223,7 @@ function notaDeGas(sinais: SinalDeRola[], hoje: Date, idade: number | null): Not
   let soma = 0;
   let peso = 0;
   for (const s of porSessao.values()) {
-    const w = pesoDaData(s.data, hoje);
+    const w = pesoDe(s.data);
     // Não caiu = aguentou a sessão inteira.
     const fracao =
       s.ritmoCaiuNa === null ? 1 : Math.min(1, s.ritmoCaiuNa / Math.max(1, s.rolasDaSessao));
@@ -261,6 +265,50 @@ export function derivarHexagono(
   pessoa: ContextoDaPessoa,
   hoje: Date = new Date(),
 ): HexagonoDerivado {
+  return derivarCom(sinais, pessoa, (data) => pesoDaData(data, hoje));
+}
+
+/**
+ * O hexágono de UM PERÍODO fechado — julho, agosto, o mês do campeonato.
+ *
+ * A diferença para o de cima não é o recorte: é o PESO. O hexágono normal é
+ * uma leitura rolante, com meia-vida de quatro semanas, porque a pergunta que
+ * ele responde é "como está meu jogo hoje" — e o que aconteceu ontem diz mais
+ * do que o de dois meses atrás.
+ *
+ * Aqui a pergunta é outra: "como foi o meu julho". Nessa pergunta, o dia 3 de
+ * julho vale exatamente o mesmo que o dia 30 — decair dentro do período faria
+ * o fim do mês dominar a nota e transformaria "julho" em "as últimas semanas
+ * de julho". Por isso o peso é 1 dentro da janela e 0 fora, sem meio-termo.
+ *
+ * É também o que torna dois meses comparáveis entre si: com decaimento, o mês
+ * mais recente sempre pareceria mais forte só por ser mais recente.
+ *
+ * As datas são `YYYY-MM-DD` e a comparação é de texto, que para esse formato
+ * ordena igual à data — sem `new Date()` no meio, sem fuso para errar.
+ */
+export function derivarHexagonoDoPeriodo(
+  sinais: SinalDeRola[],
+  pessoa: ContextoDaPessoa,
+  de: string,
+  ate: string,
+): HexagonoDerivado {
+  return derivarCom(sinais, pessoa, (data) =>
+    data >= de && data <= ate ? 1 : 0,
+  );
+}
+
+/**
+ * O motor dos dois. A única coisa que os separa é a função de peso, e ela
+ * entra por parâmetro justamente para que a conta seja a MESMA — se a nota de
+ * julho fosse calculada por um caminho diferente da nota de agora, comparar
+ * as duas não significaria nada.
+ */
+function derivarCom(
+  sinais: SinalDeRola[],
+  pessoa: ContextoDaPessoa,
+  pesoDe: (data: string) => number,
+): HexagonoDerivado {
   const acc: Record<string, Acumulado> = Object.fromEntries(
     EIXOS.map((e) => [e.slug, { eventos: 0, rolas: 0 }]),
   );
@@ -271,7 +319,7 @@ export function derivarHexagono(
     // "ninguém me passou, ninguém me finalizou" — e o app anunciaria retenção
     // e defesa altas para quem nunca respondeu nada.
     if (!s.detalhado) continue;
-    const w = pesoDaData(s.data, hoje);
+    const w = pesoDe(s.data);
     if (w <= 0) continue;
     const { aFavor, sofrido } = pesosDoEvento(pessoa.faixa, s.parceiroFaixa);
     const rolas = Math.max(1, s.rolas);
@@ -299,7 +347,7 @@ export function derivarHexagono(
   const saida: HexagonoDerivado = {};
   for (const e of EIXOS) {
     if (e.slug === "gas") {
-      saida.gas = notaDeGas(sinais, hoje, pessoa.idade);
+      saida.gas = notaDeGas(sinais, pesoDe, pessoa.idade);
       continue;
     }
     const a = acc[e.slug];
@@ -318,6 +366,32 @@ export function derivarHexagono(
 /** Só as notas, para o hexágono desenhar. */
 export function notasDe(h: HexagonoDerivado): NotasDoHexagono {
   return Object.fromEntries(EIXOS.map((e) => [e.slug, h[e.slug]?.nota ?? 0]));
+}
+
+/**
+ * Os meses em que houve rola COM OS CONTADORES PREENCHIDOS, do mais novo para
+ * o mais velho.
+ *
+ * O filtro por `detalhado` é o ponto: um mês com quinze treinos registrados e
+ * nenhum contador respondido não tem hexágono nenhum, e oferecê-lo no seletor
+ * de comparação seria prometer um gráfico que sai vazio. Só entra na lista o
+ * mês que tem o que desenhar.
+ */
+export function mesesComRola(sinais: SinalDeRola[]): string[] {
+  const meses = new Set<string>();
+  for (const s of sinais) {
+    if (s.detalhado && s.data) meses.add(s.data.slice(0, 7));
+  }
+  return [...meses].sort().reverse();
+}
+
+/** O primeiro e o último dia de um mês `YYYY-MM`, em texto. */
+export function limitesDoMes(mes: string): { de: string; ate: string } {
+  const [ano, m] = mes.split("-").map(Number);
+  // Dia 0 do mês seguinte é o último dia deste — o truque evita ter de saber
+  // quantos dias tem fevereiro, e acerta ano bissexto de graça.
+  const ultimo = new Date(Date.UTC(ano, m, 0)).getUTCDate();
+  return { de: `${mes}-01`, ate: `${mes}-${String(ultimo).padStart(2, "0")}` };
 }
 
 /** Quantos eixos já têm o que dizer. Abaixo de 3 não vale desenhar figura. */

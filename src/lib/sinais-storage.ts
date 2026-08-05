@@ -82,6 +82,37 @@ export function useSinaisDoJogo() {
   return { sinais: query.data ?? [], ready: query.isSuccess };
 }
 
+/**
+ * Quanto tempo para trás a comparação enxerga.
+ *
+ * Doze meses porque a pergunta que ela responde — "como eu estava antes do
+ * campeonato", "julho contra agosto" — é de temporada, não de semana. É
+ * consulta pesada demais para a tela inicial, e por isso mora numa chave
+ * própria: quem só abre o Início nunca paga por ela.
+ */
+export const MESES_DO_HISTORICO = 12;
+
+/** As rolas do último ano, para o comparador de meses. */
+export function useSinaisDoHistorico(ativo = true) {
+  const query = useQuery({
+    // A chave começa com "sinais_do_jogo" de propósito: o `useRecalcularJogo`
+    // invalida por prefixo, então registrar um treino derruba as duas de uma
+    // vez sem precisar lembrar desta aqui.
+    queryKey: ["sinais_do_jogo", "historico"],
+    enabled: ativo,
+    queryFn: async (): Promise<SinalDeRola[]> => {
+      const d = new Date();
+      d.setMonth(d.getMonth() - MESES_DO_HISTORICO);
+      const { data, error } = await supabase.rpc("sinais_do_jogo" as never, {
+        p_desde: d.toISOString().slice(0, 10),
+      } as never);
+      if (error) throw error;
+      return ((data ?? []) as unknown as Record<string, unknown>[]).map(paraSinal);
+    },
+  });
+  return { sinais: query.data ?? [], ready: query.isSuccess };
+}
+
 /* ================================================================== */
 
 export interface TreinoSemDetalhe {
