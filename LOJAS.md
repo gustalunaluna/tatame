@@ -68,7 +68,7 @@ Mais barato e mais rápido que a Apple. Comece por aqui.
    trânsito, com exclusão disponível dentro do app.
 
 5. **URL de exclusão de conta** — o Play exige um endereço web onde dá para
-   pedir exclusão sem instalar o app. Use `https://ponteira.vercel.app/meus-dados`.
+   pedir exclusão sem instalar o app. Use `https://ponteira.vercel.app/configuracoes`.
 
 6. **Política de privacidade**: `https://ponteira.vercel.app/privacidade`.
 
@@ -97,7 +97,7 @@ sem isso.
    do Google.
 
 5. **Exclusão de conta** — diretriz 5.1.1(v). Já está pronta em Perfil ›
-   Meus dados, e o caminho é curto de propósito: a Apple reprova quando o
+   Configurações, e o caminho é curto de propósito: a Apple reprova quando o
    botão existe mas está escondido.
 
 6. **A diretriz que reprova apps assim**: 4.2, *minimum functionality*. Um app
@@ -116,8 +116,9 @@ Nada aqui exige ação sua. É a lista do que foi feito para as lojas aceitarem.
 - **Política de privacidade e termos** — `/privacidade` e `/termos`, abertas
   sem login (o revisor clica no link antes de instalar), escritas sobre o
   inventário real do banco.
-- **Exclusão de conta e exportação** — `/meus-dados`, com a RPC
-  `excluir_minha_conta()` e a `meus_dados()`.
+- **Exclusão de conta e exportação** — `/configuracoes`, com a RPC
+  `excluir_minha_conta()` e a `meus_dados()`. O endereço antigo `/meus-dados`
+  segue vivo como desvio, para não quebrar link já publicado.
 - **Aceite no cadastro**, com os dois links.
 - **Casca nativa** — Capacitor, `android/` e `ios/` versionados, empacotando
   o mesmo `dist/` que a Vercel publica. Não existe segunda base de código.
@@ -133,7 +134,7 @@ Nada aqui exige ação sua. É a lista do que foi feito para as lojas aceitarem.
 Toda vez que publicar uma versão nova para as lojas:
 
 ```bash
-npm run verificar     # 31 suítes + build + tipos + orçamento
+npm run verificar     # 32 suítes + build + tipos + orçamento
 npm run loja          # build + cap sync
 ```
 

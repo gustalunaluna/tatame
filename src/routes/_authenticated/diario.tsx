@@ -34,6 +34,7 @@ import {
   useTecnicasDoTreino,
   type RascunhoTecnica,
 } from "@/lib/tecnicas-storage";
+import { useRecalcularJogo } from "@/lib/sinais-storage";
 import { ParceirosDoTreino } from "@/components/ParceirosDoTreino";
 import { RelatoDoTreino } from "@/components/RelatoDoTreino";
 import type { RascunhoParceiro } from "@/lib/social-types";
@@ -52,6 +53,7 @@ export const Route = createFileRoute("/_authenticated/diario")({
 function DiaryPage() {
   const hydrated = useHydrated();
   const { items, add, remove, update } = useTrainings();
+  const recalcularJogo = useRecalcularJogo();
   const [open, setOpen] = useState(false);
   const [editando, setEditando] = useState<Training | null>(null);
   const [monthFilter, setMonthFilter] = useState<string>("all");
@@ -100,6 +102,11 @@ function DiaryPage() {
                   toast.error("Treino salvo, mas as técnicas não. Edite depois.");
                   return;
                 }
+                // Agora sim: treino, parceiros e técnicas dentro do banco. É
+                // este o momento em que o hexágono tem o que reler.
+                // Agora sim: treino, parceiros e técnicas dentro do banco. É
+                // este o momento em que o hexágono tem o que reler.
+                recalcularJogo();
                 const comConta = parceiros.filter((p) => p.partnerId).length;
                 toast.success(
                   comConta
@@ -259,6 +266,7 @@ function DiaryPage() {
                 toast.error("Treino salvo, mas as técnicas não.");
                 return;
               }
+              recalcularJogo();
               toast.success("Treino atualizado.");
             }}
           />

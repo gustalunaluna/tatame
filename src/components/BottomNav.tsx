@@ -57,6 +57,12 @@ const MENU = [
       { to: "/meus-mestres", label: "Mestres e linhagem", icon: Icone.graduacao },
     ],
   },
+  {
+    grupo: "App",
+    itens: [
+      { to: "/configuracoes", label: "Configurações", icon: Icone.ajustes },
+    ],
+  },
 ] as const;
 
 export function BottomNav() {

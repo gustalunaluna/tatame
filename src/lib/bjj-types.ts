@@ -29,6 +29,14 @@ export interface Perfil {
   /** Declaração de quem dá aula. O banco só aceita da roxa em diante. */
   instrutor: boolean;
   /**
+   * Quantos treinos por semana a pessoa se propõe a fazer.
+   *
+   * Vem do questionário de boas-vindas e até agora não tinha onde ser mudado:
+   * quem respondeu "2" na semana em que estava lesionado ficava com 2 para
+   * sempre. `null` = nunca respondeu.
+   */
+  treinosPorSemana: number | null;
+  /**
    * Quando a pessoa respondeu o questionário de boas-vindas.
    *
    * Os três estados são distintos e a distinção importa — ver

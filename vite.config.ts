@@ -6,6 +6,17 @@ import { tanstackRouter } from "@tanstack/router-plugin/vite";
 import { VitePWA } from "vite-plugin-pwa";
 
 export default defineConfig({
+  /**
+   * A data do build, para a tela de Configurações mostrar.
+   *
+   * Não é enfeite: é a primeira pergunta de qualquer suporte — "qual versão
+   * você está usando?" — e, com as lojas no meio, a resposta deixa de ser
+   * óbvia. O aparelho pode estar com um APK de três semanas atrás enquanto a
+   * web já rodou dez publicações.
+   */
+  define: {
+    __VERSAO__: JSON.stringify(new Date().toISOString().slice(0, 10)),
+  },
   plugins: [
     // autoCodeSplitting: cada rota vira um pedaço próprio, carregado quando a
     // pessoa chega nela. Sem isso, abrir o Início baixaria a tela de Conquistas.

@@ -230,12 +230,37 @@ export function useTrainings() {
   // Mexeu no diário, mexeu nas conquistas: volume, horas, sequência e rolas
   // saem todos daqui. O recálculo roda no banco e só então as telas de
   // conquista são invalidadas, senão elas releriam os números velhos.
+  //
+  // E mexeu no diário, mexeu no HEXÁGONO. Faltavam duas consultas aqui:
+  // `sinais_do_jogo`, que alimenta os seis eixos, e `pendencias_da_semana`,
+  // que é quem pergunta "quantas passagens saíram nesse treino?".
+  //
+  // `refetchType: "all"` em tudo que está FORA DA TELA no momento de salvar —
+  // e isso era metade do defeito, não um detalhe. O app roda com
+  // `refetchOnMount: false` (ver router.tsx), que é o que deixa a troca de abas
+  // instantânea; e o `invalidateQueries` padrão só refaz o que está montado,
+  // marcando o resto como velho sem buscar de novo. Some as duas coisas: ao
+  // salvar um treino a pessoa está no Diário, o painel do jogo está desmontado,
+  // e ao voltar para o Início o `refetchOnMount: false` decidia não buscar.
+  // Marcado como velho, servido como novo, por cinco minutos. O "all" força a
+  // releitura também do que não está em tela.
   const invalidate = async () => {
     qc.invalidateQueries({ queryKey: ["trainings"] });
+    qc.invalidateQueries({ queryKey: ["sinais_do_jogo"], refetchType: "all" });
+    qc.invalidateQueries({
+      queryKey: ["pendencias_da_semana"],
+      refetchType: "all",
+    });
     const abriram = await recalcularConquistas();
-    qc.invalidateQueries({ queryKey: ["achievements"] });
-    qc.invalidateQueries({ queryKey: ["achievements_stats"] });
-    qc.invalidateQueries({ queryKey: ["achievements_featured"] });
+    qc.invalidateQueries({ queryKey: ["achievements"], refetchType: "all" });
+    qc.invalidateQueries({
+      queryKey: ["achievements_stats"],
+      refetchType: "all",
+    });
+    qc.invalidateQueries({
+      queryKey: ["achievements_featured"],
+      refetchType: "all",
+    });
     if (abriram > 0) {
       toast.success(
         abriram === 1
@@ -716,6 +741,8 @@ export function usePerfil() {
         fightsLost: data?.fights_lost ?? 0,
         goalStart: data?.goal_start ?? new Date().toISOString().slice(0, 10),
         instrutor: Boolean(extra?.instrutor),
+        treinosPorSemana:
+          (extra?.treinos_por_semana as number | null | undefined) ?? null,
         // `data` nulo = ainda não há linha de perfil. Deixar `undefined` aqui
         // é o que separa "não sei" de "nunca respondeu"; sem essa diferença, a
         // conta recém-criada seria mandada para as boas-vindas antes de
@@ -744,6 +771,9 @@ export function usePerfil() {
         ...(patch.fightsLost !== undefined && { fights_lost: patch.fightsLost }),
         ...(patch.goalStart !== undefined && { goal_start: patch.goalStart }),
         ...(patch.instrutor !== undefined && { instrutor: patch.instrutor }),
+        ...(patch.treinosPorSemana !== undefined && {
+          treinos_por_semana: patch.treinosPorSemana,
+        }),
       };
       const { error } = await supabase
         .from("profiles")

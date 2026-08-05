@@ -158,11 +158,38 @@ await pl.route(`https://${REF}.supabase.co/**`, async (rota) => {
   return json([]);
 });
 
+// O endereço antigo virou desvio, e isso é teste, não detalhe: `/meus-dados`
+// é a URL de exclusão que vai no formulário do Google Play. Se ela morrer numa
+// reorganização de telas, quebra um link já publicado numa loja.
 await pl.goto(`${BASE}/meus-dados`, { waitUntil: "load" });
+await pl.waitForTimeout(1500);
+conferir(
+  "/meus-dados desvia para /configuracoes",
+  new URL(pl.url()).pathname === "/configuracoes",
+  pl.url(),
+);
+
+await pl.goto(`${BASE}/configuracoes`, { waitUntil: "load" });
 await pl.waitForTimeout(1200);
 
-const botaoExcluir = pl.getByRole("button", { name: /Excluir minha conta para sempre/i });
-conferir("a tela de dados tem o botão de excluir", (await botaoExcluir.count()) === 1);
+for (const grupo of ["Conta", "Treino", "Aparência", "Privacidade e dados"]) {
+  conferir(
+    `grupo "${grupo}" na tela`,
+    (await pl.getByRole("heading", { name: grupo, exact: true }).count()) >= 1,
+  );
+}
+
+conferir(
+  "a exportação está em Configurações",
+  (await pl.getByRole("button", { name: /Baixar meus dados/i }).count()) === 1,
+);
+
+// A exclusão vive atrás de um toque, e o botão nasce travado.
+await pl.getByRole("button", { name: /^Excluir minha conta$/i }).click();
+await pl.waitForTimeout(600);
+
+const botaoExcluir = pl.getByRole("button", { name: /Excluir para sempre/i });
+conferir("o painel de exclusão abre", (await botaoExcluir.count()) === 1);
 conferir("e o botão nasce travado", await botaoExcluir.isDisabled());
 
 // Palavra errada não destrava — se destravar, um toque distraído apaga tudo.
@@ -174,13 +201,8 @@ await pl.getByLabel(/Digite/i).fill("EXCLUIR");
 await pl.waitForTimeout(200);
 conferir("a palavra certa destrava", await botaoExcluir.isEnabled());
 
-// Só agora a chamada pode sair — e antes de tocar, nada foi chamado.
+// Só agora a chamada poderia sair — e antes de tocar, nada foi chamado.
 conferir("nada foi excluído antes do toque", excluiuNoBanco === false);
-
-conferir(
-  "a exportação está na mesma tela",
-  (await pl.getByRole("button", { name: /Baixar meus dados/i }).count()) === 1,
-);
 
 await b.close();
 

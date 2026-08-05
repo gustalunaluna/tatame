@@ -30,6 +30,43 @@ const paraSinal = (r: Record<string, unknown>): SinalDeRola => ({
   rolasDaSessao: Number(r.rolas_da_sessao ?? 1),
 });
 
+/**
+ * Manda o hexágono reler o banco.
+ *
+ * Existe porque gravar um treino são TRÊS passos — treino, parceiros,
+ * técnicas — e quem alimenta os seis eixos é o segundo. O `useTrainings()`
+ * invalida ao gravar o treino, o que é cedo demais: naquele instante os
+ * parceiros ainda não existem, o hexágono recarrega sem eles e fica idêntico.
+ *
+ * Por isso o diário chama isto de novo no fim, com tudo já dentro. Duas
+ * invalidações para o mesmo salvamento parece desperdício e não é: a primeira
+ * pega o que já está no banco, a segunda pega o que chegou depois dela.
+ */
+export function useRecalcularJogo() {
+  const qc = useQueryClient();
+  return () => {
+    // `refetchType: "all"` não é detalhe — é a correção inteira.
+    //
+    // O app roda com `refetchOnMount: false` (ver router.tsx), que é o que
+    // torna a troca de abas instantânea. E o `invalidateQueries` padrão só
+    // REFAZ o que está montado na tela; o resto ele apenas marca como velho.
+    //
+    // Some as duas coisas e o hexágono nunca atualizava: quando o treino é
+    // salvo, a pessoa está no Diário e o painel do jogo está desmontado — a
+    // invalidação o marcava como velho, e ao voltar para o Início o
+    // `refetchOnMount: false` decidia não buscar de novo. Marcado como velho,
+    // servido como novo, por cinco minutos.
+    //
+    // `"all"` força a releitura também do que está fora de tela, que é
+    // exatamente o caso aqui.
+    qc.invalidateQueries({ queryKey: ["sinais_do_jogo"], refetchType: "all" });
+    qc.invalidateQueries({
+      queryKey: ["pendencias_da_semana"],
+      refetchType: "all",
+    });
+  };
+}
+
 /** As rolas da janela, cruas. A conta é feita em `hexagono-derivado.ts`. */
 export function useSinaisDoJogo() {
   const query = useQuery({

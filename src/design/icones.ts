@@ -31,6 +31,7 @@ import {
   Pencil,
   Plus,
   Search,
+  Settings,
   Shield,
   ShieldCheck,
   Star,
@@ -109,6 +110,7 @@ export const Icone = {
   buscar: Search,
   ocultar: EyeOff,
   baixar: Download,
+  ajustes: Settings,
 
   /* --- diversos ------------------------------------------------------- */
   local: MapPin,

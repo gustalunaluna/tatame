@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { usePerfil } from "@/lib/bjj-storage";
+import { useCorEscolhida } from "@/lib/aparencia";
 import { acentoDaFaixa, textoSobreAcento } from "@/lib/faixa-cores";
 
 /**
@@ -15,7 +16,12 @@ import { acentoDaFaixa, textoSobreAcento } from "@/lib/faixa-cores";
  */
 export function CorDaFaixa() {
   const { perfil } = usePerfil();
-  const faixa = perfil?.belt;
+  const { escolha } = useCorEscolhida();
+
+  // A escolha manual vence a graduação — e só existe se a pessoa foi até
+  // Configurações trocar. Sem escolha, `escolha` é null e nada muda: a cor
+  // continua sendo a faixa, que é o padrão de projeto. Ver lib/aparencia.ts.
+  const faixa = escolha ?? perfil?.belt;
 
   useEffect(() => {
     const raiz = document.documentElement;

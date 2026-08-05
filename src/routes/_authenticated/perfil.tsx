@@ -571,25 +571,18 @@ function CaixasDoPerfil() {
         ) : null}
       </CaixaDoPerfil>
 
-      {/* Conta e privacidade fecham o perfil.
-          A exclusão precisa ser ACHÁVEL — a Apple reprova quando o caminho
-          existe mas está escondido, e a LGPD não vale nada se ninguém encontra
-          o botão. Duas caixas iguais às outras, no fim da lista, onde quem
-          procura "como saio disso" naturalmente rola até. */}
+      {/* Configurações fecha o perfil — uma caixa, não três.
+          Conta, senha, cor, privacidade, exportação e exclusão viraram uma
+          tela agrupada. A exclusão precisa continuar ACHÁVEL: a Apple reprova
+          quando o caminho existe mas está escondido, e a LGPD não vale nada se
+          ninguém encontra o botão. O fim do perfil é onde quem procura "como
+          mudo isso" naturalmente rola até. */}
       <CaixaDoPerfil
-        titulo="Meus dados"
-        icone={<Icone.baixar className="h-4 w-4" />}
-        para="/meus-dados"
+        titulo="Configurações"
+        icone={<Icone.ajustes className="h-4 w-4" />}
+        para="/configuracoes"
         i={7}
-        vazio="Baixar tudo que é seu, ou excluir a conta."
-      />
-
-      <CaixaDoPerfil
-        titulo="Privacidade e termos"
-        icone={<Icone.privado className="h-4 w-4" />}
-        para="/privacidade"
-        i={8}
-        vazio="O que o app guarda, e as regras de uso."
+        vazio="Conta, senha, cor do app, privacidade e seus dados."
       />
     </div>
   );
@@ -611,19 +604,12 @@ function EditarPerfil({
       <DialogHeader>
         <DialogTitle>Editar perfil</DialogTitle>
       </DialogHeader>
+      {/* Nome e data de nascimento NÃO estão mais aqui: foram para
+          Configurações › Conta, junto de e-mail e senha. O mesmo campo
+          editável em duas telas é confusão garantida — e a divisão que sobrou
+          é limpa: aqui é o atleta que os outros veem (faixa, academia,
+          mestre, bio, foto), lá é a conta. */}
       <div className="space-y-3">
-        <div>
-          <Label htmlFor="apelido">Apelido</Label>
-          <Input
-            id="apelido"
-            name="nickname"
-            autoComplete="nickname"
-            value={f.nickname}
-            onChange={(e) => set("nickname", e.target.value)}
-            placeholder="Como te chamam no tatame"
-          />
-        </div>
-
         <div>
           <Label htmlFor="bio">Bio</Label>
           <Textarea
@@ -639,25 +625,14 @@ function EditarPerfil({
           </p>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <Label htmlFor="nascimento">Nascimento</Label>
-            <Input
-              id="nascimento"
-              type="date"
-              value={f.birthDate ?? ""}
-              onChange={(e) => set("birthDate", e.target.value || null)}
-            />
-          </div>
-          <div>
-            <Label htmlFor="academia">Academia</Label>
-            <Input
-              id="academia"
-              value={f.gym}
-              onChange={(e) => set("gym", e.target.value)}
-              placeholder="Sua equipe"
-            />
-          </div>
+        <div>
+          <Label htmlFor="academia">Academia</Label>
+          <Input
+            id="academia"
+            value={f.gym}
+            onChange={(e) => set("gym", e.target.value)}
+            placeholder="Sua equipe"
+          />
         </div>
 
         <div className="grid grid-cols-2 gap-3">
