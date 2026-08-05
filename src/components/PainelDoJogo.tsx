@@ -15,13 +15,18 @@ import { HexagonoDoJogo, TabelaDoHexagono } from "@/components/HexagonoDoJogo";
 import { EIXOS, prescricaoDoMes, minutosDirigidos } from "@/lib/hexagono";
 import {
   derivarHexagono,
+  derivarHexagonoDoPeriodo,
+  limitesDoMes,
+  mesesComRola,
   notasDe,
   eixosComDado,
   type HexagonoDerivado,
+  type SinalDeRola,
 } from "@/lib/hexagono-derivado";
 import {
   useSinaisDoJogo,
   usePendenciasDaSemana,
+  janelaRolante,
   SEMANAS_DA_JANELA,
   type TreinoSemDetalhe,
 } from "@/lib/sinais-storage";
@@ -392,27 +397,115 @@ function idadeDe(nascimento: string | null | undefined): number | null {
   return Math.floor((Date.now() - d.getTime()) / (365.25 * 86400000));
 }
 
+const NOMES_DE_MES = [
+  "jan", "fev", "mar", "abr", "mai", "jun",
+  "jul", "ago", "set", "out", "nov", "dez",
+];
+
+/** "2026-07" → "jul/26". Curto porque precisa caber numa fita de celular. */
+function rotuloDoMes(mes: string): string {
+  const [ano, m] = mes.split("-");
+  return `${NOMES_DE_MES[Number(m) - 1]}/${ano.slice(2)}`;
+}
+
+/** Quantas rolas com contador preenchido um mês tem. É o que sustenta a nota. */
+function rolasDoMes(sinais: SinalDeRola[], mes: string): number {
+  return sinais
+    .filter((s) => s.detalhado && s.data.startsWith(mes))
+    .reduce((n, s) => n + Math.max(1, s.rolas), 0);
+}
+
 /**
  * O hexágono calculado.
  *
- * `compacto` é a versão do Início: o desenho, sem a tabela e sem o plano —
- * quem quer o detalhe toca e vai para Evolução.
+ * `compacto` é a versão do Início: o desenho e a fita de meses, sem a tabela e
+ * sem o plano — quem quer o detalhe toca e vai para Evolução.
+ *
+ * ------------------------------------------------------------------
+ * A FITA DE MESES
+ * ------------------------------------------------------------------
+ * A comparação não é um segundo gráfico: acontece NESTE. Tocar um mês troca a
+ * figura cheia; tocar um segundo sobrepõe o mais antigo em tracejado. Tocar
+ * "8 semanas" volta ao padrão.
+ *
+ * Um gráfico separado só para comparar teria dois defeitos. O primeiro é de
+ * leitura: obrigaria a pessoa a comparar duas figuras distantes na tela, que é
+ * exatamente o que a sobreposição existe para evitar. O segundo é de verdade —
+ * dois gráficos são duas contas, e duas contas divergem com o tempo.
+ *
+ * ------------------------------------------------------------------
+ * DUAS CONTAS DIFERENTES, DE PROPÓSITO
+ * ------------------------------------------------------------------
+ * O padrão ("8 semanas") é uma leitura ROLANTE, com meia-vida de quatro
+ * semanas: responde "como está meu jogo hoje", e o que aconteceu ontem pesa
+ * mais que o de dois meses atrás.
+ *
+ * O mês escolhido é FECHADO e sem decaimento interno: dia 1 pesa igual a dia
+ * 31. Se decaísse, "julho" viraria "o fim de julho" — e, pior, o mês mais
+ * recente sempre pareceria mais forte só por ser mais recente, o que
+ * destruiria a comparação. Ver `derivarHexagonoDoPeriodo`.
  */
 export function PainelDoJogo({ compacto = false }: { compacto?: boolean }) {
   const { sinais, ready } = useSinaisDoJogo();
   const { perfil } = usePerfil();
 
+  /** Vazio = leitura rolante. 1 mês = aquele mês. 2 = sobreposição. */
+  const [selecao, setSelecao] = useState<string[]>([]);
+
+  const meses = useMemo(() => mesesComRola(sinais), [sinais]);
+  const pessoa = {
+    faixa: String(perfil?.belt ?? "Branca"),
+    idade: idadeDe(perfil?.birthDate),
+  };
+
+  function alternar(mes: string) {
+    setSelecao((atual) => {
+      if (atual.includes(mes)) return atual.filter((m) => m !== mes);
+      // Dois é o teto: um terceiro polígono no mesmo hexágono vira rabisco.
+      // O mais antigo sai para dar lugar ao que acabou de ser tocado.
+      const proximo = [...atual, mes].sort().reverse();
+      return proximo.slice(0, 2);
+    });
+  }
+
+  // Mais novo em cima (cheio), mais antigo embaixo (tracejado) — sempre nessa
+  // ordem, independente de qual foi tocado primeiro. "Antes" e "depois" são
+  // uma propriedade das datas, não da ordem dos dedos.
+  const [mesCheio, mesTracejado] = [...selecao].sort().reverse();
+
   const h = useMemo(
     () =>
-      derivarHexagono(sinais, {
-        faixa: String(perfil?.belt ?? "Branca"),
-        idade: idadeDe(perfil?.birthDate),
-      }),
-    [sinais, perfil?.belt, perfil?.birthDate],
+      mesCheio
+        ? derivarHexagonoDoPeriodo(
+            sinais,
+            pessoa,
+            limitesDoMes(mesCheio).de,
+            limitesDoMes(mesCheio).ate,
+          )
+        : derivarHexagono(janelaRolante(sinais), pessoa),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [sinais, mesCheio, pessoa.faixa, pessoa.idade],
+  );
+
+  const hAntes = useMemo(
+    () =>
+      mesTracejado
+        ? derivarHexagonoDoPeriodo(
+            sinais,
+            pessoa,
+            limitesDoMes(mesTracejado).de,
+            limitesDoMes(mesTracejado).ate,
+          )
+        : null,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [sinais, mesTracejado, pessoa.faixa, pessoa.idade],
   );
 
   const semDado = EIXOS.filter((e) => !h[e.slug]?.temDado).map((e) => e.slug);
   const quantos = eixosComDado(h);
+  const rotuloCheio = mesCheio
+    ? rotuloDoMes(mesCheio)
+    : `${SEMANAS_DA_JANELA} semanas`;
 
   if (!ready) {
     return <div className="h-64 w-full animate-pulse rounded-2xl bg-muted/40" aria-hidden />;
@@ -441,31 +534,54 @@ export function PainelDoJogo({ compacto = false }: { compacto?: boolean }) {
     );
   }
 
+  const fita =
+    meses.length > 0 ? (
+      <FitaDeMeses
+        meses={meses}
+        selecao={selecao}
+        aoAlternar={alternar}
+        aoLimpar={() => setSelecao([])}
+        rolasDo={(m) => rolasDoMes(sinais, m)}
+      />
+    ) : null;
+
   const grafico = (
     <HexagonoDoJogo
       className="mt-2"
       agora={notasDe(h)}
-      rotuloAgora={`${SEMANAS_DA_JANELA} semanas`}
+      rotuloAgora={rotuloCheio}
+      antes={hAntes ? notasDe(hAntes) : null}
+      rotuloAntes={mesTracejado ? rotuloDoMes(mesTracejado) : undefined}
       semDado={semDado}
     />
   );
+
+  /** A frase que explica o que está desenhado agora. */
+  const legenda = mesTracejado
+    ? `${rotuloDoMes(mesTracejado)} por baixo, ${rotuloCheio} por cima.`
+    : mesCheio
+      ? `Só ${rotuloCheio}. Toque outro mês para sobrepor.`
+      : `Das últimas ${SEMANAS_DA_JANELA} semanas de rola.`;
 
   if (compacto) {
     return (
       <Card className="border-border/60 bg-card/70">
         <CardContent className="p-4">
-          <Link to="/metas" className="tap block active:scale-[0.99]">
-            <div className="flex items-center justify-between gap-2">
-              <div className="min-w-0">
-                <p className="text-sm font-bold">Seu jogo</p>
-                <p className="truncate text-xs text-muted-foreground">
-                  Das últimas {SEMANAS_DA_JANELA} semanas de rola
-                </p>
-              </div>
-              <Icone.avancar className="h-4 w-4 shrink-0 text-muted-foreground" />
+          {/* O link cobre só o cabeçalho. Antes ele envolvia o cartão inteiro,
+              e com a fita de meses dentro isso viraria botão dentro de âncora:
+              HTML inválido, e cada toque num mês navegaria para Evolução. */}
+          <Link
+            to="/metas"
+            className="tap flex items-center justify-between gap-2 active:scale-[0.99]"
+          >
+            <div className="min-w-0">
+              <p className="text-sm font-bold">Seu jogo</p>
+              <p className="truncate text-xs text-muted-foreground">{legenda}</p>
             </div>
-            {grafico}
+            <Icone.avancar className="h-4 w-4 shrink-0 text-muted-foreground" />
           </Link>
+          {fita}
+          {grafico}
         </CardContent>
       </Card>
     );
@@ -476,14 +592,40 @@ export function PainelDoJogo({ compacto = false }: { compacto?: boolean }) {
       <Card className="border-border/60 bg-card/70">
         <CardContent className="p-4">
           <p className="text-sm font-bold">Seu jogo</p>
-          <p className="text-xs text-muted-foreground">
-            Calculado das suas rolas das últimas {SEMANAS_DA_JANELA} semanas.
-          </p>
+          <p className="text-xs text-muted-foreground">{legenda}</p>
 
+          {fita}
           {grafico}
 
+          {/* A amostra, escrita. Duas figuras sobrepostas convidam a concluir
+              muito; saber que uma delas se apoia em quatro rolas é o que
+              impede a conclusão de virar certeza. */}
+          {mesCheio ? (
+            <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+              {rotuloCheio} tem <strong>{rolasDoMes(sinais, mesCheio)}</strong>{" "}
+              {rolasDoMes(sinais, mesCheio) === 1 ? "rola" : "rolas"} com
+              contador preenchido
+              {mesTracejado
+                ? `; ${rotuloDoMes(mesTracejado)} tem ${rolasDoMes(sinais, mesTracejado)}`
+                : ""}
+              .{" "}
+              {Math.min(
+                rolasDoMes(sinais, mesCheio),
+                mesTracejado ? rolasDoMes(sinais, mesTracejado) : Infinity,
+              ) < 10
+                ? "Com amostra assim as notas ficam puxadas para o meio de propósito — leia a direção, não o número."
+                : ""}
+            </p>
+          ) : null}
+
           <div className="mt-4">
-            <TabelaDoHexagono agora={notasDe(h)} rotuloAgora="Nota" semDado={semDado} />
+            <TabelaDoHexagono
+              agora={notasDe(h)}
+              rotuloAgora={mesCheio ? rotuloCheio : "Nota"}
+              antes={hAntes ? notasDe(hAntes) : null}
+              rotuloAntes={mesTracejado ? rotuloDoMes(mesTracejado) : undefined}
+              semDado={semDado}
+            />
           </div>
 
           {/* A régua, escrita. Um número que ninguém consegue explicar é um
@@ -525,6 +667,88 @@ export function PainelDoJogo({ compacto = false }: { compacto?: boolean }) {
       </Card>
 
       <Plano h={h} faixa={perfil?.belt} />
+    </div>
+  );
+}
+
+/* ================================================================== */
+
+/**
+ * A fita de meses acima do hexágono.
+ *
+ * Rola na horizontal porque um ano não cabe na largura de um celular, e o
+ * primeiro item é sempre o padrão ("8 semanas") — quem tocou um mês por
+ * curiosidade precisa de um caminho óbvio de volta, e "desmarcar tocando de
+ * novo" não é óbvio para todo mundo.
+ *
+ * A contagem de rolas fica embaixo de cada mês, e não escondida: é ela que
+ * diz se a figura que vai aparecer merece confiança. Um mês de quatro rolas e
+ * um de trinta desenham com a mesma tinta, e só este número os separa.
+ */
+function FitaDeMeses({
+  meses,
+  selecao,
+  aoAlternar,
+  aoLimpar,
+  rolasDo,
+}: {
+  meses: string[];
+  selecao: string[];
+  aoAlternar: (mes: string) => void;
+  aoLimpar: () => void;
+  rolasDo: (mes: string) => number;
+}) {
+  const rolante = selecao.length === 0;
+
+  return (
+    <div
+      className="-mx-1 mt-3 flex gap-1.5 overflow-x-auto px-1 pb-1"
+      role="group"
+      aria-label="Período do hexágono"
+    >
+      <button
+        type="button"
+        onClick={aoLimpar}
+        aria-pressed={rolante}
+        className={cn(
+          "tap shrink-0 rounded-xl border px-3 py-1.5 text-xs font-bold",
+          rolante
+            ? "border-primary bg-primary/15 text-primary"
+            : "border-border bg-card text-muted-foreground active:scale-[0.97]",
+        )}
+      >
+        8 semanas
+      </button>
+
+      {meses.map((m) => {
+        const marcado = selecao.includes(m);
+        return (
+          <button
+            key={m}
+            type="button"
+            onClick={() => aoAlternar(m)}
+            aria-pressed={marcado}
+            className={cn(
+              "tap shrink-0 rounded-xl border px-3 py-1 text-center",
+              marcado
+                ? "border-primary bg-primary/15"
+                : "border-border bg-card active:scale-[0.97]",
+            )}
+          >
+            <span
+              className={cn(
+                "block text-xs font-bold",
+                marcado ? "text-primary" : "text-muted-foreground",
+              )}
+            >
+              {rotuloDoMes(m)}
+            </span>
+            <span className="block text-[0.625rem] leading-tight text-muted-foreground">
+              {rolasDo(m)} {rolasDo(m) === 1 ? "rola" : "rolas"}
+            </span>
+          </button>
+        );
+      })}
     </div>
   );
 }

@@ -212,6 +212,78 @@ conferir(
   (await p.locator('a[href="/metas"]').count()) >= 1,
 );
 
+/* --- 7. a fita de meses compara DENTRO do mesmo hexágono ----------------- */
+// A comparação não é um segundo gráfico: é o mesmo, com um contorno tracejado
+// por baixo. Este bloco prende as três coisas que fazem isso funcionar — a
+// fita existir no Início, dois meses desenharem dois polígonos, e o "8
+// semanas" devolver ao padrão.
+const doisMeses = [
+  ...Array.from({ length: 10 }, () => ({
+    data: "2026-07-10", parceiro_faixa: "Azul", rolas: 1,
+    fin_a_favor: 0, fin_sofridas: 0, pass_a_favor: 0, pass_sofridas: 0,
+    rasp_a_favor: 3, rasp_sofridas: 0, confirmado: true, detalhado: true,
+    ritmo_caiu_na: null, ritmo_respondido: false, rolas_da_sessao: 5,
+  })),
+  ...Array.from({ length: 10 }, () => ({
+    data: "2026-08-02", parceiro_faixa: "Azul", rolas: 1,
+    fin_a_favor: 0, fin_sofridas: 0, pass_a_favor: 3, pass_sofridas: 0,
+    rasp_a_favor: 0, rasp_sofridas: 0, confirmado: true, detalhado: true,
+    ritmo_caiu_na: null, ritmo_respondido: false, rolas_da_sessao: 5,
+  })),
+];
+sinais = doisMeses;
+
+await p.goto(`${BASE}/`, { waitUntil: "load" });
+await p.waitForTimeout(2000);
+
+const oitoSemanas = p.getByRole("button", { name: "8 semanas" });
+conferir("a fita de meses aparece no Início", (await oitoSemanas.count()) === 1);
+conferir(
+  "e o padrão nasce marcado",
+  (await oitoSemanas.getAttribute("aria-pressed")) === "true",
+);
+
+// Um polígono no padrão — a leitura rolante não sobrepõe nada.
+conferir(
+  "no padrão há uma figura só",
+  (await p.locator('svg[role="img"] polygon:not([fill="none"])').count()) >= 1 &&
+    (await p.locator('svg[role="img"] polygon[stroke-dasharray]').count()) === 0,
+);
+
+const jul = p.getByRole("button", { name: /jul\/26/ });
+const ago = p.getByRole("button", { name: /ago\/26/ });
+conferir("os dois meses com rola aparecem", (await jul.count()) === 1 && (await ago.count()) === 1);
+
+await jul.click();
+await p.waitForTimeout(600);
+conferir(
+  "tocar um mês desmarca o padrão",
+  (await oitoSemanas.getAttribute("aria-pressed")) === "false",
+);
+
+await ago.click();
+await p.waitForTimeout(700);
+conferir(
+  "dois meses desenham o contorno tracejado no MESMO hexágono",
+  (await p.locator('svg[role="img"] polygon[stroke-dasharray]').count()) === 1,
+);
+// O mais novo em cima, o mais antigo tracejado — independente da ordem dos
+// toques. Aqui jul foi tocado primeiro, e mesmo assim é ele o tracejado.
+const titulo = await p.locator('svg[role="img"] title').first().textContent();
+conferir(
+  "o mais novo fica cheio e o mais antigo tracejado",
+  /ago\/26 comparado com jul\/26/.test(titulo ?? ""),
+  titulo ?? "",
+);
+
+await oitoSemanas.click();
+await p.waitForTimeout(600);
+conferir(
+  "o botão do padrão devolve à leitura rolante",
+  (await p.locator('svg[role="img"] polygon[stroke-dasharray]').count()) === 0 &&
+    (await oitoSemanas.getAttribute("aria-pressed")) === "true",
+);
+
 /* --- sem nenhuma rola, o app se cala ------------------------------------- */
 sinais = [];
 await p.goto(`${BASE}/metas`, { waitUntil: "load" });

@@ -3,12 +3,44 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import type { SinalDeRola } from "./hexagono-derivado.ts";
 
-/** A janela do hexágono. Oito semanas, com meia-vida de quatro. */
+/** A janela da leitura rolante — o padrão do painel. Meia-vida de quatro. */
 export const SEMANAS_DA_JANELA = 8;
 
+/**
+ * Quanto o app traz do banco: um ano, não oito semanas.
+ *
+ * Parece desperdício e não é — é o contrário. O hexágono agora oferece os
+ * meses anteriores para comparar ali mesmo, e a alternativa seria uma segunda
+ * consulta só para eles. Uma busca de doze meses é mais barata que duas
+ * buscas, e some com a chance de as duas discordarem entre si.
+ *
+ * A leitura rolante continua sendo de oito semanas: quem filtra é
+ * `janelaRolante()`, na hora de derivar, e não o banco.
+ */
+export const MESES_DE_HISTORICO = 12;
+
 function desde(hoje = new Date()): string {
-  const d = new Date(hoje.getTime() - SEMANAS_DA_JANELA * 7 * 86400000);
+  const d = new Date(hoje);
+  d.setMonth(d.getMonth() - MESES_DE_HISTORICO);
   return d.toISOString().slice(0, 10);
+}
+
+/**
+ * Só as rolas das últimas oito semanas.
+ *
+ * O decaimento exponencial já deixaria as antigas quase sem peso (0,5^13 num
+ * ano), mas "quase" não é o mesmo que "fora": o rótulo diz **8 semanas**, e um
+ * gráfico que diz uma coisa e conta outra é um gráfico que mente. O corte é
+ * explícito para que o rótulo continue verdadeiro.
+ */
+export function janelaRolante(
+  sinais: SinalDeRola[],
+  hoje = new Date(),
+): SinalDeRola[] {
+  const corte = new Date(hoje.getTime() - SEMANAS_DA_JANELA * 7 * 86400000)
+    .toISOString()
+    .slice(0, 10);
+  return sinais.filter((s) => s.data >= corte);
 }
 
 const paraSinal = (r: Record<string, unknown>): SinalDeRola => ({
@@ -67,44 +99,19 @@ export function useRecalcularJogo() {
   };
 }
 
-/** As rolas da janela, cruas. A conta é feita em `hexagono-derivado.ts`. */
+/**
+ * As rolas do último ano, cruas. A conta é feita em `hexagono-derivado.ts`.
+ *
+ * Serve às duas leituras do painel: a rolante de oito semanas (depois de
+ * `janelaRolante()`) e a de cada mês fechado, para a comparação. Uma consulta
+ * só — ver o comentário de `MESES_DE_HISTORICO`.
+ */
 export function useSinaisDoJogo() {
   const query = useQuery({
     queryKey: ["sinais_do_jogo"],
     queryFn: async (): Promise<SinalDeRola[]> => {
       const { data, error } = await supabase.rpc("sinais_do_jogo" as never, {
         p_desde: desde(),
-      } as never);
-      if (error) throw error;
-      return ((data ?? []) as unknown as Record<string, unknown>[]).map(paraSinal);
-    },
-  });
-  return { sinais: query.data ?? [], ready: query.isSuccess };
-}
-
-/**
- * Quanto tempo para trás a comparação enxerga.
- *
- * Doze meses porque a pergunta que ela responde — "como eu estava antes do
- * campeonato", "julho contra agosto" — é de temporada, não de semana. É
- * consulta pesada demais para a tela inicial, e por isso mora numa chave
- * própria: quem só abre o Início nunca paga por ela.
- */
-export const MESES_DO_HISTORICO = 12;
-
-/** As rolas do último ano, para o comparador de meses. */
-export function useSinaisDoHistorico(ativo = true) {
-  const query = useQuery({
-    // A chave começa com "sinais_do_jogo" de propósito: o `useRecalcularJogo`
-    // invalida por prefixo, então registrar um treino derruba as duas de uma
-    // vez sem precisar lembrar desta aqui.
-    queryKey: ["sinais_do_jogo", "historico"],
-    enabled: ativo,
-    queryFn: async (): Promise<SinalDeRola[]> => {
-      const d = new Date();
-      d.setMonth(d.getMonth() - MESES_DO_HISTORICO);
-      const { data, error } = await supabase.rpc("sinais_do_jogo" as never, {
-        p_desde: d.toISOString().slice(0, 10),
       } as never);
       if (error) throw error;
       return ((data ?? []) as unknown as Record<string, unknown>[]).map(paraSinal);

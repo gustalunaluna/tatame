@@ -6,7 +6,6 @@ import { estiloDaFaixa } from "@/lib/faixa-cores";
 import { toast } from "sonner";
 import { PageShell } from "@/components/PageShell";
 import { PainelDoJogo, FechamentoDaSemana } from "@/components/PainelDoJogo";
-import { CompararMeses } from "@/components/CompararMeses";
 import { PrazoDaIBJJF } from "@/components/PrazoDaIBJJF";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -478,11 +477,6 @@ function MetasPage() {
       <PrazoDaIBJJF />
 
       <PainelDoJogo />
-
-      {/* Logo abaixo do hexágono de agora: quem acabou de olhar o formato do
-          mês é exatamente quem quer saber se ele mudou. Nasce recolhido — a
-          consulta de doze meses só sai quando alguém pede. */}
-      <CompararMeses />
 
       <Pontos kind="fraco" />
 
