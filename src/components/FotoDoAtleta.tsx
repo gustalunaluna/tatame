@@ -44,7 +44,6 @@ export function FotoDoAtleta({
   classeDasIniciais?: string;
 }) {
   const [falhou, setFalhou] = useState(false);
-  const [semPersonagem, setSemPersonagem] = useState(false);
   const temFoto = Boolean(url) && !falhou;
 
   return (
@@ -62,9 +61,7 @@ export function FotoDoAtleta({
           onError={() => setFalhou(true)}
           className="h-full w-full object-cover"
         />
-      ) : semPersonagem ? (
-        /* Último recurso: o WebP não carregou. Letras são melhores que um
-           buraco cinza, e é o mesmo desenho que existia aqui antes. */
+      ) : (
         <span
           aria-hidden="true"
           className={cn(
@@ -74,26 +71,6 @@ export function FotoDoAtleta({
         >
           {iniciais(nome ?? "") || "?"}
         </span>
-      ) : (
-        /**
-         * Sem foto, entra o personagem do app — não mais as iniciais.
-         *
-         * A troca tem um preço, e ele é declarado: numa lista de atletas sem
-         * foto todo mundo passa a ter a mesma cara, enquanto as iniciais
-         * distinguiam. Foi decisão de projeto — o personagem é a identidade
-         * visual do Ponteira, e quem quiser se distinguir manda a própria
-         * foto, que continua vencendo o personagem sempre que existe.
-         */
-        <img
-          src="/personagem/busto.webp"
-          alt=""
-          aria-hidden="true"
-          loading="lazy"
-          decoding="async"
-          onError={() => setSemPersonagem(true)}
-          className="h-full w-full select-none object-cover"
-          draggable={false}
-        />
       )}
     </div>
   );

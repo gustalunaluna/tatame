@@ -70,10 +70,6 @@ export default defineConfig({
           "manifest.webmanifest",
           "icon-*.png",
           "favicon.ico",
-          // O personagem é o avatar de quem não mandou foto — aparece em oito
-          // telas, inclusive na primeira. Fora do precache ele seria o único
-          // buraco de um app que abre inteiro sem rede.
-          "personagem/busto.webp",
         ],
 
         runtimeCaching: [
