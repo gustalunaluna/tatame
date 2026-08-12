@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { PageShell } from "@/components/PageShell";
 import { Link } from "@tanstack/react-router";
 import { CaixaDoPerfil } from "@/components/CaixaDoPerfil";
+import { CampoNumero } from "@/components/CampoNumero";
 import { AmostraDeAtletas } from "@/components/ListaDeAtletas";
 import { SeloVerificado } from "@/components/SeloVerificado";
 import {
@@ -709,24 +710,18 @@ function EditarPerfil({
         <div className="grid grid-cols-2 gap-3">
           <div>
             <Label htmlFor="vitorias">Vitórias</Label>
-            <Input
+            <CampoNumero
               id="vitorias"
-              type="number"
-              inputMode="numeric"
-              min={0}
-              value={f.fightsWon}
-              onChange={(e) => set("fightsWon", Math.max(0, +e.target.value))}
+              valor={f.fightsWon}
+              aoMudar={(n) => set("fightsWon", n)}
             />
           </div>
           <div>
             <Label htmlFor="derrotas">Derrotas</Label>
-            <Input
+            <CampoNumero
               id="derrotas"
-              type="number"
-              inputMode="numeric"
-              min={0}
-              value={f.fightsLost}
-              onChange={(e) => set("fightsLost", Math.max(0, +e.target.value))}
+              valor={f.fightsLost}
+              aoMudar={(n) => set("fightsLost", n)}
             />
           </div>
         </div>

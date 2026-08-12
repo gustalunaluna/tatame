@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Icone } from "@/design/icones";
 import { toast } from "sonner";
+import { CampoNumero } from "@/components/CampoNumero";
 import { PageShell } from "@/components/PageShell";
 import { SeletorDeTecnicas } from "@/components/SeletorDeTecnicas";
 import { Button } from "@/components/ui/button";
@@ -365,9 +366,18 @@ function TrainingDialog({
       </DialogHeader>
       <div className="space-y-3">
         <div className="grid grid-cols-2 gap-3">
+          {/* `htmlFor` + `id` em todos os campos: sem o par, o rótulo é só um
+              texto solto acima da caixa — leitor de tela anuncia "campo de
+              edição, em branco" e quem usa o app com uma mão perde o alvo de
+              toque do rótulo, que dobra a área clicável. */}
           <div>
-            <Label>Data</Label>
-            <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+            <Label htmlFor="data">Data</Label>
+            <Input
+              id="data"
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+            />
           </div>
           <div>
             <Label>Tipo</Label>
@@ -380,24 +390,12 @@ function TrainingDialog({
             </Select>
           </div>
           <div>
-            <Label>Duração (min)</Label>
-            <Input
-              type="number"
-              inputMode="numeric"
-              min={0}
-              value={durationMin}
-              onChange={(e) => setDuration(+e.target.value)}
-            />
+            <Label htmlFor="duracao">Duração (min)</Label>
+            <CampoNumero id="duracao" valor={durationMin} aoMudar={setDuration} />
           </div>
           <div>
-            <Label>Rolas</Label>
-            <Input
-              type="number"
-              inputMode="numeric"
-              min={0}
-              value={rolls}
-              onChange={(e) => setRolls(+e.target.value)}
-            />
+            <Label htmlFor="rolas">Rolas</Label>
+            <CampoNumero id="rolas" valor={rolls} aoMudar={setRolls} />
           </div>
         </div>
         <ParceirosDoTreino linhas={parceiros} aoMudar={setParceiros} />

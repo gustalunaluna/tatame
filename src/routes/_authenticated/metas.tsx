@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, type CSSProperties } from "react";
 import { Icone } from "@/design/icones";
+import { CampoNumero } from "@/components/CampoNumero";
 import { RotaDeGraduacao } from "@/components/RotaDeGraduacao";
 import { estiloDaFaixa } from "@/lib/faixa-cores";
 import { toast } from "sonner";
@@ -143,14 +144,7 @@ function NovaMeta() {
           {kind === "volume" && (
             <div>
               <Label htmlFor="numero">Quantos treinos</Label>
-              <Input
-                id="numero"
-                type="number"
-                inputMode="numeric"
-                min={1}
-                value={numero}
-                onChange={(e) => setNumero(+e.target.value)}
-              />
+              <CampoNumero id="numero" min={1} valor={numero} aoMudar={setNumero} />
             </div>
           )}
 
