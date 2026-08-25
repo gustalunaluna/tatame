@@ -218,7 +218,18 @@ function PerfilPage() {
               Ainda sem lutas oficiais. A estreia é a próxima conquista.
             </p>
           )}
-          <p className="mt-3 text-center text-xs text-muted-foreground">
+          {/* Estes três números são a conta; a luta a luta mora em outro
+              lugar. O link existe porque "quantas ganhei" é a pergunta
+              menos interessante que um cartel responde. */}
+          <Link
+            to="/minhas-lutas"
+            className="tap mt-3 block text-center text-xs font-semibold text-primary"
+          >
+            {totalLutas === 0
+              ? "Registrar uma luta"
+              : "Ver luta a luta, com o método de cada uma"}
+          </Link>
+          <p className="mt-2 text-center text-xs text-muted-foreground">
             {treinos.length} treinos registrados
           </p>
         </CardContent>
@@ -725,6 +736,18 @@ function EditarPerfil({
             />
           </div>
         </div>
+
+        {/* Aviso e não trava: quem só quer o total continua digitando aqui.
+            Mas o dia em que registrar a primeira luta, o log passa a mandar —
+            e é melhor saber disso antes do que estranhar o número depois. */}
+        <p className="text-xs text-muted-foreground">
+          Se você registrar suas lutas em{" "}
+          <Link to="/minhas-lutas" className="font-semibold text-primary">
+            Minhas lutas
+          </Link>
+          , estes dois números passam a ser calculados de lá e o que você
+          digitar aqui deixa de valer.
+        </p>
       </div>
       <DialogFooter>
         <Button

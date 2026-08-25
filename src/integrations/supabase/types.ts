@@ -84,6 +84,57 @@ export type Database = {
         };
         Relationships: [];
       };
+      lutas: {
+        Row: {
+          id: string;
+          user_id: string;
+          data: string;
+          evento: string;
+          oficial: boolean;
+          oponente: string;
+          oponente_faixa: string | null;
+          categoria: string;
+          resultado: string;
+          metodo: string | null;
+          golpe: string;
+          tempo_seg: number | null;
+          notas: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          data: string;
+          evento?: string;
+          oficial?: boolean;
+          oponente?: string;
+          oponente_faixa?: string | null;
+          categoria?: string;
+          resultado: string;
+          metodo?: string | null;
+          golpe?: string;
+          tempo_seg?: number | null;
+          notas?: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          data?: string;
+          evento?: string;
+          oficial?: boolean;
+          oponente?: string;
+          oponente_faixa?: string | null;
+          categoria?: string;
+          resultado?: string;
+          metodo?: string | null;
+          golpe?: string;
+          tempo_seg?: number | null;
+          notas?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       trainings: {
         Row: {
           id: string;
