@@ -27,6 +27,20 @@
  * mesma semente, mesmo exame, sempre. Isso é o que torna a função testável
  * sem navegador: o teste fixa uma semente e confere o resultado. Quem chama
  * do app passa `Date.now()` como semente, e cada geração sai diferente.
+ *
+ * CORREÇÃO: GABARITO + AUTOAVALIAÇÃO, NÃO CORRETOR AUTOMÁTICO
+ *
+ * Este app não tem IA para julgar texto livre — não existe backend que leia
+ * "descreva o ouchi gari" e decida se a resposta está certa. Um corretor por
+ * palavra-chave existiria, mas erraria o veredito toda vez que a resposta
+ * certa viesse com outras palavras — e um app que finge julgar e erra é pior
+ * que um app que não julga.
+ *
+ * Por isso cada `Pergunta` carrega um `gabarito`: uma resposta de referência,
+ * escrita uma vez junto do syllabus, revelada depois que o atleta escreve a
+ * própria resposta. Quem decide "acertei" ou "não acertei" é ele, contra um
+ * padrão escrito — não o app sozinho. É autoavaliação, não correção
+ * automática de verdade, e o app não finge o contrário em lugar nenhum.
  */
 
 export type FaixaAlvo = "Azul" | "Roxa" | "Marrom" | "Preta";
@@ -53,8 +67,16 @@ export interface Pergunta {
   categoria: Categoria;
   item: string;
   pergunta: string;
+  /** A resposta de referência — escrita uma vez, junto do syllabus, não gerada. */
+  gabarito: string;
   resposta: string;
   respondida: boolean;
+  /**
+   * Autoavaliação contra o gabarito: null = ainda não conferiu, true/false =
+   * o próprio atleta decidiu. Não existe corretor automático de texto livre
+   * aqui — ver a nota no topo do arquivo sobre por quê.
+   */
+  acertou: boolean | null;
 }
 
 /* ------------------------------------------------------------------ */
@@ -165,6 +187,137 @@ const QUEDAS = [
   "Zempo kaiten ukemi",
 ];
 
+/* ------------------------------------------------------------------ */
+/* Gabaritos — a resposta de referência de cada item.                  */
+/*                                                                      */
+/* Descrição técnica geral, não o vocabulário exato de nenhum professor */
+/* específico — a autoridade final sobre "como a Team Thomé ensina" é   */
+/* sempre o professor. Isto é o padrão contra o qual o atleta se        */
+/* autoavalia, não um substituto da correção humana.                    */
+/* ------------------------------------------------------------------ */
+
+const GABARITO_ITEM: Record<string, string> = {
+  // --- defesas numeradas: camadas de defesa contra a passagem, da mais
+  // externa (pé) até a mais próxima de ser passado (ombros) ---
+  "01 — Pé":
+    "Primeira camada: o pé/perna impede o passador de se aproximar — pressiona joelho ou quadril dele, mantendo distância antes de qualquer contato mais próximo.",
+  "02 — Joelhos":
+    "Ele já venceu a barreira do pé; o joelho vira o frame — dobrado, apontando para o passador, protegendo a linha do quadril.",
+  "03 — Mãos (braços esticados)":
+    "Braço esticado empurrando quadril, ombro ou coxa do passador — a defesa mais comum e a mais fraca contra pressão de peso, porque depende só de força.",
+  "04 — Cotovelos / antebraço":
+    "O frame sobe de nível: em vez do braço esticado, que cansa e cede, o antebraço/cotovelo fica colado ao corpo — mais estrutura, menos força gasta.",
+  "05 — Ombros":
+    "Última camada antes da passagem se consumar — ele já está muito perto; o que resta é usar o ombro para girar e criar ângulo de reposição, não mais empurrar.",
+
+  // --- cambalhotas ---
+  "Cambalhota para frente":
+    "Queixo colado no peito, nunca apoiar a cabeça no chão — rola pela nuca/ombro, não pelo topo da cabeça, para não comprimir a cervical.",
+  "Cambalhota para trás":
+    "Gira sob os ombros: mão apoia ao lado da cabeça, o ombro entra primeiro, e a cabeça sai da linha de rotação para não bater nem torcer o pescoço.",
+
+  // --- posturas e movimentação ---
+  "Postura dentro da guarda":
+    "Tronco ereto, quadril baixo e colado, joelhos largos travando o quadril do adversário no chão — a disputa é manter essa postura contra a tentativa dele de quebrá-la.",
+  "Posição de 100 kg":
+    "Pressão de peso morto sobre o adversário, geralmente peito no peito ou joelho na barriga, sem gastar força ativa — a gravidade faz o trabalho de exaustão.",
+  "Posicionamento nas guardas variadas":
+    "A postura muda com o tipo de guarda: aberta pede tronco mais alto e ativo; fechada pede quadril colado e postura mais defensiva, sem se deixar puxar para dentro.",
+  "Movimentações básicas":
+    "O vocabulário de base que sustenta tudo — fuga de quadril, ponte, giro — executado como parte do jogo real, não como aquecimento isolado.",
+  "Fuga de quadril — pé de dentro":
+    "O pé mais próximo do adversário apoia por dentro; usada quando ainda há espaço para recuar o quadril na direção dele antes que ele feche o espaço.",
+  "Fuga de quadril — pé de fora":
+    "O pé apoia por fora do corpo do adversário, geralmente para criar ângulo e escapar de uma pressão mais fechada, girando para longe dele.",
+  "Pé de dentro emborca":
+    "A partir do pé de dentro, o movimento vira o corpo de bruços — geralmente parte de uma fuga que termina retirando você de baixo da pressão.",
+  "Pé de dentro arrasta":
+    "Variação em que, em vez de virar, você arrasta o quadril mantendo a frente para o adversário — recompõe posição sem expor as costas.",
+  "Levantada técnica":
+    "Levanta do chão sem dar as costas nem perder a base: mão no chão, quadril sobe primeiro, olho no adversário — nunca virar de costas para levantar.",
+  "Troca de base":
+    "Troca o apoio de mão/joelho de um lado para o outro sob pressão, mantendo o quadril estável — usada para inverter posição ou escapar de um ataque lateral.",
+  "Sprawl":
+    "Joga o quadril e as pernas para trás quando o adversário ataca a queda, achatando o peso sobre as costas dele para negar a entrada.",
+  "Passo do samurai":
+    "Passo largo e baixo, quadril atrás do joelho de apoio, usado para trocar de lado ou entrar em posição mantendo a base sempre carregada.",
+
+  // --- projeções ---
+  "Single leg":
+    "Pegada numa perna (coxa/joelho), cabeça geralmente por fora, corpo colado — leva a queda empurrando a perna presa e cortando o ângulo. Falhar deixa você agachado com a perna ainda presa: recuperável, mas exposto a guilhotina se a cabeça ficar por dentro.",
+  "Double leg":
+    "Pegada nas duas pernas, nível baixo, explosão para frente levando as duas ao mesmo tempo. Falhar deixa você agachado à frente dele — recuperável, mas caro em gás.",
+  "Osoto gari":
+    "Ceifada grande por fora: pegada de manga/gola, gira o corpo varrendo por fora a perna de apoio dele enquanto puxa o tronco. Falhar pode entregar as costas se o giro passar do ponto.",
+  "Kouchi gari":
+    "Ceifada pequena por dentro: o pé rasteja por dentro atacando o calcanhar/tornozelo, sem o giro grande do osoto. Barata — falhar deixa você em pé, com a pegada intacta.",
+  "Ouchi gari":
+    "Ceifada grande por dentro: sua perna atravessa e varre a perna de trás dele por dentro, empurrando o tronco para trás. Falhar é barato: você continua em pé.",
+  "Kibisu gaeshi (safadinha)":
+    "Ataque ao calcanhar/tornozelo por trás, geralmente quando ele recua ou muda o peso — puxa o pé enquanto empurra o joelho, derrubando de costas. É contragolpe de reação, não entrada de frente.",
+  "Colar drag em pé":
+    "Puxa a cabeça/gola para baixo e para o lado, quebrando a postura dele em pé — geralmente abre caminho para uma queda de perna do lado que ele expôs.",
+  "Colar drag para single leg":
+    "A mesma puxada de cabeça, mas usada para cegar a reação dele e entrar direto na perna que o puxão deixou exposta.",
+  "Tomoe nage":
+    "Pegada nas duas lapelas ou mangas, você senta/cai de costas colocando o pé no quadril ou baixo-ventre dele, usando a inércia dele para frente para arremessá-lo por cima. Falhar deixa você de costas com ele em pé — cara.",
+  "Sumi gaeshi":
+    "O pé engancha por dentro da coxa dele e levanta o canto dele enquanto você puxa — funciona quando ele está com a postura baixa e curvada. Falhar geralmente te deixa em guarda gancho com o gancho já colocado — barata.",
+  "O goshi":
+    "Quadril grande: pegada ao redor da cintura, você gira de costas colando o quadril abaixo do dele e arremessa por cima, usando o braço na cintura como alavanca.",
+  "Koshi guruma":
+    "Mesma entrada de quadril do o goshi, mas o braço vai ao redor do pescoço em vez da cintura — controla a cabeça na queda.",
+  "Ippon seoi nage (ajoelhado)":
+    "\"Ippon\" indica pegada de um braço só — carrega o braço dele nas costas, entrando mais baixo e mais rápido, geralmente ajoelhando para reduzir a altura.",
+  "Seoi nage (ajoelhado)":
+    "Versão de dois braços: pegada de manga e gola, você entra de costas para ele, carrega o corpo inteiro sobre os ombros antes de puxar para baixo.",
+  "Tani otoshi":
+    "Deriva \"no vale\": trava a perna dele por trás enquanto puxa o tronco para o lado — ele cai porque a base foi cortada, não porque foi arremessado por cima.",
+  "Tai otoshi":
+    "Usa o próprio corpo como barreira: perna estendida na frente da dele, gira o tronco puxando, e ela tromba na sua perna e cai.",
+  "Kata guruma":
+    "\"Roda no ombro\": você abaixa, pega a perna dele, sobe o corpo dele nos seus ombros e gira, derrubando-o por cima como um saco.",
+  "Harai goshi":
+    "Varredura de quadril: entrada igual ao o goshi, mas a sua perna varre a perna dele por trás no momento do giro, somando quadril e varredura.",
+  "De ashi barai":
+    "Varre o pé que está avançando no exato instante em que ele apoia o peso ali — não precisa de força, precisa de tempo certo.",
+
+  // --- quedas (ukemi) ---
+  "Mae ukemi":
+    "Cai nos antebraços formando um triângulo com o corpo reto — nunca nas mãos sozinhas, e a cabeça e o quadril nunca tocam o chão.",
+  "Ushiro ukemi":
+    "Queixo no peito, as duas mãos batem no tatame em diagonal na altura dos pés, pernas flexionadas com adução — a batida dissipa o impacto antes que ele chegue à cabeça.",
+  "Yoko ukemi":
+    "Cai de lado varrendo com a perna, um braço bate no tatame a 45°, cabeça longe do chão — a mais usada em grappling, porque a maioria das quedas termina de lado.",
+  "Zempo kaiten ukemi":
+    "Rolamento pelos ombros, nunca pela cabeça — a rotação atravessa a diagonal do corpo (mão, ombro oposto, quadril), dissolvendo a energia da queda em vez de recebê-la de impacto.",
+};
+
+/**
+ * Gabarito das comparações — chave no mesmo formato usado no `item` da
+ * pergunta de comparação (`"A × B"`), para achar direto sem reprocessar.
+ */
+const GABARITO_PAR: Record<string, string> = {
+  "Ouchi gari × Kouchi gari":
+    "Duas ceifadas por dentro: Ouchi é grande, ataca a perna de trás com giro maior de corpo; Kouchi é pequena, ataca o calcanhar/tornozelo mais perto, sem o giro grande. Kouchi é mais barata e mais rápida; Ouchi derruba mais forte quando entra.",
+  "Tomoe nage × Sumi gaeshi":
+    "As duas são sacrifício, mas para posturas opostas: Tomoe funciona contra quem está ereto e vindo para frente, usando a inércia dele; Sumi gaeshi funciona contra quem está curvado e baixo, levantando o canto dele. A defesa de uma tende a abrir a outra.",
+  "O goshi × Koshi guruma":
+    "A entrada de quadril é a mesma; muda o braço de controle — O goshi abraça a cintura, Koshi guruma controla a cabeça/pescoço. Koshi guruma dá mais controle da queda e custa mais tempo para armar.",
+  "Seoi nage (ajoelhado) × Ippon seoi nage (ajoelhado)":
+    "\"Ippon\" quer dizer um braço só: Ippon seoi entra com uma pegada, mais rápido e mais baixo; Seoi nage usa as duas mãos (manga e gola), mais lento de armar mas mais controlado na queda.",
+  "Single leg × Double leg":
+    "As duas são shots de wrestling: Single ataca uma perna só e permite mais variação de finalização; Double ataca as duas, é mais explosiva e definitiva, mas exige nível mais baixo e mais gás.",
+  "Colar drag em pé × Colar drag para single leg":
+    "É o mesmo puxão de cabeça — a diferença é o que vem depois: em pé, você usa a quebra de postura para atacar de perto; para single leg, você usa a distração do puxão para entrar direto na perna.",
+  "Kibisu gaeshi (safadinha) × Osoto gari":
+    "As duas derrubam para trás, mas Kibisu gaeshi é reativa — ataca o calcanhar quando ele recua ou muda o peso; Osoto gari é proativa — você cria a queda girando o corpo, sem esperar a reação dele.",
+  "Tai otoshi × Kata guruma":
+    "As duas usam o corpo como obstáculo, em alturas diferentes: Tai otoshi usa a perna estendida na altura do chão; Kata guruma sobe o corpo dele inteiro até os ombros. Kata guruma é mais espetacular e mais cara de errar.",
+  "Tani otoshi × Harai goshi":
+    "Tani otoshi corta a base por trás sem girar o corpo dele — ele cai de lado/atrás por perder o apoio; Harai goshi gira e varre ao mesmo tempo — ele voa por cima do quadril.",
+};
+
 /**
  * Quantos pares de comparação entram em cada exame. Usada tanto para gerar
  * quanto para `contagemDoExame` — as duas precisam concordar, ou a contagem
@@ -230,8 +383,10 @@ function perguntasDaCategoriaSimples(
     categoria,
     item,
     pergunta: escolher(templates, aleatorio)(item),
+    gabarito: GABARITO_ITEM[item] ?? "",
     resposta: "",
     respondida: false,
+    acertou: null,
   }));
 }
 
@@ -245,14 +400,19 @@ function perguntasDeProjecao(aleatorio: () => number): Pergunta[] {
   const pares = embaralhar(PARES_PROJECAO, aleatorio).slice(0, PARES_USADOS_POR_EXAME);
   const cobertas = new Set(pares.flat());
 
-  const comparacoes: Pergunta[] = pares.map(([a, b]) => ({
-    id: gerarId(aleatorio),
-    categoria: "projecoes",
-    item: `${a} × ${b}`,
-    pergunta: escolher(TEMPLATES_PROJECAO_COMPARAR, aleatorio)(a, b),
-    resposta: "",
-    respondida: false,
-  }));
+  const comparacoes: Pergunta[] = pares.map(([a, b]) => {
+    const item = `${a} × ${b}`;
+    return {
+      id: gerarId(aleatorio),
+      categoria: "projecoes",
+      item,
+      pergunta: escolher(TEMPLATES_PROJECAO_COMPARAR, aleatorio)(a, b),
+      gabarito: GABARITO_PAR[item] ?? "",
+      resposta: "",
+      respondida: false,
+      acertou: null,
+    };
+  });
 
   const restantes = PROJECOES.filter((p) => !cobertas.has(p));
   const descricoes = perguntasDaCategoriaSimples(
@@ -311,4 +471,51 @@ export function contagemDoExame(faixaAlvo: FaixaAlvo): number | null {
     projecoesEmPergunta +
     QUEDAS.length
   );
+}
+
+/* ------------------------------------------------------------------ */
+
+export interface ResumoDoExame {
+  total: number;
+  certas: number;
+  erradas: number;
+  /** Respondida, mas ainda sem "acertei"/"não acertei" marcado. */
+  porConferir: number;
+  /** Nem sequer respondida. */
+  emBranco: number;
+  /** Os itens marcados "não acertei" — o material de revisão. */
+  paraRever: { categoria: Categoria; item: string; gabarito: string }[];
+}
+
+/**
+ * Fecha a conta do exame a partir da autoavaliação de cada pergunta.
+ *
+ * Não julga nada — só soma o que o próprio atleta já decidiu. Um exame
+ * recém-gerado tem `certas = erradas = 0` e todo mundo em `emBranco`; a
+ * "correção" acontece pergunta a pergunta, não num botão de "corrigir tudo".
+ */
+export function resumoDoExame(perguntas: Pergunta[]): ResumoDoExame {
+  const resumo: ResumoDoExame = {
+    total: perguntas.length,
+    certas: 0,
+    erradas: 0,
+    porConferir: 0,
+    emBranco: 0,
+    paraRever: [],
+  };
+
+  for (const p of perguntas) {
+    if (!p.respondida) {
+      resumo.emBranco += 1;
+    } else if (p.acertou === true) {
+      resumo.certas += 1;
+    } else if (p.acertou === false) {
+      resumo.erradas += 1;
+      resumo.paraRever.push({ categoria: p.categoria, item: p.item, gabarito: p.gabarito });
+    } else {
+      resumo.porConferir += 1;
+    }
+  }
+
+  return resumo;
 }

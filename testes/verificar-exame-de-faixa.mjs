@@ -16,8 +16,12 @@
  *   4. faixa sem syllabus (Roxa, Marrom, Preta) retorna null — nunca inventa
  *      conteúdo de exame que a academia não forneceu
  *   5. nenhuma pergunta nasce respondida ou com resposta preenchida
+ *   6. TODA pergunta gerada tem gabarito não vazio — sem isso a
+ *      autoavaliação não tem contra o que se medir
+ *   7. resumoDoExame conta certas/erradas/por conferir/em branco a partir
+ *      só do que o atleta marcou, e lista "para rever" com as erradas
  */
-import { gerarExame, contagemDoExame } from "../src/lib/exame-de-faixa.ts";
+import { gerarExame, contagemDoExame, resumoDoExame } from "../src/lib/exame-de-faixa.ts";
 
 const falhas = [];
 const ok = [];
@@ -83,6 +87,43 @@ conferir(
 conferir(
   "todo id é único dentro do exame",
   new Set(exame.map((p) => p.id)).size === exame.length,
+);
+
+/* --- 6. todo item tem gabarito ---------------------------------------- */
+for (const semente of [3, 404, 8080]) {
+  const ex = gerarExame("Azul", semente);
+  const semGabarito = ex.filter((p) => !p.gabarito || p.gabarito.trim() === "");
+  conferir(
+    `semente ${semente}: toda pergunta tem gabarito não vazio`,
+    semGabarito.length === 0,
+    JSON.stringify(semGabarito.map((p) => p.item)),
+  );
+}
+
+/* --- 7. resumoDoExame --------------------------------------------------- */
+const paraResumo = gerarExame("Azul", 909).map((p, i) => {
+  if (i < 10) return { ...p, respondida: true, acertou: true };
+  if (i < 15) return { ...p, respondida: true, acertou: false };
+  if (i < 20) return { ...p, respondida: true, acertou: null };
+  return p; // em branco
+});
+const resumo = resumoDoExame(paraResumo);
+conferir("resumoDoExame conta certas", resumo.certas === 10, String(resumo.certas));
+conferir("resumoDoExame conta erradas", resumo.erradas === 5, String(resumo.erradas));
+conferir("resumoDoExame conta por conferir", resumo.porConferir === 5, String(resumo.porConferir));
+conferir(
+  "resumoDoExame conta em branco",
+  resumo.emBranco === paraResumo.length - 20,
+  String(resumo.emBranco),
+);
+conferir(
+  "paraRever tem exatamente as erradas",
+  resumo.paraRever.length === 5,
+  String(resumo.paraRever.length),
+);
+conferir(
+  "resumo de exame recém-gerado tem tudo em branco",
+  resumoDoExame(gerarExame("Azul", 1)).emBranco === contagemDoExame("Azul"),
 );
 
 /* ------------------------------------------------------------------------- */

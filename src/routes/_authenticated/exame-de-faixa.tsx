@@ -21,9 +21,11 @@ import {
   type Categoria,
   type FaixaAlvo,
   type Pergunta,
+  type ResumoDoExame,
 } from "@/lib/exame-de-faixa.ts";
 import {
   progressoDoExame,
+  resultadoDoExame,
   useMeusExamesDeFaixa,
   type ExameDeFaixa,
 } from "@/lib/exame-de-faixa-storage.ts";
@@ -106,7 +108,8 @@ function GerarExame({ aoGerar }: { aoGerar: (faixa: FaixaAlvo) => Promise<boolea
         ) : (
           <p className="text-xs text-muted-foreground">
             Vai gerar {contagem} perguntas, cobrindo defesas, cambalhotas, postura,
-            as dezenove projeções e as quatro quedas.
+            as dezenove projeções e as quatro quedas — cada uma com um gabarito
+            para você conferir depois de responder.
           </p>
         )}
 
@@ -127,17 +130,88 @@ function GerarExame({ aoGerar }: { aoGerar: (faixa: FaixaAlvo) => Promise<boolea
 
 /* ------------------------------------------------------------------ */
 
+/**
+ * O placar: certas, erradas, por conferir, em branco — numa linha, sempre
+ * visível quando há pelo menos uma resposta no exame. É o "como fui" que foi
+ * pedido, atualizando sozinho conforme o atleta marca cada pergunta.
+ */
+function Placar({ resumo }: { resumo: ResumoDoExame }) {
+  const avaliadas = resumo.certas + resumo.erradas;
+  if (avaliadas === 0 && resumo.porConferir === 0) return null;
+
+  return (
+    <div className="grid grid-cols-4 gap-1.5 text-center">
+      <div className="rounded-lg bg-primary/10 p-2">
+        <span className="block text-base font-black tabular-nums text-primary">
+          {resumo.certas}
+        </span>
+        <span className="text-[0.65rem] text-muted-foreground">certas</span>
+      </div>
+      <div className="rounded-lg bg-destructive/10 p-2">
+        <span className="block text-base font-black tabular-nums text-destructive">
+          {resumo.erradas}
+        </span>
+        <span className="text-[0.65rem] text-muted-foreground">erradas</span>
+      </div>
+      <div className="rounded-lg bg-muted/50 p-2">
+        <span className="block text-base font-black tabular-nums">{resumo.porConferir}</span>
+        <span className="text-[0.65rem] text-muted-foreground">por conferir</span>
+      </div>
+      <div className="rounded-lg bg-muted/50 p-2">
+        <span className="block text-base font-black tabular-nums text-muted-foreground">
+          {resumo.emBranco}
+        </span>
+        <span className="text-[0.65rem] text-muted-foreground">em branco</span>
+      </div>
+    </div>
+  );
+}
+
+/** Os itens marcados "não acertei" — a lista de revisão, com o gabarito ao lado. */
+function ParaRever({ itens }: { itens: ResumoDoExame["paraRever"] }) {
+  if (itens.length === 0) return null;
+  return (
+    <div className="flex flex-col gap-2 rounded-xl border border-destructive/30 bg-destructive/5 p-3">
+      <p className="text-xs font-bold uppercase tracking-wide text-destructive">
+        Para rever
+      </p>
+      {itens.map((it) => (
+        <div key={it.item} className="text-xs leading-relaxed">
+          <span className="font-semibold">{it.item}</span>
+          <span className="text-muted-foreground"> — {it.gabarito}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+
 function CampoDeResposta({
   pergunta,
   aoSalvar,
+  aoAutoavaliar,
 }: {
   pergunta: Pergunta;
   aoSalvar: (resposta: string) => void;
+  aoAutoavaliar: (acertou: boolean) => void;
 }) {
   const [texto, setTexto] = useState(pergunta.resposta);
 
+  // O gabarito só aparece depois de responder — ver antes vira cola, não
+  // autoavaliação. `pergunta.respondida` é a fonte da verdade (vem do
+  // banco); `texto` é o rascunho local ainda não salvo.
+  const podeVerGabarito = pergunta.respondida && texto === pergunta.resposta;
+
   return (
-    <div className="flex flex-col gap-1.5">
+    <div
+      className={cn(
+        "flex flex-col gap-1.5 rounded-lg border-l-2 pl-2.5",
+        pergunta.acertou === true && "border-l-primary",
+        pergunta.acertou === false && "border-l-destructive",
+        pergunta.acertou === null && "border-l-transparent",
+      )}
+    >
       <p className="text-sm leading-snug">
         <span className="font-semibold">{pergunta.item}</span>
         {" — "}
@@ -151,8 +225,42 @@ function CampoDeResposta({
         }}
         placeholder="Escreva sua resposta…"
         rows={2}
-        className={cn(pergunta.respondida && "border-primary/40")}
       />
+
+      {podeVerGabarito && (
+        <div className="flex flex-col gap-2 rounded-lg bg-muted/40 p-2.5">
+          <p className="text-xs leading-relaxed text-muted-foreground">
+            <span className="font-semibold text-foreground">Gabarito — </span>
+            {pergunta.gabarito}
+          </p>
+          <div className="flex gap-2">
+            <button
+              onClick={() => aoAutoavaliar(true)}
+              aria-pressed={pergunta.acertou === true}
+              className={cn(
+                "tap flex-1 rounded-lg border py-1.5 text-xs font-bold active:scale-95",
+                pergunta.acertou === true
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-border/60 text-muted-foreground",
+              )}
+            >
+              Acertei
+            </button>
+            <button
+              onClick={() => aoAutoavaliar(false)}
+              aria-pressed={pergunta.acertou === false}
+              className={cn(
+                "tap flex-1 rounded-lg border py-1.5 text-xs font-bold active:scale-95",
+                pergunta.acertou === false
+                  ? "border-destructive bg-destructive/10 text-destructive"
+                  : "border-border/60 text-muted-foreground",
+              )}
+            >
+              Não acertei
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -160,15 +268,19 @@ function CampoDeResposta({
 function CartaoDeExame({
   exame,
   aoResponder,
+  aoAutoavaliar,
   aoApagar,
 }: {
   exame: ExameDeFaixa;
   aoResponder: (perguntaId: string, resposta: string) => void;
+  aoAutoavaliar: (perguntaId: string, acertou: boolean) => void;
   aoApagar: () => void;
 }) {
   const [aberto, setAberto] = useState(false);
   const { feitas, total } = progressoDoExame(exame);
+  const resumo = resultadoDoExame(exame);
   const grupos = agruparPorCategoria(exame.perguntas);
+  const avaliadas = resumo.certas + resumo.erradas;
 
   return (
     <Card>
@@ -183,7 +295,9 @@ function CartaoDeExame({
             <p className="text-xs text-muted-foreground">
               {exame.criadoEm.slice(0, 10).split("-").reverse().join("/")}
               {" · "}
-              {feitas} de {total} respondidas
+              {avaliadas > 0
+                ? `${resumo.certas} certas, ${resumo.erradas} erradas`
+                : `${feitas} de ${total} respondidas`}
             </p>
           </div>
           {aberto ? (
@@ -195,6 +309,9 @@ function CartaoDeExame({
 
         {aberto && (
           <div className="mt-4 flex flex-col gap-5">
+            <Placar resumo={resumo} />
+            <ParaRever itens={resumo.paraRever} />
+
             {grupos.map(([categoria, perguntas]) => (
               <div key={categoria} className="flex flex-col gap-3">
                 <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
@@ -205,6 +322,7 @@ function CartaoDeExame({
                     key={p.id}
                     pergunta={p}
                     aoSalvar={(resposta) => aoResponder(p.id, resposta)}
+                    aoAutoavaliar={(acertou) => aoAutoavaliar(p.id, acertou)}
                   />
                 ))}
               </div>
@@ -231,7 +349,7 @@ function CartaoDeExame({
 /* ------------------------------------------------------------------ */
 
 function ExameDeFaixaPage() {
-  const { exames, ready, gerar, apagar, responder } = useMeusExamesDeFaixa();
+  const { exames, ready, gerar, apagar, responder, autoavaliar } = useMeusExamesDeFaixa();
 
   return (
     <PageShell
@@ -255,6 +373,9 @@ function ExameDeFaixaPage() {
             key={exame.id}
             exame={exame}
             aoResponder={(perguntaId, resposta) => void responder(exame.id, perguntaId, resposta)}
+            aoAutoavaliar={(perguntaId, acertou) =>
+              void autoavaliar(exame.id, perguntaId, acertou)
+            }
             aoApagar={() => void apagar(exame.id)}
           />
         ))}
