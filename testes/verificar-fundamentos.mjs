@@ -1,5 +1,10 @@
 /**
- * O gerador de exame de faixa — a conta, não a tela.
+ * A folha "Posições Fundamentais — Primeira Parte" — a conta, não a tela.
+ *
+ * Não é o exame de nenhuma faixa: é a base que a academia cobra em TODA
+ * graduação, e que por isso entra em todo exame de faixa completo. As folhas
+ * de transição (Branca à Azul, Azul à Roxa) têm arquivo próprio,
+ * verificar-exame-por-faixa.mjs.
  *
  * Roda sem navegador: `gerarExame` é aritmética determinística sobre uma
  * lista fixa, e subir Chromium para conferir isso seria gastar dez segundos
@@ -13,9 +18,8 @@
  *      novo" seria decoração
  *   3. as 19 projeções do syllabus aparecem todas, cobertas por descrição OU
  *      por comparação — nenhuma pode ficar de fora do exame
- *   4. faixa sem syllabus (Marrom, Preta) retorna null — nunca inventa
- *      conteúdo de exame que a academia não forneceu. A roxa tem folha e tem
- *      teste próprio: verificar-exame-roxa.mjs
+ *   4. faixa sem folha (Marrom, Preta) retorna null — nunca inventa conteúdo
+ *      de exame que a academia não forneceu
  *   5. nenhuma pergunta nasce respondida ou com resposta preenchida
  *   6. TODA pergunta gerada tem gabarito não vazio — sem isso a
  *      autoavaliação não tem contra o que se medir

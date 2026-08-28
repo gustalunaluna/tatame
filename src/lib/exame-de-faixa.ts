@@ -6,36 +6,51 @@
  * movimentações e quedas, branca → azul). Não é uma lista inventada — é a
  * lista deles, estruturada.
  *
- * EXISTE CONTEÚDO PARA BRANCA → AZUL E AZUL → ROXA
+ * DUAS FOLHAS POR FAIXA, NÃO UMA
  *
- * As demais transições (roxa→marrom, marrom→preta) não têm syllabus
- * fornecido. `gerarExame` para essas retorna null em vez de inventar técnica —
- * um exame de faixa é documento oficial da academia, e chutar conteúdo aqui
- * seria pior que não ter a função.
+ * A academia entrega DOIS papéis para cada graduação, e o exame cobra os dois:
  *
- * ESCOPOS: A FOLHA DA ROXA COBRA COISAS DIFERENTES POR GRAU
+ *   1. "Posições Fundamentais — Primeira Parte": defesas numeradas,
+ *      cambalhotas, posturas e movimentação, as 19 projeções e as 4 quedas.
+ *      Essa folha vale para TODAS as faixas — não é o exame da azul, é a base
+ *      que se cobra em qualquer graduação.
+ *   2. A folha da transição — "Branca à Azul", "Azul à Roxa" —, com 36
+ *      posições numeradas mais os drills.
  *
- * A folha Azul → Roxa é explícita: "o exame de 1º e 2º grau será exigido o
- * conhecimento das posições de 01 a 18, para o 3º e 4º graus o conhecimento
- * das posições de 19 a 36 (...) para o exame de faixa será exigido o
- * conhecimento de todas as posições". Ou seja, um azul liso e um azul 3 graus
- * não fazem a mesma prova, e gerar sempre as 36 seria gerar a prova errada
- * para a maioria das pessoas. Daí o `escopo`.
+ * O app tratou os fundamentos como se fossem o exame da azul, e por isso a
+ * azul saía sem nenhuma das 36 posições da própria folha dela. Agora
+ * fundamentos é bloco compartilhado, e cada faixa traz as suas 36.
  *
- * DUAS COISAS DA FOLHA DA ROXA QUE O APP NÃO TEM E NÃO INVENTA
+ * ESCOPOS: AS FOLHAS COBRAM COISAS DIFERENTES POR GRAU
+ *
+ * As duas folhas de transição dizem a mesma coisa: "o exame de 1º e 2º grau
+ * será exigido o conhecimento das posições de 01 a 18, para o 3º e 4º graus o
+ * conhecimento das posições de 19 a 36 (...) para o exame de faixa será
+ * exigido o conhecimento de todas as posições". Um branca liso e um branca 3
+ * graus não fazem a mesma prova, e gerar sempre as 36 seria gerar a prova
+ * errada para a maioria. Daí o `escopo`.
+ *
+ * O exame de FAIXA soma os fundamentos, que é o que a folha da azul manda
+ * literalmente: "será exigido o conhecimento de todas as posições acima e
+ * ainda o conhecimento da parte de fundamentos".
+ *
+ * DUAS COISAS QUE AS FOLHAS PEDEM E O APP NÃO INVENTA
  *
  * 1. "Mais 04 projeções a ser informada antes do exame" — a academia só diz
- *    quais na hora. O app avisa que elas existem e não gera nenhuma.
- * 2. Os DRILLS não estão presos a nenhum grau na folha: a regra de 01–18 e
- *    19–36 fala em "posições", e drill não é posição. Então eles entram só no
- *    exame de faixa completo, e isso está escrito na tela — é leitura da
- *    folha, não regra da academia.
+ *    quais na hora. O app avisa que existem e não gera nenhuma.
+ * 2. Os DRILLS não estão presos a grau nenhum: a regra de 01–18 e 19–36 fala
+ *    em "posições", e drill não é posição. Entram só no exame de faixa
+ *    completo, e isso está escrito na tela — é leitura da folha, não regra da
+ *    academia.
  *
- * NOTA MÍNIMA
+ * NOTA MÍNIMA, E ELA NÃO É A MESMA
  *
- * A folha da roxa fecha com "para aprovação será necessário atingir 70% de
- * acerto". A folha da azul não trazia percentual nenhum, então o app cobra os
- * 70% na roxa e não finge saber a nota de corte da azul.
+ * A folha da azul fecha com 60% e a da roxa com 70%. São números da academia,
+ * um por faixa — não uma constante do app.
+ *
+ * Roxa→marrom e marrom→preta não têm folha fornecida. `gerarExame` para essas
+ * retorna null em vez de inventar técnica: exame de faixa é documento oficial
+ * da academia, e chutar conteúdo seria pior que não ter a função.
  *
  * POR QUE VARIA A CADA GERAÇÃO
  *
@@ -96,20 +111,24 @@ export const NOME_DA_CATEGORIA: Record<Categoria, string> = {
  */
 export const ESCOPO_FAIXA = "Exame de faixa";
 
+export const ESCOPO_PRIMEIRO = "1º e 2º grau";
+export const ESCOPO_SEGUNDO = "3º e 4º grau";
+
 export function escoposDaFaixa(faixaAlvo: FaixaAlvo): string[] | null {
-  switch (faixaAlvo) {
-    case "Azul":
-      return [ESCOPO_FAIXA];
-    case "Roxa":
-      return ["1º e 2º grau", "3º e 4º grau", ESCOPO_FAIXA];
-    default:
-      return null;
-  }
+  return SYLLABUS[faixaAlvo]
+    ? [ESCOPO_PRIMEIRO, ESCOPO_SEGUNDO, ESCOPO_FAIXA]
+    : null;
 }
 
-/** O escopo que o app escolhe sozinho quando ninguém escolheu. */
-export function escopoPadrao(faixaAlvo: FaixaAlvo): string {
-  return escoposDaFaixa(faixaAlvo)?.[0] ?? ESCOPO_FAIXA;
+/**
+ * O escopo padrão é o exame de faixa COMPLETO.
+ *
+ * Não é o primeiro da lista: quem abre a tela sem escolher nada quer estudar,
+ * e o completo é o único que não deixa matéria de fora. Os exames de grau
+ * existem para quem sabe exatamente qual vai prestar.
+ */
+export function escopoPadrao(_faixaAlvo: FaixaAlvo): string {
+  return ESCOPO_FAIXA;
 }
 
 /**
@@ -117,7 +136,7 @@ export function escopoPadrao(faixaAlvo: FaixaAlvo): string {
  * trazia percentual, e o app não inventa um.
  */
 export function aprovacaoMinima(faixaAlvo: FaixaAlvo): number | null {
-  return faixaAlvo === "Roxa" ? 0.7 : null;
+  return SYLLABUS[faixaAlvo]?.aprovacao ?? null;
 }
 
 /**
@@ -126,11 +145,11 @@ export function aprovacaoMinima(faixaAlvo: FaixaAlvo): number | null {
  * falta nele.
  */
 export function avisoDaFaixa(faixaAlvo: FaixaAlvo, escopo: string): string | null {
-  if (faixaAlvo !== "Roxa") return null;
+  if (!SYLLABUS[faixaAlvo]) return null;
   if (escopo !== ESCOPO_FAIXA) {
-    return "A folha divide por grau: este exame cobre só as posições desse bloco. Os drills e as projeções entram no exame de faixa completo.";
+    return "A folha divide por grau: este exame cobre só as posições desse bloco. Os fundamentos, os drills e as projeções entram no exame de faixa completo.";
   }
-  return "A folha pede mais 4 projeções que a academia só informa antes do exame. Elas não estão aqui porque o app não sabe quais são — pergunte ao professor e treine essas quatro por fora.";
+  return "Este exame soma a folha da faixa e a de Posições Fundamentais, que vale para todas as graduações. A folha ainda pede mais 4 projeções que a academia só informa antes do exame: elas não estão aqui porque o app não sabe quais são — pergunte ao professor e treine essas quatro por fora.";
 }
 
 export interface Pergunta {
@@ -259,6 +278,86 @@ const QUEDAS = [
 ];
 
 /* ------------------------------------------------------------------ */
+/* O syllabus — Branca → Azul                                           */
+/*                                                                      */
+/* Os números são os da folha e ficam no nome do item de propósito: é   */
+/* assim que o atleta acha a posição no papel que a academia entregou.  */
+/* ------------------------------------------------------------------ */
+
+/** Posições 01 a 18 — o exame de 1º e 2º grau da folha Branca à Azul. */
+const AZUL_PRIMEIRO_BLOCO = [
+  "01 — Chamada para guarda fechada",
+  "02 — Armlock da guarda fechada",
+  "03 — Triângulo da guarda fechada",
+  "04 — Omoplata da guarda fechada",
+  "05 — Kimura da guarda fechada",
+  "06 — Estrangulamento cruzado da guarda fechada",
+  "07 — Raspagem tesoura (número 01)",
+  "08 — Raspagem da guarda fechada, quando oponente fica em pé (segurando tornozelos)",
+  "09 — Abertura de guarda de joelhos",
+  "10 — Armlock da montada",
+  "11 — Americana da montada",
+  "12 — Estrangulamento cruzado da montada",
+  "13 — Defesa e saída do armlock (da guarda fechada)",
+  "14 — Defesa e saída de triângulo",
+  "15 — Reposição de montada para meia guarda",
+  "16 — Mata leão",
+  "17 — Reposição de 100kg para guarda fechada",
+  "18 — Defesa do single leg para guilhotina (em pé)",
+];
+
+/** Posições 19 a 36 — o exame de 3º e 4º grau. */
+const AZUL_SEGUNDO_BLOCO = [
+  "19 — Defesa de double leg para quatro apoios",
+  "20 — Estrangulamento lapela dos 100 kilos (3 variações)",
+  "21 — Estrangulamento norte sul",
+  "22 — Kimura dos 100kg",
+  "23 — Transição dos 100 kg para joelho na barriga e montada",
+  "24 — Transição dos 100 kg montada direta",
+  "25 — Defesa de armlock da montada",
+  "26 — Estrangulamento ezequiel (sode guruma gime)",
+  "27 — Estrangulamento katagatame",
+  "28 — Defesa de omoplata para 100 kilos",
+  "29 — Raspagem de meia guarda (pêndulo)",
+  "30 — Raspagem tripé",
+  "31 — Pegada de costas dos quatro apoios (com seatbelt)",
+  "32 — Reposição de guarda dos quatro apoios",
+  "33 — Estrangulamento de gola das costas",
+  "34 — Armlock das costas",
+  "35 — Saída das costas (lado da vida e lado da morte)",
+  "36 — Chave de pé reta",
+];
+
+/** Os solo drills da folha — entram no exame de faixa completo. */
+const AZUL_DRILLS = [
+  "Ushiro ukemi com levantada técnica clássica",
+  "Ushiro ukemi com levantada técnica para frente",
+  "Mae ukemi com defesa de quatro apoios para as costas (troca de base)",
+  "Cambalhota para trás com passo do samurai e pegada de perna",
+];
+
+const PARES_AZUL_PRIMEIRO: [string, string][] = [
+  ["02 — Armlock da guarda fechada", "13 — Defesa e saída do armlock (da guarda fechada)"],
+  ["03 — Triângulo da guarda fechada", "14 — Defesa e saída de triângulo"],
+  ["10 — Armlock da montada", "11 — Americana da montada"],
+  ["07 — Raspagem tesoura (número 01)", "08 — Raspagem da guarda fechada, quando oponente fica em pé (segurando tornozelos)"],
+  ["04 — Omoplata da guarda fechada", "05 — Kimura da guarda fechada"],
+  ["15 — Reposição de montada para meia guarda", "17 — Reposição de 100kg para guarda fechada"],
+  ["06 — Estrangulamento cruzado da guarda fechada", "12 — Estrangulamento cruzado da montada"],
+  ["09 — Abertura de guarda de joelhos", "01 — Chamada para guarda fechada"],
+];
+
+const PARES_AZUL_SEGUNDO: [string, string][] = [
+  ["23 — Transição dos 100 kg para joelho na barriga e montada", "24 — Transição dos 100 kg montada direta"],
+  ["31 — Pegada de costas dos quatro apoios (com seatbelt)", "32 — Reposição de guarda dos quatro apoios"],
+  ["33 — Estrangulamento de gola das costas", "35 — Saída das costas (lado da vida e lado da morte)"],
+  ["20 — Estrangulamento lapela dos 100 kilos (3 variações)", "21 — Estrangulamento norte sul"],
+  ["26 — Estrangulamento ezequiel (sode guruma gime)", "27 — Estrangulamento katagatame"],
+  ["29 — Raspagem de meia guarda (pêndulo)", "30 — Raspagem tripé"],
+  ["28 — Defesa de omoplata para 100 kilos", "25 — Defesa de armlock da montada"],
+];
+
+/* ------------------------------------------------------------------ */
 /* O syllabus — Azul → Roxa                                             */
 /*                                                                      */
 /* Os números são os da folha, e ficam no nome do item de propósito: é  */
@@ -373,8 +472,7 @@ const PARES_ROXA_SEGUNDO: [string, string][] = [
   ],
 ];
 
-/** Quantos pares entram por bloco. Fixo, para a contagem não variar. */
-const PARES_ROXA_POR_BLOCO = 4;
+
 
 /* ------------------------------------------------------------------ */
 /* Gabaritos — a resposta de referência de cada item.                  */
@@ -567,6 +665,90 @@ const GABARITO_ITEM: Record<string, string> = {
     "O mesmo braço por baixo serve para passar e para finalizar: se o braço dele fica exposto, kimura; se a lapela está disponível, o violino — o estrangulamento feito de cima, com o braço por baixo do pescoço e a mão puxando a lapela, na posição de quem segura um violino. O drill treina a não largar o under-hook para passar.",
   "Abertura de guarda com as 3 passagens (joelho com joelho, long step, montada)":
     "Uma abertura só, três saídas: joelho com joelho (o joelho corta por dentro), long step (o passo grande girando por trás) e a montada direta. O ponto do drill é que a abertura não muda — o que escolhe a passagem é a reação dele, não a sua preferência.",
+
+
+  /* ---------------- Branca → Azul: as 36 posições e os solo drills ---------------- */
+
+  "01 — Chamada para guarda fechada":
+    "Da distância você senta puxando gola e manga e coloca o pé no quadril dele, trazendo o tronco dele junto — quem senta sem pegada é passado antes de conseguir fechar. A guarda fecha depois do controle, não antes.",
+  "02 — Armlock da guarda fechada":
+    "Quebra a postura, controla o braço no punho e no tríceps, abre a guarda e gira o quadril até os 90° levando a perna por cima da cabeça. Joelhos apertados, quadril subindo, polegar dele para cima.",
+  "03 — Triângulo da guarda fechada":
+    "Um braço dentro e um fora — é a condição. Quebra a postura, empurra o braço de dentro pelo punho, sobe a perna pelo ombro e trava o joelho no pé. O aperto vem do ângulo, não da força da perna.",
+  "04 — Omoplata da guarda fechada":
+    "A perna passa por cima do ombro e trava o braço dobrado para trás; você senta em ângulo e gira o quadril. Ele se defende postando a mão e rolando — e é aí que a omoplata vira raspagem.",
+  "05 — Kimura da guarda fechada":
+    "Pegada dupla: sua mão no punho dele, a outra passando por baixo do braço até agarrar o próprio punho. Senta em ângulo, prende o corpo dele com a perna e gira o ombro para trás.",
+  "06 — Estrangulamento cruzado da guarda fechada":
+    "A primeira mão entra fundo na gola com o polegar por dentro; a segunda cruza por cima ou por baixo. Puxa os cotovelos para o peito e abre — o aperto é nas carótidas, não na traqueia.",
+  "07 — Raspagem tesoura (número 01)":
+    "Abre a guarda em ângulo: uma perna atravessa na frente do tronco dele, a outra corta atrás do joelho. As duas fazem tesoura em sentidos opostos enquanto você puxa gola e manga.",
+  "08 — Raspagem da guarda fechada, quando oponente fica em pé (segurando tornozelos)":
+    "Ele levantou para abrir a guarda. Você agarra os dois tornozelos, mantém a guarda fechada e sobe o quadril: sem poder recuar os pés, ele cai de costas e você vai junto.",
+  "09 — Abertura de guarda de joelhos":
+    "Postura primeiro: coluna ereta, uma mão na barriga ou na lapela para ele não te puxar, quadril para trás. O joelho sobe entre as pernas dele ou o cotovelo entra na coxa — a guarda abre por pressão, não por puxão.",
+  "10 — Armlock da montada":
+    "Da montada, ele empurra o seu peito. Você isola o braço, gira passando a perna por cima da cabeça e senta com o quadril colado no ombro dele. A defesa dele é o que entrega o braço.",
+  "11 — Americana da montada":
+    "Prende o punho dele no chão com o braço em L, passa a sua outra mão por baixo e agarra o próprio punho. Arrasta a mão dele em direção ao quadril mantendo o cotovelo no lugar — o ombro é que gira.",
+  "12 — Estrangulamento cruzado da montada":
+    "Mesma pegada cruzada da guarda, mas agora o peso é seu: desce o peito e abre os cotovelos, e a montada segura enquanto o estrangulamento fecha.",
+  "13 — Defesa e saída do armlock (da guarda fechada)":
+    "Antes de o braço esticar: junta as mãos, gira na direção do polegar do braço preso e leva o corpo por cima, saindo pelo lado em que a alavanca não trabalha. Se o cotovelo já passou da linha do quadril dele, essa saída acabou.",
+  "14 — Defesa e saída de triângulo":
+    "Postura antes de tudo: ombro no peito, empurra o joelho para baixo e endireita a coluna para desfazer o ângulo. Só depois puxa o braço preso ou levanta o quadril dele do chão.",
+  "15 — Reposição de montada para meia guarda":
+    "Ponte para um lado para tirar o peso, fuga de quadril para o outro, e trava um pé entre as pernas dele antes que ele reassente. Ponte sem fuga só devolve a montada.",
+  "16 — Mata leão":
+    "Um braço passa sob o queixo, a mão vai no bíceps do outro braço, e a outra mão atrás da cabeça dele. Aperta juntando os cotovelos — o queixo dele nunca pode entrar no seu antebraço.",
+  "17 — Reposição de 100kg para guarda fechada":
+    "Enquadra com os antebraços no pescoço e no quadril para criar espaço, vira de lado na direção dele e traz o joelho para dentro do espaço, recompondo até fechar. Empurrar de frente só gasta braço.",
+  "18 — Defesa do single leg para guilhotina (em pé)":
+    "Ele entrou na sua perna com a cabeça por dentro — é a cabeça de dentro que abre a guilhotina. Passa o braço sob o queixo, fecha a pegada e senta ou puxa a guarda para fechar.",
+  "19 — Defesa de double leg para quatro apoios":
+    "Ele entrou nas duas pernas. Em vez de disputar de pé, sprawla o quadril e gira para os quatro apoios de frente para ele: de quatro apoios você ainda tem jogo; de costas no chão, muito menos.",
+  "20 — Estrangulamento lapela dos 100 kilos (3 variações)":
+    "Dos 100 kg você alimenta a lapela e ataca por cima. As três variações mudam por onde o braço passa e qual lapela entra — o que não muda é que o peso da posição faz parte do aperto: não se larga a pressão para finalizar.",
+  "21 — Estrangulamento norte sul":
+    "Da norte-sul, o braço dele fica preso entre a sua cabeça e o seu ombro; você desce o peito sobre o pescoço e caminha o corpo para o lado. Aperta com ombro e peito, não com o braço.",
+  "22 — Kimura dos 100kg":
+    "Ataca o braço mais distante: mão no punho dele, a outra por baixo até o próprio punho. Prende o braço no chão, sobe o cotovelo e gira o ombro. Se ele estica o braço para escapar, o armlock aparece.",
+  "23 — Transição dos 100 kg para joelho na barriga e montada":
+    "Sai da pressão plana subindo o joelho na barriga: o peso concentra num ponto só, ele reage, e a reação abre a montada. O joelho na barriga não é destino, é degrau.",
+  "24 — Transição dos 100 kg montada direta":
+    "Aqui a montada vem sem escala: mantém a pressão de peito e passa o joelho por cima do quadril dele rente ao corpo. O joelho tem que raspar o abdômen — subir alto entrega o espaço da meia guarda.",
+  "25 — Defesa de armlock da montada":
+    "Junta as mãos antes de o braço esticar e gira na direção do polegar, acompanhando o corpo dele; ou vira de barriga para baixo pelo lado do braço preso. O que não funciona é puxar de braço contra a alavanca do quadril dele.",
+  "26 — Estrangulamento ezequiel (sode guruma gime)":
+    "Um braço passa por trás do pescoço e a mão entra na própria manga do outro braço; o antebraço desse outro braço atravessa a garganta. Funciona de cima e de dentro da guarda — é a manga que dá a alavanca.",
+  "27 — Estrangulamento katagatame":
+    "É o cem-quilos com o braço dele preso junto ao próprio pescoço: junta as mãos do outro lado da cabeça, aperta ombro contra pescoço e caminha o corpo. Quem aperta a carótida dele é o braço dele.",
+  "28 — Defesa de omoplata para 100 kilos":
+    "Antes de ele sentar no ângulo, posta a mão no chão do lado de fora, joga o peso para frente por cima dele e caminha até passar a perna — a omoplata vira passagem e você termina nos 100 kg.",
+  "29 — Raspagem de meia guarda (pêndulo)":
+    "Com o under-hook ou o controle de tronco, você balança o corpo dele como pêndulo: leva para um lado para ele reagir, e usa a reação para virar para o outro. A raspagem é o segundo tempo, não o primeiro.",
+  "30 — Raspagem tripé":
+    "Contra ele em pé: um pé no quadril, uma mão no tornozelo do mesmo lado e a outra perna ganchando atrás do joelho dele. Empurra com o pé e puxa o tornozelo — ele senta e você sobe.",
+  "31 — Pegada de costas dos quatro apoios (com seatbelt)":
+    "O seatbelt é um braço por cima do ombro e o outro por baixo da axila, mãos travadas. Ele controla o tronco antes de os ganchos existirem — pôr gancho sem seatbelt é devolver as costas.",
+  "32 — Reposição de guarda dos quatro apoios":
+    "De quatro apoios você não levanta: senta girando por baixo do braço dele, metendo as pernas entre os dois corpos antes de o gancho entrar. Levantar de frente para ele é dar as costas em pé.",
+  "33 — Estrangulamento de gola das costas":
+    "A mão de cima entra fundo na gola do lado oposto e a outra puxa lapela ou manga. Aperta com o cotovelo descendo e o peito colado — se o seu peito descola, a alavanca some.",
+  "34 — Armlock das costas":
+    "Quando ele defende o pescoço com um braço em cima, esse braço fica exposto: isola, gira o corpo para o lado dele e cai no armlock sem soltar os ganchos até o último instante.",
+  "35 — Saída das costas (lado da vida e lado da morte)":
+    "Lado da morte é o do braço que estrangula; lado da vida é o outro. A saída escorrega o quadril para o lado da MORTE — é o lado onde aquele braço não alcança o seu pescoço. Defende o pescoço, tira o gancho daquele lado e desce até o tatame.",
+  "36 — Chave de pé reta":
+    "O pé dele encaixa na dobra do seu braço, o antebraço sob o calcanhar; junta as mãos, encosta o peito e estende o QUADRIL. A força vem do quadril — e chave de pé se solta na hora, não quando dói.",
+  "Ushiro ukemi com levantada técnica clássica":
+    "Cai de costas com o ukemi (queixo no peito, mãos batendo em diagonal) e do chão levanta pela técnica clássica: mão no chão, o pé de trás cruzando por baixo, quadril subindo, olho no adversário. O drill liga cair e voltar a ficar de pé num movimento só.",
+  "Ushiro ukemi com levantada técnica para frente":
+    "Mesma queda, mas a levantada projeta o corpo para frente em vez de recuar — serve para recuperar o espaço que a queda tirou, em vez de se reorganizar longe.",
+  "Mae ukemi com defesa de quatro apoios para as costas (troca de base)":
+    "Cai para frente nos antebraços, chega em quatro apoios e usa a troca de base para não deixar ele encaixar as costas: vira o quadril para o lado por onde ele entra, cotovelos colados.",
+  "Cambalhota para trás com passo do samurai e pegada de perna":
+    "Rola para trás pelos ombros, sai em passo do samurai — quadril baixo, atrás do joelho de apoio — e da saída já pega a perna. Treina terminar o rolamento em posição de atacar, não só de sobreviver.",
 };
 
 /**
@@ -621,6 +803,39 @@ const GABARITO_PAR: Record<string, string> = {
     "Os dois armlocks nascem do que ele faz para tirar você de cima. No joelho na barriga é o empurrão no seu joelho que entrega o braço, e você gira por cima da cabeça. Na montada é o empurrão nos seus quadris, e aí armlock e triângulo são o mesmo ângulo: se ele retira o braço para salvar o cotovelo, entrega o pescoço.",
   "29 — Saída do armlock girando (pedindo carona) × 30 — Kimura dos 100 kg com variação para armlock":
     "Uma é escapar do armlock, a outra é entrar nele — e juntas ensinam onde está a janela. A saída só existe ANTES de o braço esticar: gira no sentido do polegar e passa por cima. A kimura da 100 kg força o braço a esticar, que é justamente o instante em que a saída deixa de estar disponível.",
+
+  /* ---------------- Branca → Azul ---------------- */
+
+  "02 — Armlock da guarda fechada × 13 — Defesa e saída do armlock (da guarda fechada)":
+    "É o mesmo armlock dos dois lados. O ataque gira o quadril até os 90° e leva a perna por cima; a defesa junta as mãos e gira na direção do polegar ANTES de o braço esticar. Juntas, elas mostram a janela: depois que o cotovelo passa da linha do quadril dele, a defesa acabou.",
+  "03 — Triângulo da guarda fechada × 14 — Defesa e saída de triângulo":
+    "O ataque cria a condição de um braço dentro e um fora e fecha o ângulo; a defesa desfaz exatamente isso — ombro no peito, joelho para baixo, coluna ereta. Nas duas, quem trata da postura primeiro vence.",
+  "10 — Armlock da montada × 11 — Americana da montada":
+    "As duas atacam o braço da montada em direções opostas: o armlock estica, a americana dobra e gira o ombro. Quem escolhe é ele — quem empurra o seu peito entrega o armlock; quem deixa o braço cair no chão entrega a americana.",
+  "07 — Raspagem tesoura (número 01) × 08 — Raspagem da guarda fechada, quando oponente fica em pé (segurando tornozelos)":
+    "As duas raspam da guarda fechada contra alturas diferentes: a tesoura contra ele ajoelhado, cortando com as pernas em sentidos opostos; a dos tornozelos contra ele em pé, tirando o recuo dos pés. A postura dele é que escolhe.",
+  "04 — Omoplata da guarda fechada × 05 — Kimura da guarda fechada":
+    "As duas giram o mesmo ombro para trás — uma com a perna, a outra com as mãos. E as duas viram raspagem quando ele se defende: a omoplata quando ele rola, a kimura quando ele posta a mão no chão.",
+  "15 — Reposição de montada para meia guarda × 17 — Reposição de 100kg para guarda fechada":
+    "As duas recompõem debaixo de posição dominante, com ferramentas diferentes: ponte e fuga de quadril sob a montada; frame e virada sob os 100 kg. Em nenhuma das duas se empurra de frente.",
+  "06 — Estrangulamento cruzado da guarda fechada × 12 — Estrangulamento cruzado da montada":
+    "A pegada é a mesma; muda quem tem o peso. Da guarda você puxa os cotovelos para o peito; da montada você desce o peito e deixa o peso apertar — mas descer o peito na montada é justamente o que abre a ponte dele.",
+  "09 — Abertura de guarda de joelhos × 01 — Chamada para guarda fechada":
+    "São os dois lados da mesma disputa: um quer fechar a guarda com o tronco do outro controlado; o outro quer abrir mantendo a postura e o quadril longe. Nos dois, quem perde a postura perde a disputa.",
+  "23 — Transição dos 100 kg para joelho na barriga e montada × 24 — Transição dos 100 kg montada direta":
+    "Mesmo ponto de partida, dois caminhos. Pelo joelho na barriga você concentra o peso num ponto e usa a reação dele como degrau; na direta você mantém a pressão plana e passa o joelho rente ao corpo. A direta é mais rápida e entrega mais espaço se o joelho subir alto.",
+  "31 — Pegada de costas dos quatro apoios (com seatbelt) × 32 — Reposição de guarda dos quatro apoios":
+    "É a mesma tartaruga dos dois lados. Quem ataca põe o seatbelt antes dos ganchos; quem defende senta girando por baixo do braço antes de o gancho entrar. Os dois correm para o mesmo instante.",
+  "33 — Estrangulamento de gola das costas × 35 — Saída das costas (lado da vida e lado da morte)":
+    "Ataque e fuga da mesma posição. O estrangulamento precisa do peito colado e da mão profunda; a saída escorrega para o lado da morte justamente para tirar o pescoço do alcance daquele braço. Saber estrangular é saber para que lado não deixar ele ir.",
+  "20 — Estrangulamento lapela dos 100 kilos (3 variações) × 21 — Estrangulamento norte sul":
+    "Os dois finalizam de cima sem largar a posição, com motores diferentes: a lapela usa o gi e o peso; o norte-sul usa ombro e peito contra o pescoço, com o braço dele preso. Um depende de pegada, o outro de posição.",
+  "26 — Estrangulamento ezequiel (sode guruma gime) × 27 — Estrangulamento katagatame":
+    "Nos dois um braço vira barra contra o pescoço. No ezequiel é o SEU antebraço, travado pela manga; no katagatame é o braço DELE, preso contra a própria carótida. Um você leva com você; o outro ele te dá.",
+  "29 — Raspagem de meia guarda (pêndulo) × 30 — Raspagem tripé":
+    "Lógicas opostas: o pêndulo é de dois tempos — leva para um lado para usar a reação; o tripé é de um tempo só — empurra o quadril e puxa o tornozelo ao mesmo tempo, contra ele em pé.",
+  "28 — Defesa de omoplata para 100 kilos × 25 — Defesa de armlock da montada":
+    "As duas são defesas que terminam melhor do que começaram: a da omoplata joga o peso para frente e vira passagem; a do armlock gira na direção do polegar e devolve você por cima. Defesa boa não é só sobreviver.",
 };
 
 /**
@@ -993,6 +1208,169 @@ const PERGUNTAS_DO_ITEM: Record<string, string[]> = {
     "A abertura é uma só e as saídas são três. Quem escolhe qual saída: você ou ele?",
     "Quais são as três, e o que muda entre elas?",
   ],
+
+  /* --- Branca → Azul: as 36 posições e os solo drills --- */
+
+  "01 — Chamada para guarda fechada": [
+    "Você senta sem pegada nenhuma. O que acontece antes de você conseguir fechar?",
+    "O que tem que vir junto com você quando você senta?",
+  ],
+  "02 — Armlock da guarda fechada": [
+    "Para onde o seu quadril tem que girar, e por que 90°?",
+    "Você estica o braço dele e ele não bate. Onde está o seu quadril?",
+  ],
+  "03 — Triângulo da guarda fechada": [
+    "Quantos braços ficam dentro e quantos fora? Por que essa é a condição?",
+    "Você fechou e ele não bate. Falta força de perna ou falta ângulo?",
+  ],
+  "04 — Omoplata da guarda fechada": [
+    "A sua perna prende o quê, exatamente?",
+    "Ele rola para fugir. Isso mata a posição ou te oferece outra coisa?",
+  ],
+  "05 — Kimura da guarda fechada": [
+    "Como as duas mãos se travam nessa pegada?",
+    "Você tenta girar o ombro e ele resiste sentado em cima de você. O que faltou antes do giro?",
+  ],
+  "06 — Estrangulamento cruzado da guarda fechada": [
+    "A primeira mão entra fundo em quê, e com o polegar para onde?",
+    "Ele tosse mas não bate. Você está apertando o quê, e o que deveria estar apertando?",
+  ],
+  "07 — Raspagem tesoura (número 01)": [
+    "As duas pernas fazem o quê, e em que sentidos?",
+    "Você faz a tesoura e ele não vai. Faltou a pegada ou faltou o ângulo do seu corpo?",
+  ],
+  "08 — Raspagem da guarda fechada, quando oponente fica em pé (segurando tornozelos)": [
+    "Ele levantou de pé dentro da sua guarda. O que as suas mãos pegam?",
+    "Por que ele não consegue simplesmente recuar o pé?",
+  ],
+  "09 — Abertura de guarda de joelhos": [
+    "O que a sua mão na barriga dele impede?",
+    "Você está abrindo a guarda pela força do braço. O que deveria estar abrindo no lugar?",
+  ],
+  "10 — Armlock da montada": [
+    "Ele empurra o seu peito. Isso é defesa dele ou entrada sua?",
+    "Você passou a perna e ele sentou junto para escapar. O que faltou no seu quadril?",
+  ],
+  "11 — Americana da montada": [
+    "O braço dele fica em que formato no chão?",
+    "Você levanta o braço dele em vez de arrastar em direção ao quadril. O que deixa de girar?",
+  ],
+  "12 — Estrangulamento cruzado da montada": [
+    "O que a montada te dá aqui que a guarda não dava?",
+    "Você desce o peito para apertar e ele te vira. O que você perdeu ao descer?",
+  ],
+  "13 — Defesa e saída do armlock (da guarda fechada)": [
+    "Qual é o instante em que essa saída deixa de existir?",
+    "Você gira para que lado, e por que não para o outro?",
+  ],
+  "14 — Defesa e saída de triângulo": [
+    "O que vem primeiro: puxar o braço ou recuperar a postura? Por quê?",
+    "Você puxa o braço com força e o triângulo aperta mais. O que aconteceu?",
+  ],
+  "15 — Reposição de montada para meia guarda": [
+    "Ponte e fuga de quadril: qual vem primeiro, e por quê?",
+    "Você fez a ponte e ele reassentou. O que faltou depois dela?",
+  ],
+  "16 — Mata leão": [
+    "Onde a sua mão vai depois de passar o braço sob o queixo?",
+    "Ele enfiou o queixo. O que você precisa resolver antes de tentar apertar?",
+  ],
+  "17 — Reposição de 100kg para guarda fechada": [
+    "Você empurra de frente com os dois braços e não sai. O que deveria estar fazendo com o corpo?",
+    "O joelho entra por onde, e o que abriu esse espaço?",
+  ],
+  "18 — Defesa do single leg para guilhotina (em pé)": [
+    "Que erro dele abre a guilhotina para você?",
+    "Se a cabeça dele estivesse por fora, essa defesa ainda existiria?",
+  ],
+  "19 — Defesa de double leg para quatro apoios": [
+    "Por que terminar de quatro apoios é melhor que cair de costas?",
+    "O que vai para trás primeiro no instante em que ele entra?",
+  ],
+  "20 — Estrangulamento lapela dos 100 kilos (3 variações)": [
+    "O que as três variações têm em comum, se o caminho do braço muda em todas?",
+    "Você larga a pressão dos 100 kg para encaixar melhor. O que acabou de entregar?",
+  ],
+  "21 — Estrangulamento norte sul": [
+    "Onde fica o braço dele quando o estrangulamento fecha?",
+    "O aperto vem do seu braço ou de outra coisa? De quê?",
+  ],
+  "22 — Kimura dos 100kg": [
+    "Qual braço dele você ataca: o mais perto ou o mais longe?",
+    "Ele estica o braço para o ombro não girar. Isso te atrapalha ou te serve?",
+  ],
+  "23 — Transição dos 100 kg para joelho na barriga e montada": [
+    "Por que passar pelo joelho na barriga em vez de montar direto daqui?",
+    "Ele empurra o seu joelho para tirar o peso. O que isso abre?",
+  ],
+  "24 — Transição dos 100 kg montada direta": [
+    "O joelho passa rente ao corpo dele ou com folga? O que a folga entrega?",
+    "Quando você escolhe montar direto em vez de passar pelo joelho na barriga?",
+  ],
+  "25 — Defesa de armlock da montada": [
+    "Você puxa o braço com toda a força e ele estica mesmo assim. Contra o que você estava puxando?",
+    "Qual é a janela: antes ou depois de o braço esticar?",
+  ],
+  "26 — Estrangulamento ezequiel (sode guruma gime)": [
+    "A mão entra em quê para travar a pegada?",
+    "Por que esse funciona até de dentro da guarda dele, ao contrário da maioria?",
+  ],
+  "27 — Estrangulamento katagatame": [
+    "O que aperta a carótida: o seu braço ou o dele?",
+    "Você junta as mãos de que lado da cabeça, e por que desse?",
+  ],
+  "28 — Defesa de omoplata para 100 kilos": [
+    "A mão posta no chão de que lado, e o que ela impede?",
+    "A omoplata dele falhou e você terminou por cima. O que você fez com o peso?",
+  ],
+  "29 — Raspagem de meia guarda (pêndulo)": [
+    "Por que o primeiro balanço não é para raspar?",
+    "Você tenta virar direto para o lado que quer e ele planta a base. O que faltou?",
+  ],
+  "30 — Raspagem tripé": [
+    "São três pontos de contato. Quais?",
+    "Você empurra o quadril e larga o tornozelo. O que acontece?",
+  ],
+  "31 — Pegada de costas dos quatro apoios (com seatbelt)": [
+    "O que vem primeiro: o seatbelt ou os ganchos? Por quê?",
+    "Um braço por cima e um por baixo. Por cima de quê e por baixo de quê?",
+  ],
+  "32 — Reposição de guarda dos quatro apoios": [
+    "Por que não levantar simplesmente?",
+    "Você gira por baixo de quê, e o que precisa entrar antes de ele encaixar o gancho?",
+  ],
+  "33 — Estrangulamento de gola das costas": [
+    "A mão entra na gola de que lado, e por quê?",
+    "Você aperta e ele se solta. O que descolou?",
+  ],
+  "34 — Armlock das costas": [
+    "Qual braço dele fica exposto quando ele defende o pescoço?",
+    "Você solta o gancho antes ou depois de girar? O que a pressa custa?",
+  ],
+  "35 — Saída das costas (lado da vida e lado da morte)": [
+    "Qual é o lado da vida e qual é o da morte, e para qual deles você escorrega?",
+    "Você escorregou para o lado errado. O que ele ganha de graça?",
+  ],
+  "36 — Chave de pé reta": [
+    "A força vem do braço ou do quadril? Como você sabe qual está usando?",
+    "O antebraço encosta no calcanhar ou no peito do pé? O que muda?",
+  ],
+  "Ushiro ukemi com levantada técnica clássica": [
+    "O que esse drill liga que treinar as duas coisas separadas não liga?",
+    "Onde fica o seu olho durante a levantada?",
+  ],
+  "Ushiro ukemi com levantada técnica para frente": [
+    "Quando você levanta para frente em vez de para trás?",
+    "O que você recupera levantando para frente, e o que arrisca?",
+  ],
+  "Mae ukemi com defesa de quatro apoios para as costas (troca de base)": [
+    "Chegou em quatro apoios e ele está entrando nas suas costas. O que troca?",
+    "Por que os cotovelos ficam colados durante a troca?",
+  ],
+  "Cambalhota para trás com passo do samurai e pegada de perna": [
+    "O rolamento termina em posição de sobreviver ou de atacar? O que faz a diferença?",
+    "Onde fica o quadril no passo do samurai, e por que baixo?",
+  ],
 };
 
 const PERGUNTAS_DO_PAR: Record<string, string[]> = {
@@ -1086,6 +1464,69 @@ const PERGUNTAS_DO_PAR: Record<string, string[]> = {
   "29 — Saída do armlock girando (pedindo carona) × 30 — Kimura dos 100 kg com variação para armlock": [
     "Uma é escapar do armlock, a outra é entrar nele. Juntas, elas mostram onde fica a janela. Onde?",
     "O que a kimura força que fecha exatamente a porta que a saída usa?",
+  ],
+
+  /* --- Branca → Azul --- */
+
+  "02 — Armlock da guarda fechada × 13 — Defesa e saída do armlock (da guarda fechada)": [
+    "É o mesmo armlock dos dois lados. Onde fica a janela em que a defesa ainda existe?",
+    "O que o ataque precisa conquistar que a defesa está tentando negar?",
+  ],
+  "03 — Triângulo da guarda fechada × 14 — Defesa e saída de triângulo": [
+    "O ataque cria uma condição e a defesa desfaz essa mesma condição. Qual é?",
+    "Nas duas uma coisa vem antes de tudo. Qual, e por quê?",
+  ],
+  "10 — Armlock da montada × 11 — Americana da montada": [
+    "Uma dobra e a outra estica. Qual é qual, e quem escolhe entre as duas?",
+    "O que ele faz de diferente em cada caso, que entrega uma e não a outra?",
+  ],
+  "07 — Raspagem tesoura (número 01) × 08 — Raspagem da guarda fechada, quando oponente fica em pé (segurando tornozelos)": [
+    "Uma é contra ele ajoelhado, a outra contra ele em pé. Qual é qual, e o que muda no motor da raspagem?",
+    "Quem escolhe qual das duas: você ou a postura dele?",
+  ],
+  "04 — Omoplata da guarda fechada × 05 — Kimura da guarda fechada": [
+    "As duas giram o mesmo ombro. O que faz o giro em cada uma?",
+    "As duas viram raspagem quando ele se defende. Que defesa abre cada uma?",
+  ],
+  "15 — Reposição de montada para meia guarda × 17 — Reposição de 100kg para guarda fechada": [
+    "As duas recompõem debaixo de posição dominante. Qual ferramenta cada uma usa primeiro?",
+    "Nas duas há uma coisa que nunca funciona. Qual?",
+  ],
+  "06 — Estrangulamento cruzado da guarda fechada × 12 — Estrangulamento cruzado da montada": [
+    "A pegada é idêntica nas duas. O que muda, então?",
+    "Na montada, o que você arrisca ao descer o peito para apertar?",
+  ],
+  "09 — Abertura de guarda de joelhos × 01 — Chamada para guarda fechada": [
+    "Um quer fechar e o outro quer abrir. O que os dois precisam manter para vencer?",
+    "Em cada um deles, o que o adversário está tentando tirar de você?",
+  ],
+  "23 — Transição dos 100 kg para joelho na barriga e montada × 24 — Transição dos 100 kg montada direta": [
+    "Mesmo ponto de partida, dois caminhos. Quando você escolhe cada um?",
+    "Uma é mais rápida e mais arriscada. Qual, e o que ela arrisca?",
+  ],
+  "31 — Pegada de costas dos quatro apoios (com seatbelt) × 32 — Reposição de guarda dos quatro apoios": [
+    "É a mesma tartaruga dos dois lados. Os dois correm para o mesmo instante — qual?",
+    "O que o atacante põe primeiro, e o que o defensor precisa fazer antes disso?",
+  ],
+  "33 — Estrangulamento de gola das costas × 35 — Saída das costas (lado da vida e lado da morte)": [
+    "A saída vai para o lado da morte. Para quem está estrangulando, o que isso significa?",
+    "O que o estrangulamento precisa que a saída está tentando tirar?",
+  ],
+  "20 — Estrangulamento lapela dos 100 kilos (3 variações) × 21 — Estrangulamento norte sul": [
+    "Um depende do gi e o outro não. Qual, e o que isso muda se o kimono abrir?",
+    "Nos dois, você larga a pressão para finalizar? Por quê?",
+  ],
+  "26 — Estrangulamento ezequiel (sode guruma gime) × 27 — Estrangulamento katagatame": [
+    "Nos dois um braço vira barra contra o pescoço. De quem é o braço em cada um?",
+    "Um deles depende de ele ter cometido um erro. Que erro?",
+  ],
+  "29 — Raspagem de meia guarda (pêndulo) × 30 — Raspagem tripé": [
+    "Uma é de dois tempos e a outra de um. Qual é qual, e por quê?",
+    "Contra que postura dele cada uma funciona?",
+  ],
+  "28 — Defesa de omoplata para 100 kilos × 25 — Defesa de armlock da montada": [
+    "As duas terminam melhor do que começaram. Onde cada uma termina?",
+    "Nas duas há um instante depois do qual não dá mais. Qual, em cada uma?",
   ],
 };
 
@@ -1199,110 +1640,155 @@ function contagemComPares(
  * Os blocos de posição que cada escopo da roxa cobra. `null` quer dizer que
  * aquele escopo não existe para aquela faixa.
  */
-function blocosDaRoxa(escopo: string): string[][] | null {
+/**
+ * O que cada faixa cobra, em tabela.
+ *
+ * Era um `if (faixaAlvo === "Azul")` com um corpo inteiro só dela, e foi
+ * justamente isso que escondeu o erro: a azul entrava pelo ramo dos
+ * fundamentos e nunca chegava perto de ter 36 posições próprias. Em tabela, a
+ * faixa que não tiver bloco simplesmente não existe, em vez de ter um
+ * comportamento particular que ninguém revisa.
+ */
+interface Syllabus {
+  primeiro: string[];
+  segundo: string[];
+  paresPrimeiro: [string, string][];
+  paresSegundo: [string, string][];
+  drills: string[];
+  /** A nota de corte impressa na folha, em fração. */
+  aprovacao: number;
+}
+
+const SYLLABUS: Partial<Record<FaixaAlvo, Syllabus>> = {
+  Azul: {
+    primeiro: AZUL_PRIMEIRO_BLOCO,
+    segundo: AZUL_SEGUNDO_BLOCO,
+    paresPrimeiro: PARES_AZUL_PRIMEIRO,
+    paresSegundo: PARES_AZUL_SEGUNDO,
+    drills: AZUL_DRILLS,
+    aprovacao: 0.6,
+  },
+  Roxa: {
+    primeiro: ROXA_PRIMEIRO_BLOCO,
+    segundo: ROXA_SEGUNDO_BLOCO,
+    paresPrimeiro: PARES_ROXA_PRIMEIRO,
+    paresSegundo: PARES_ROXA_SEGUNDO,
+    drills: ROXA_DRILLS,
+    aprovacao: 0.7,
+  },
+};
+
+/** Quantos pares de comparação entram por bloco de 18 posições. */
+const PARES_POR_BLOCO = 4;
+
+/** Os blocos de posição que o escopo cobra, cada um com os seus pares. */
+function blocosDoEscopo(
+  s: Syllabus,
+  escopo: string,
+): { itens: string[]; pares: [string, string][] }[] | null {
+  const a = { itens: s.primeiro, pares: s.paresPrimeiro };
+  const b = { itens: s.segundo, pares: s.paresSegundo };
   switch (escopo) {
-    case "1º e 2º grau":
-      return [ROXA_PRIMEIRO_BLOCO];
-    case "3º e 4º grau":
-      return [ROXA_SEGUNDO_BLOCO];
+    case ESCOPO_PRIMEIRO:
+      return [a];
+    case ESCOPO_SEGUNDO:
+      return [b];
     case ESCOPO_FAIXA:
-      return [ROXA_PRIMEIRO_BLOCO, ROXA_SEGUNDO_BLOCO];
+      return [a, b];
     default:
       return null;
   }
 }
 
-const PARES_DO_BLOCO = new Map<string[], [string, string][]>([
-  [ROXA_PRIMEIRO_BLOCO, PARES_ROXA_PRIMEIRO],
-  [ROXA_SEGUNDO_BLOCO, PARES_ROXA_SEGUNDO],
-]);
+/**
+ * A folha "Posições Fundamentais — Primeira Parte".
+ *
+ * Não pertence a faixa nenhuma: é a base que a academia cobra em qualquer
+ * graduação, e por isso entra em todo exame de faixa completo, seja ele
+ * branca → azul ou azul → roxa.
+ */
+function perguntasDosFundamentos(aleatorio: () => number): Pergunta[] {
+  return [
+    ...perguntasDaCategoriaSimples("defesas", DEFESAS_NUMERADAS, aleatorio),
+    ...perguntasDaCategoriaSimples("cambalhotas", CAMBALHOTAS, aleatorio),
+    ...perguntasDaCategoriaSimples("posturas", POSTURAS, aleatorio),
+    ...perguntasComPares(
+      "projecoes",
+      PROJECOES,
+      PARES_PROJECAO,
+      PARES_USADOS_POR_EXAME,
+      aleatorio,
+    ),
+    ...perguntasDaCategoriaSimples("quedas", QUEDAS, aleatorio),
+  ];
+}
+
+const CONTAGEM_FUNDAMENTOS =
+  DEFESAS_NUMERADAS.length +
+  CAMBALHOTAS.length +
+  POSTURAS.length +
+  contagemComPares(PROJECOES, PARES_PROJECAO, PARES_USADOS_POR_EXAME) +
+  QUEDAS.length;
 
 /**
  * Gera o exame para a faixa-alvo e o escopo pedidos.
  *
- * Retorna `null` quando não há syllabus para aquela transição, ou quando o
- * escopo não existe naquela faixa. Chamar duas vezes com a mesma semente
- * produz exatamente o mesmo exame; sementes diferentes embaralham tudo.
+ * Retorna `null` quando não há folha para aquela transição, ou quando o escopo
+ * não existe. Chamar duas vezes com a mesma semente produz exatamente o mesmo
+ * exame; sementes diferentes trocam os pares e as formulações.
  */
 export function gerarExame(
   faixaAlvo: FaixaAlvo,
   semente: number,
   escopo: string = escopoPadrao(faixaAlvo),
 ): Pergunta[] | null {
-  if (!escoposDaFaixa(faixaAlvo)?.includes(escopo)) return null;
+  const syllabus = SYLLABUS[faixaAlvo];
+  if (!syllabus) return null;
 
-  const aleatorio = criarGerador(semente);
-
-  if (faixaAlvo === "Azul") {
-    return [
-      ...perguntasDaCategoriaSimples("defesas", DEFESAS_NUMERADAS, aleatorio),
-      ...perguntasDaCategoriaSimples("cambalhotas", CAMBALHOTAS, aleatorio),
-      ...perguntasDaCategoriaSimples("posturas", POSTURAS, aleatorio),
-      ...perguntasComPares(
-        "projecoes",
-        PROJECOES,
-        PARES_PROJECAO,
-        PARES_USADOS_POR_EXAME,
-        aleatorio,
-      ),
-      ...perguntasDaCategoriaSimples("quedas", QUEDAS, aleatorio),
-    ];
-  }
-
-  const blocos = blocosDaRoxa(escopo);
+  const blocos = blocosDoEscopo(syllabus, escopo);
   if (!blocos) return null;
 
-  const posicoes = blocos.flatMap((bloco) =>
-    perguntasComPares(
-      "posicoes",
-      bloco,
-      PARES_DO_BLOCO.get(bloco) ?? [],
-      PARES_ROXA_POR_BLOCO,
-      aleatorio,
+  const aleatorio = criarGerador(semente);
+  const completo = escopo === ESCOPO_FAIXA;
+
+  // Fundamentos primeiro: é a "Primeira Parte" na folha, e é a parte que
+  // sustenta tudo que vem depois.
+  return [
+    ...(completo ? perguntasDosFundamentos(aleatorio) : []),
+    ...blocos.flatMap((b) =>
+      perguntasComPares("posicoes", b.itens, b.pares, PARES_POR_BLOCO, aleatorio),
     ),
-  );
-
-  // Os drills só no exame de faixa — ver a nota no topo sobre por quê.
-  const drills =
-    escopo === ESCOPO_FAIXA
-      ? perguntasDaCategoriaSimples("drills", ROXA_DRILLS, aleatorio)
-      : [];
-
-  return [...posicoes, ...drills];
+    // Os drills só no exame de faixa — ver a nota no topo sobre por quê.
+    ...(completo ? perguntasDaCategoriaSimples("drills", syllabus.drills, aleatorio) : []),
+  ];
 }
 
 /**
  * Quantas perguntas um exame teria — para mostrar antes de gerar, sem gerar.
  *
  * Só é um número fixo porque toda lista de pares é disjunta dentro do próprio
- * bloco: as comparações cobrem sempre o dobro de técnicas únicas, e o resto
- * vira descrição, sem variação por semente.
+ * bloco: as comparações cobrem sempre o dobro de itens únicos, e o resto vira
+ * descrição, sem variação por semente.
  */
 export function contagemDoExame(
   faixaAlvo: FaixaAlvo,
   escopo: string = escopoPadrao(faixaAlvo),
 ): number | null {
-  if (!escoposDaFaixa(faixaAlvo)?.includes(escopo)) return null;
+  const syllabus = SYLLABUS[faixaAlvo];
+  if (!syllabus) return null;
 
-  if (faixaAlvo === "Azul") {
-    return (
-      DEFESAS_NUMERADAS.length +
-      CAMBALHOTAS.length +
-      POSTURAS.length +
-      contagemComPares(PROJECOES, PARES_PROJECAO, PARES_USADOS_POR_EXAME) +
-      QUEDAS.length
-    );
-  }
-
-  const blocos = blocosDaRoxa(escopo);
+  const blocos = blocosDoEscopo(syllabus, escopo);
   if (!blocos) return null;
 
+  const completo = escopo === ESCOPO_FAIXA;
   const posicoes = blocos.reduce(
-    (soma, bloco) =>
-      soma + contagemComPares(bloco, PARES_DO_BLOCO.get(bloco) ?? [], PARES_ROXA_POR_BLOCO),
+    (soma, b) => soma + contagemComPares(b.itens, b.pares, PARES_POR_BLOCO),
     0,
   );
-  return posicoes + (escopo === ESCOPO_FAIXA ? ROXA_DRILLS.length : 0);
+  return (
+    posicoes +
+    (completo ? CONTAGEM_FUNDAMENTOS + syllabus.drills.length : 0)
+  );
 }
 
 /* ------------------------------------------------------------------ */

@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import {
   escopoPadrao,
+  ESCOPO_FAIXA,
   gerarExame,
   resumoDoExame,
   vereditoDoExame,
@@ -49,9 +50,10 @@ export interface ExameDeFaixa {
 const paraExame = (r: Record<string, unknown>): ExameDeFaixa => ({
   id: String(r.id),
   faixaAlvo: r.faixa_alvo as FaixaAlvo,
-  // Exames salvos antes da migração 040 não têm escopo. Todos eram azul, e a
-  // folha da azul tem um escopo só — o default rotula o passado sem chutar.
-  escopo: String(r.escopo ?? escopoPadrao(r.faixa_alvo as FaixaAlvo)),
+  // Exames salvos antes da migração 040 não têm escopo — a coluna tem default
+  // e NOT NULL, então isto é rede de segurança. O exame de faixa é o rótulo
+  // certo para o passado: era o que o app gerava quando não havia escolha.
+  escopo: String(r.escopo ?? ESCOPO_FAIXA),
   semente: Number(r.semente),
   // Exames gerados antes do gabarito existir não têm `gabarito`/`acertou`
   // salvos — completa com o padrão em vez de quebrar a tela.
