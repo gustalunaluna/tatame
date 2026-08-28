@@ -204,11 +204,16 @@ function CampoDeResposta({
         pergunta.acertou === null && "border-l-transparent",
       )}
     >
-      <p className="text-sm leading-snug">
-        <span className="font-semibold">{pergunta.item}</span>
-        {" — "}
-        <span className="text-muted-foreground">{pergunta.pergunta}</span>
+      {/* O item é etiqueta, a pergunta é a pergunta.
+          Emendados numa linha só ("01 — Reposição dos 100 kg para guarda
+          fechada (para fora), meia emborcada — Ele te achatou nos 100 kg...")
+          o olho não achava onde a etiqueta terminava e o enunciado começava.
+          Separados, o item vira o que ele é: o número da folha, para achar a
+          posição no papel da academia. */}
+      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        {pergunta.item}
       </p>
+      <p className="text-sm leading-snug">{pergunta.pergunta}</p>
       <Textarea
         value={texto}
         onChange={(e) => setTexto(e.target.value)}

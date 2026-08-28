@@ -631,71 +631,463 @@ const GABARITO_PAR: Record<string, string> = {
 const PARES_USADOS_POR_EXAME = 5;
 
 /* ------------------------------------------------------------------ */
-/* Templates de pergunta, por categoria                                 */
+/* As perguntas — escritas uma a uma, na voz de quem dá a aula.        */
+/*                                                                      */
+/* Antes eram cinco frases genéricas carimbadas em todos os itens:      */
+/* "Descreva X: pegada, sequência e o detalhe que faz funcionar." Isso  */
+/* tem dois defeitos que só aparecem lendo o exame pronto.              */
+/*                                                                      */
+/* O primeiro é que o enunciado repetia o nome inteiro do item, que a   */
+/* tela já imprime logo acima — a pessoa lia doze palavras duas vezes   */
+/* seguidas antes de chegar à pergunta.                                 */
+/*                                                                      */
+/* O segundo é pior: uma pergunta genérica pede recitação. "Descreva o  */
+/* sumi gaeshi" se responde decorando. Mestre nenhum pergunta assim.    */
+/* Ele monta a cena e cobra a decisão: "Você pegou a kimura, ele postou */
+/* a mão no chão. E agora?" Quem não entendeu a posição não responde    */
+/* isso nem tendo lido o livro inteiro.                                 */
+/*                                                                      */
+/* Por isso cada item tem as suas próprias perguntas, em segunda        */
+/* pessoa, curtas, quase sempre situacionais. O que o sorteio faz é     */
+/* escolher QUAL delas cai — a variação continua existindo, mas agora   */
+/* entre perguntas boas em vez de entre moldes.                         */
 /* ------------------------------------------------------------------ */
 
-type Template = (item: string) => string;
-type TemplateComparar = (a: string, b: string) => string;
+const PERGUNTAS_DO_ITEM: Record<string, string[]> = {
+  /* --- Branca → Azul: defesas numeradas --- */
+  "01 — Pé": [
+    "Ele está vindo passar e ainda não encostou em você. O que o seu pé faz, e onde ele encosta?",
+    "Por que essa é a primeira das cinco? O que você ainda tem aqui que já não vai ter na próxima?",
+  ],
+  "02 — Joelhos": [
+    "Ele venceu a barreira do seu pé. O joelho entra como, e apontando para onde?",
+    "Por que o joelho segura mais que o braço esticado, se o braço é mais comprido?",
+  ],
+  "03 — Mãos (braços esticados)": [
+    "Essa é a que todo mundo usa e é a mais fraca das cinco. Por quê?",
+    "Você está com os dois braços esticados no quadril dele e o braço já está cansando. O que aconteceu de errado antes disso?",
+  ],
+  "04 — Cotovelos / antebraço": [
+    "Qual a diferença entre empurrar com o braço esticado e enquadrar com o antebraço? Por que uma cansa e a outra não?",
+    "Onde exatamente fica o cotovelo — e por que colado no corpo?",
+  ],
+  "05 — Ombros": [
+    "Ele já está quase passando. Nessa altura o ombro empurra ou gira? Por quê?",
+    "Por que essa é a última das cinco? O que você já perdeu para chegar até aqui?",
+  ],
 
-const TEMPLATES_DEFESA: Template[] = [
-  (item) => `O que é a defesa numerada ${item}, e em que momento ela entra?`,
-  (item) => `Descreva a defesa ${item}: o que protege e como se posiciona.`,
-];
+  /* --- Branca → Azul: cambalhotas --- */
+  "Cambalhota para frente": [
+    "O que a cabeça nunca pode fazer aqui, e o que o queixo faz enquanto isso?",
+    "Por onde o corpo rola? Se rolar pelo lugar errado, o que acontece com o pescoço?",
+  ],
+  "Cambalhota para trás": [
+    "Por onde a cabeça sai da rotação? Se ela não sair, o que trava?",
+    "Onde a mão apoia, e para que ela serve nesse movimento?",
+  ],
 
-const TEMPLATES_CAMBALHOTA: Template[] = [
-  (item) => `${item}: qual o cuidado principal para não machucar o pescoço?`,
-  (item) => `Descreva ${item} passo a passo.`,
-];
+  /* --- Branca → Azul: postura e movimentação --- */
+  "Postura dentro da guarda": [
+    "Você está dentro da guarda fechada dele. Onde fica o seu quadril, e onde ficam os seus joelhos?",
+    "Ele está tentando quebrar a sua postura. O que ele quer exatamente: te puxar para baixo ou te puxar para frente? E o que você faz contra isso?",
+  ],
+  "Posição de 100 kg": [
+    "Por que se chama 100 kg? De onde vem esse peso — do músculo ou de outra coisa?",
+    "Você está nos 100 kg e está cansando. Isso é sinal de quê?",
+  ],
+  "Posicionamento nas guardas variadas": [
+    "A sua postura contra guarda aberta e contra guarda fechada não é a mesma. O que muda, e por quê?",
+    "Em qual das duas você fica mais alto, e o que isso te custa se ele te alcançar?",
+  ],
+  "Movimentações básicas": [
+    "Quais são, e por que elas não são só aquecimento?",
+    "Você faz todas elas bem no aquecimento e nenhuma na rola. O que está faltando?",
+  ],
+  "Fuga de quadril — pé de dentro": [
+    "Qual é o pé de dentro, e para onde o seu quadril vai?",
+    "Quando você escolhe o pé de dentro em vez do de fora?",
+  ],
+  "Fuga de quadril — pé de fora": [
+    "O pé apoia onde, e o que isso cria que o pé de dentro não cria?",
+    "Você gira para perto dele ou para longe? Por quê?",
+  ],
+  "Pé de dentro emborca": [
+    "Você termina de bruços. Isso não é dar as costas? Por que não?",
+    "O que a virada resolve que a fuga de quadril sozinha não resolvia?",
+  ],
+  "Pé de dentro arrasta": [
+    "Aqui você não vira. O que muda em relação ao emborcar, e o que você preserva com isso?",
+    "Contra que tipo de pressão dele você prefere arrastar em vez de virar?",
+  ],
+  "Levantada técnica": [
+    "Você está sentado e ele em pé na sua frente. Como você levanta sem dar as costas?",
+    "Qual é a ordem: o que sobe primeiro — a mão, o quadril ou o olho?",
+  ],
+  "Troca de base": [
+    "Para que ela serve, e o que tem que ficar parado enquanto o resto troca?",
+    "Você trocou a base e ele te alcançou no meio. O que se moveu que não devia?",
+  ],
+  "Sprawl": [
+    "Ele entrou na sua perna. O que vai para trás primeiro, e onde cai o seu peso?",
+    "Por que sprawl não é só recuar a perna?",
+  ],
+  "Passo do samurai": [
+    "Onde fica o quadril em relação ao joelho de apoio, e por que baixo?",
+    "Para que você usa esse passo — trocar de lado ou entrar? O que ele preserva?",
+  ],
 
-const TEMPLATES_POSTURA: Template[] = [
-  (item) => `Descreva ${item}: como se executa e quando se usa.`,
-  (item) => `${item} — o que dá errado quando alguém faz isso mal feito?`,
-  (item) => `Em que situação de rola você usaria ${item}?`,
-];
+  /* --- Branca → Azul: projeções --- */
+  "Single leg": [
+    "Você está com a perna dele. Onde está a sua cabeça, e por que isso decide se você leva a queda ou toma uma guilhotina?",
+    "Falhou o single. Onde você fica, e isso é caro ou barato?",
+  ],
+  "Double leg": [
+    "Que nível você tem que baixar, e o que acontece se entrar alto?",
+    "Falhou o double. O que custou mais: a posição ou o gás?",
+  ],
+  "Osoto gari": [
+    "A perna varre por fora. E a mão de gola, o que ela faz ao mesmo tempo?",
+    "Se você girar demais no osoto, o que você entrega?",
+  ],
+  "Kouchi gari": [
+    "É a ceifada pequena. Por que ela é barata de tentar?",
+    "O que ela ataca exatamente, e por que sem o giro grande do osoto?",
+  ],
+  "Ouchi gari": [
+    "A sua perna atravessa para varrer por dentro. Para onde o tronco dele tem que ir ao mesmo tempo?",
+    "Falhou. Por que essa também é barata?",
+  ],
+  "Kibisu gaeshi (safadinha)": [
+    "Essa é de reação, não de entrada. Que reação dele você está esperando?",
+    "O que a sua mão puxa e o que a sua outra mão empurra?",
+  ],
+  "Colar drag em pé": [
+    "Você puxa a cabeça dele para baixo e para o lado. O que isso abre?",
+    "Por que a quebra de postura em pé vale tanto quanto a quebra de postura no chão?",
+  ],
+  "Colar drag para single leg": [
+    "O puxão é o mesmo do colar drag em pé. O que muda é o que vem depois — o quê?",
+    "Para que serve a distração do puxão aqui?",
+  ],
+  "Tomoe nage": [
+    "Você vai cair de costas de propósito. Contra que postura dele isso funciona?",
+    "Falhou o tomoe. Onde você fica, e por que essa é das mais caras da lista?",
+  ],
+  "Sumi gaeshi": [
+    "Onde entra o gancho, e contra que postura dele isso funciona?",
+    "Falhou o sumi. Onde você fica? Por que essa é barata?",
+  ],
+  "O goshi": [
+    "Você gira de costas para ele. O seu quadril fica acima ou abaixo do dele, e por quê?",
+    "O braço abraça o quê, e para que serve nessa queda?",
+  ],
+  "Koshi guruma": [
+    "A entrada é a mesma do o goshi. O braço vai para onde, e o que isso te dá a mais?",
+    "O que você paga por esse controle a mais?",
+  ],
+  "Ippon seoi nage (ajoelhado)": [
+    "O que \"ippon\" quer dizer aqui? Quantas pegadas?",
+    "Por que ajoelhado? O que isso resolve?",
+  ],
+  "Seoi nage (ajoelhado)": [
+    "Duas pegadas — quais, e onde?",
+    "Você entra de costas para ele e carrega o corpo dele. Sobre o que exatamente?",
+  ],
+  "Tani otoshi": [
+    "Ele não voa por cima de você. Então por que ele cai?",
+    "O que a sua perna faz enquanto o seu braço puxa?",
+  ],
+  "Tai otoshi": [
+    "A sua perna fica na frente da dele. Ela varre ou é obstáculo?",
+    "Se ele não tromba na sua perna, o que faltou no giro?",
+  ],
+  "Kata guruma": [
+    "Ele sobe nos seus ombros. O que isso custa se der errado no meio do caminho?",
+    "O que você pega primeiro, e o que sobe primeiro?",
+  ],
+  "Harai goshi": [
+    "O que essa tem que o o goshi não tem?",
+    "A varredura acontece antes, durante ou depois do giro?",
+  ],
+  "De ashi barai": [
+    "Essa não precisa de força. Do que ela precisa?",
+    "Qual pé você varre, e em que instante exatamente?",
+  ],
 
-const TEMPLATES_PROJECAO_DESCREVER: Template[] = [
-  (item) => `Descreva ${item}: pegada, entrada e direção da queda.`,
-  (item) =>
-    `${item} — se a projeção falhar, em que posição você fica? É caro ou barato tentar?`,
-  (item) => `Contra que postura ou reação do adversário ${item} funciona melhor?`,
-];
+  /* --- Branca → Azul: quedas --- */
+  "Mae ukemi": [
+    "Você cai para frente. O que toca o chão, e o que nunca toca?",
+    "Por que antebraço e não mão?",
+  ],
+  "Ushiro ukemi": [
+    "Você cai de costas. O que o queixo faz, e onde as mãos batem?",
+    "Para que serve a batida? O que ela impede de chegar na cabeça?",
+  ],
+  "Yoko ukemi": [
+    "Por que essa é a mais usada no jiu-jitsu, se as três existem?",
+    "O braço bate em que ângulo, e onde fica a cabeça?",
+  ],
+  "Zempo kaiten ukemi": [
+    "Você rola. Por onde a rotação atravessa o corpo?",
+    "Por que nunca pela cabeça, mesmo com o queixo colado?",
+  ],
 
-const TEMPLATES_PROJECAO_COMPARAR: TemplateComparar[] = [
-  (a, b) => `Qual a diferença entre ${a} e ${b}?`,
-  (a, b) => `${a} e ${b} atacam algo parecido. O que muda entre uma e outra?`,
-];
+  /* --- Azul → Roxa: posições 01 a 18 --- */
+  "01 — Reposição dos 100 kg para guarda fechada (para fora), meia emborcada": [
+    "Ele te achatou nos 100 kg. Você vira para fora antes de puxar o joelho. Por que nessa ordem?",
+    "Por que não dá para empurrar de frente aqui? O que acontece com o seu braço se você tentar?",
+  ],
+  "02 — Reposição de meia guarda para guarda fechada": [
+    "Você está na meia guarda e quer fechar. O que vem antes de o joelho entrar?",
+    "Você enfiou o joelho sem o frame e ele acompanhou o seu quadril. O que você ganhou com isso?",
+  ],
+  "03 — Drill toureada (passagem de guarda)": [
+    "Você joga as pernas dele para um lado e passa pelo outro. O que o drill treina que a passagem sozinha não treina?",
+    "Onde ficam as suas mãos, e o que acontece se você correr em vez de esperar o tempo?",
+  ],
+  "04 — Passagem de guarda aberta (over under)": [
+    "Um braço por cima, um por baixo. Por que essa passagem não pode ser rápida?",
+    "Você está na over under e ele está recompondo. Você acelera ou aumenta a pressão? E o que a outra escolha te custaria?",
+  ],
+  "05 — Mão de vaca": [
+    "Você domina o punho e o tríceps. Por que do mesmo braço?",
+    "Depois de arrastar o braço dele, o que você faz com o espaço que ele deixou?",
+  ],
+  "06 — Omoplata com raspagem": [
+    "Ele postou a mão no chão para não ser finalizado. Isso é problema ou é presente?",
+    "Ataque e raspagem aqui são o mesmo movimento em direções diferentes. Que direções são essas?",
+  ],
+  "07 — Armlock da guarda fechada com pêndulo": [
+    "O que o pêndulo faz que o braço não faz?",
+    "Você está puxando o braço dele com força e não chega no ângulo. O que você deveria estar girando?",
+  ],
+  "08 — Armdrag da guarda borboleta": [
+    "O gancho e o drag: um depois do outro, ou juntos? O que acontece se você separar?",
+    "O gancho levanta o quê, exatamente?",
+  ],
+  "09 — Estrangulamento rodado da guarda sentada (baseball)": [
+    "A pegada sozinha aperta? Se não, o que aperta?",
+    "Por que \"baseball\"? Como ficam as mãos na lapela?",
+  ],
+  "10 — Raspagem kimura da guarda fechada": [
+    "Você pegou a kimura e ele postou a mão no chão. E agora?",
+    "Aqui a kimura não é finalização. Então o que ela é?",
+  ],
+  "11 — Ida para as costas da guarda fechada (cruzando a manga)": [
+    "Por que cruzar a manga abre a linha das costas? O que isso trava?",
+    "Você foi para as costas sem cruzar a manga antes. O que ele fez com o cotovelo?",
+  ],
+  "12 — Abertura de guarda fechada em pé com passagem de guarda": [
+    "Você levantou e abriu a guarda. Por que não pode parar aí?",
+    "Onde fica a sua mão enquanto você levanta, e o que ela impede?",
+  ],
+  "13 — Raspagem de meia guarda para single leg": [
+    "Você sobe com o under-hook e, em vez de raspar por cima, faz o quê?",
+    "O que diferencia essa de uma raspagem que só troca de posição?",
+  ],
+  "14 — Raspagem de guarda aranha com oponente de joelho": [
+    "Uma perna estica e a outra recolhe. Por que não as duas iguais?",
+    "Você está fazendo força nas duas pernas e ele não sai do lugar. O que está errado?",
+  ],
+  "15 — Saída das costas terminando na guarda fechada": [
+    "O que você defende primeiro, antes de qualquer movimento?",
+    "O quadril escorrega para o lado do braço que estrangula ou para o outro? Por quê?",
+  ],
+  "16 — Estrangulamento das costas (arco e flecha)": [
+    "Uma mão na gola, a outra na perna. Por que a perna, se o estrangulamento é no pescoço?",
+    "Por que esse é mais forte que um mata-leão de gi comum?",
+  ],
+  "17 — Triângulo partindo do overhook (esgrima atrás da axila)": [
+    "O overhook já te dá a condição do triângulo sem quebrar a postura dele. Que condição é essa?",
+    "Onde exatamente passa o seu braço, e o que ele prende?",
+  ],
+  "18 — Defesa de triângulo para double under": [
+    "O que vem primeiro: a postura ou a mão? Por quê?",
+    "Você levanta o quadril dele do chão. O que isso desfaz?",
+  ],
 
-const TEMPLATES_QUEDA: Template[] = [
-  (item) =>
-    `Descreva ${item}: onde você apoia, o que nunca se apoia sozinho, e o que protege a cabeça.`,
-  (item) => `${item} — qual erro mais comum de quem está aprendendo?`,
-];
+  /* --- Azul → Roxa: posições 19 a 36 --- */
+  "19 — Raspagem de guarda borboleta para montada": [
+    "Por que dá para montar direto no fim do giro, em vez de parar nos 100 kg?",
+    "O que o gancho já tinha feito com o quadril dele antes de você virar?",
+  ],
+  "20 — Armlock do joelho na barriga": [
+    "Ele empurra o seu joelho. Isso é defesa dele ou entrada sua?",
+    "Você gira por cima de quê, e cai onde?",
+  ],
+  "21 — Defesa de omoplata ficando em pé": [
+    "Por que ficar em pé desfaz a omoplata? O que você tira dele?",
+    "Você prefere rolar ou levantar? O que a outra opção te custa?",
+  ],
+  "22 — Transição de meia guarda para meia guarda profunda": [
+    "O que muda no jogo quando você passa a estar embaixo do centro de gravidade dele?",
+    "O ombro mergulha por baixo de quê?",
+  ],
+  "23 — Raspagem de guarda X": [
+    "Onde ficam as suas duas pernas, e o movimento é puxar ou esticar?",
+    "Está pesado para raspar. Isso é falta de força ou encaixe errado?",
+  ],
+  "24 — Raspagem de guarda one leg": [
+    "Você derruba para que canto dele, e por quê?",
+    "Por que essa raspagem conecta direto com a chave de pé?",
+  ],
+  "25 — Passagem de guarda partindo do double under": [
+    "Você empurra ou você anda? O que acontece se empurrar?",
+    "Até onde o seu ombro tem que chegar antes de você descer para o lado?",
+  ],
+  "26 — Passagem de guarda aranha (dominando a barra da calça)": [
+    "Você passa a aranha, ou desmonta a aranha primeiro? Qual é a diferença?",
+    "A mão vai na barra da calça. O que isso mata?",
+  ],
+  "27 — Estrangulamento com a própria lapela dos 100 kg": [
+    "Você precisa largar a posição para finalizar? Por que isso importa tanto aqui?",
+    "De onde vem o aperto: do braço ou de outra coisa?",
+  ],
+  "28 — Raspagem da guarda fechada (catucada)": [
+    "Você controla manga e cotovelo do mesmo lado. Para que lado a raspagem vai?",
+    "Você raspou sem controlar o braço e ele postou a mão. O que faltou?",
+  ],
+  "29 — Saída do armlock girando (pedindo carona)": [
+    "Você gira para que lado, e por que esse?",
+    "Depois que o braço estica, essa saída ainda existe? O que isso te diz sobre o tempo?",
+  ],
+  "30 — Kimura dos 100 kg com variação para armlock": [
+    "Ele estica o braço para salvar o ombro. Isso te atrapalha ou te serve?",
+    "Qual é o ataque de verdade aqui: a kimura, o armlock, ou nenhum dos dois?",
+  ],
+  "31 — Americana da montada para armlock": [
+    "Dobrar ou esticar: qual finalização é qual, e quem escolhe entre as duas?",
+    "O braço dele está em L no chão. O que você faz se ele puxar o cotovelo?",
+  ],
+  "32 — Quebra de pegada no armlock da montada": [
+    "Ele juntou as mãos. Você puxa com o braço ou com o corpo?",
+    "Qual é o elo fraco da pegada dele, e por que é esse?",
+  ],
+  "33 — Transição de meia guarda para meia montada": [
+    "Por que parar na meia montada em vez de ir direto para a montada?",
+    "O joelho sobe até que linha?",
+  ],
+  "34 — Armlock da montada com variação para triângulo": [
+    "Ele empurra os seus quadris. Um braço dentro e um fora te dá o quê?",
+    "Ele retira o braço para salvar o cotovelo. O que ele acabou de entregar?",
+  ],
+  "35 — Chave de pé reta da one leg": [
+    "A força vem do braço ou do quadril? Como você sabe?",
+    "Onde o calcanhar dele encaixa, e o que as suas mãos fazem?",
+  ],
+  "36 — Defesa de chave de pé reta": [
+    "Você gira para que lado, e o que isso tira da linha da alavanca?",
+    "Dá para esperar e ver se dói? Por que não?",
+  ],
 
-/**
- * As posições da roxa pedem mais que descrição.
- *
- * Na azul a maior parte do syllabus é vocabulário — o que é, como se faz. Na
- * roxa quase toda posição é uma resposta a alguma coisa que o adversário fez,
- * então as perguntas cobram o PORQUÊ: o detalhe que faz funcionar, a reação
- * dele que abre a posição, e o que acontece quando falha.
- */
-const TEMPLATES_POSICAO: Template[] = [
-  (item) => `Descreva ${item}: pegada, sequência e o detalhe que faz funcionar.`,
-  (item) => `${item} — qual o erro mais comum, e o que ele custa?`,
-  (item) => `Em que reação do adversário ${item} se abre?`,
-  (item) => `${item}: se não der certo, onde você fica e o que faz em seguida?`,
-  (item) => `Por que ${item} funciona? Explique a alavanca, não os passos.`,
-];
+  /* --- Azul → Roxa: drills --- */
+  "Ataques das costas com armlock e triângulo": [
+    "Ele defende o pescoço com os braços. Os braços viram o quê?",
+    "Um braço em cima e um embaixo abre uma coisa; os dois em cima abrem outra. Quais?",
+  ],
+  "Passagem de guarda com braço por baixo do oponente, finalizando kimura e violino": [
+    "O mesmo braço por baixo serve para passar e para finalizar. Quando é kimura e quando é violino?",
+    "Esse drill treina você a não largar uma coisa. Qual?",
+  ],
+  "Abertura de guarda com as 3 passagens (joelho com joelho, long step, montada)": [
+    "A abertura é uma só e as saídas são três. Quem escolhe qual saída: você ou ele?",
+    "Quais são as três, e o que muda entre elas?",
+  ],
+};
 
-const TEMPLATES_POSICAO_COMPARAR: TemplateComparar[] = [
-  (a, b) => `Qual a diferença entre ${a} e ${b}?`,
-  (a, b) => `Como ${a} e ${b} se conectam? Em que momento você escolhe uma ou outra?`,
-];
+const PERGUNTAS_DO_PAR: Record<string, string[]> = {
+  /* --- Branca → Azul --- */
+  "Ouchi gari × Kouchi gari": [
+    "As duas são por dentro. Qual é a grande e qual é a pequena, e quando você escolhe cada uma?",
+    "Uma derruba mais forte, a outra é mais barata de tentar. Qual é qual, e por quê?",
+  ],
+  "Tomoe nage × Sumi gaeshi": [
+    "As duas são de sacrifício. Uma funciona contra quem está ereto, a outra contra quem está curvado. Qual é qual?",
+    "Falhando, uma te deixa muito pior que a outra. Qual, e por quê?",
+  ],
+  "O goshi × Koshi guruma": [
+    "A entrada de quadril é a mesma. O que muda, e o que isso te dá?",
+    "Uma custa mais tempo para armar. Qual, e o que você compra com esse tempo?",
+  ],
+  "Seoi nage (ajoelhado) × Ippon seoi nage (ajoelhado)": [
+    "Uma tem \"ippon\" no nome. O que isso muda na prática?",
+    "Uma é mais rápida, a outra é mais controlada. Qual é qual?",
+  ],
+  "Single leg × Double leg": [
+    "Uma perna ou duas. O que você ganha e o que você paga em cada uma?",
+    "Qual das duas exige mais gás, e qual te dá mais variação depois?",
+  ],
+  "Colar drag em pé × Colar drag para single leg": [
+    "O puxão é idêntico nas duas. Então o que separa uma da outra?",
+    "Em qual você ataca de perto e em qual você usa o puxão só como distração?",
+  ],
+  "Kibisu gaeshi (safadinha) × Osoto gari": [
+    "Uma você cria, a outra você espera. Qual é qual?",
+    "As duas derrubam para trás. O que muda no gatilho de cada uma?",
+  ],
+  "Tai otoshi × Kata guruma": [
+    "As duas usam o seu corpo como obstáculo, em alturas diferentes. Quais alturas?",
+    "Qual é mais cara de errar, e por quê?",
+  ],
+  "Tani otoshi × Harai goshi": [
+    "Numa ele voa, na outra ele desaba. Qual é qual, e o que faz a diferença?",
+    "Em qual das duas você gira o corpo dele, e em qual você só corta a base?",
+  ],
 
-const TEMPLATES_DRILL: Template[] = [
-  (item) => `${item} — o que exatamente esse drill treina, além dos movimentos?`,
-  (item) => `Descreva o drill "${item}" e a ordem em que as coisas acontecem.`,
-];
+  /* --- Azul → Roxa --- */
+  "01 — Reposição dos 100 kg para guarda fechada (para fora), meia emborcada × 02 — Reposição de meia guarda para guarda fechada": [
+    "As duas voltam para a guarda fechada. Numa você precisa escapar antes; na outra você já tem alguma coisa dele. Qual é qual?",
+    "O que vem primeiro em cada uma: a virada ou o frame? Por que a ordem não é a mesma?",
+  ],
+  "17 — Triângulo partindo do overhook (esgrima atrás da axila) × 18 — Defesa de triângulo para double under": [
+    "É o mesmo triângulo dos dois lados. O que o ataque cria, e o que a defesa desfaz?",
+    "Existe um instante em que o triângulo deixa de ser defensável. Qual, e por quê?",
+  ],
+  "03 — Drill toureada (passagem de guarda) × 04 — Passagem de guarda aberta (over under)": [
+    "Uma é de movimento, a outra é de pressão. Contra um guardeiro rápido você usa qual? E contra um forte?",
+    "Em qual das duas a pressa te faz perder a passagem, e por quê?",
+  ],
+  "07 — Armlock da guarda fechada com pêndulo × 10 — Raspagem kimura da guarda fechada": [
+    "As duas pegam um braço na guarda fechada e as duas vivem da defesa dele. Pegar o braço é para finalizar, ou para outra coisa?",
+    "Em cada uma, que escolha você está forçando nele?",
+  ],
+  "11 — Ida para as costas da guarda fechada (cruzando a manga) × 15 — Saída das costas terminando na guarda fechada": [
+    "É o mesmo caminho percorrido nos dois sentidos. Onde ele quebra?",
+    "O que você trava para entrar, e o que você desfaz para sair?",
+  ],
+  "13 — Raspagem de meia guarda para single leg × 14 — Raspagem de guarda aranha com oponente de joelho": [
+    "As duas raspam contra ajoelhado. Uma é corpo colado, a outra nem encosta. Qual é qual, e quando você escolhe cada uma?",
+    "Uma vive de estrutura, a outra de alavanca à distância. Qual é qual?",
+  ],
+  "35 — Chave de pé reta da one leg × 36 — Defesa de chave de pé reta": [
+    "Ataque e defesa da mesma perna, e as duas são disputa de tempo. Quem perde: quem espera ou quem se antecipa?",
+    "O ataque estende o quadril; a defesa gira. Em que instante uma coisa vence a outra?",
+  ],
+  "31 — Americana da montada para armlock × 32 — Quebra de pegada no armlock da montada": [
+    "É a mesma disputa de braço dos dois lados. Saber quebrar a pegada te ensina o quê sobre o ataque?",
+    "Em qual momento ele junta as mãos, e o que isso já entregou para você?",
+  ],
+  "22 — Transição de meia guarda para meia guarda profunda × 33 — Transição de meia guarda para meia montada": [
+    "Mesma meia guarda, sentidos contrários: uma é de quem está embaixo, a outra de quem está em cima. Qual é qual?",
+    "O que essas duas juntas dizem sobre a meia guarda ser posição de defesa ou de disputa?",
+  ],
+  "25 — Passagem de guarda partindo do double under × 26 — Passagem de guarda aranha (dominando a barra da calça)": [
+    "Uma já assume o quadril levantado; a outra precisa desmontar um controle antes de existir. Qual é qual?",
+    "Em qual delas a passagem só começa depois que você resolve outra coisa?",
+  ],
+  "19 — Raspagem de guarda borboleta para montada × 23 — Raspagem de guarda X": [
+    "Uma levanta o adversário, a outra o desmonta no lugar. Qual é qual?",
+    "Por que só uma delas termina em montada direta?",
+  ],
+  "20 — Armlock do joelho na barriga × 34 — Armlock da montada com variação para triângulo": [
+    "Os dois armlocks nascem do que ele faz para te tirar de cima. O que ele faz em cada caso?",
+    "Em qual dos dois a defesa dele te entrega um segundo ataque, e qual é?",
+  ],
+  "29 — Saída do armlock girando (pedindo carona) × 30 — Kimura dos 100 kg com variação para armlock": [
+    "Uma é escapar do armlock, a outra é entrar nele. Juntas, elas mostram onde fica a janela. Onde?",
+    "O que a kimura força que fecha exatamente a porta que a saída usa?",
+  ],
+};
 
 /* ------------------------------------------------------------------ */
 
@@ -703,17 +1095,30 @@ function gerarId(aleatorio: () => number): string {
   return Math.floor(aleatorio() * 1e9).toString(36);
 }
 
+/**
+ * A pergunta que cai para este item nesta geração.
+ *
+ * A rede de segurança nunca deve ser usada — o teste prende que todo item do
+ * syllabus tem pelo menos duas perguntas escritas. Ela existe para o exame
+ * sair errado de um jeito visível, e não com um enunciado vazio, se alguém
+ * acrescentar uma técnica à lista e esquecer de escrever as perguntas dela.
+ */
+function perguntaPara(item: string, aleatorio: () => number): string {
+  const opcoes = PERGUNTAS_DO_ITEM[item] ?? PERGUNTAS_DO_PAR[item];
+  if (!opcoes?.length) return `Explique ${item}.`;
+  return escolher(opcoes, aleatorio);
+}
+
 function perguntasDaCategoriaSimples(
   categoria: Categoria,
   itens: string[],
-  templates: Template[],
   aleatorio: () => number,
 ): Pergunta[] {
   return itens.map((item) => ({
     id: gerarId(aleatorio),
     categoria,
     item,
-    pergunta: escolher(templates, aleatorio)(item),
+    pergunta: perguntaPara(item, aleatorio),
     gabarito: GABARITO_ITEM[item] ?? "",
     resposta: "",
     respondida: false,
@@ -736,8 +1141,6 @@ function perguntasComPares(
   itens: string[],
   pares: [string, string][],
   quantosPares: number,
-  templatesDescrever: Template[],
-  templatesComparar: TemplateComparar[],
   aleatorio: () => number,
 ): Pergunta[] {
   const escolhidos = embaralhar(pares, aleatorio).slice(0, quantosPares);
@@ -749,7 +1152,7 @@ function perguntasComPares(
       id: gerarId(aleatorio),
       categoria,
       item,
-      pergunta: escolher(templatesComparar, aleatorio)(a, b),
+      pergunta: perguntaPara(item, aleatorio),
       gabarito: GABARITO_PAR[item] ?? "",
       resposta: "",
       respondida: false,
@@ -760,7 +1163,6 @@ function perguntasComPares(
   const descricoes = perguntasDaCategoriaSimples(
     categoria,
     itens.filter((p) => !cobertas.has(p)),
-    templatesDescrever,
     aleatorio,
   );
 
@@ -833,19 +1235,17 @@ export function gerarExame(
 
   if (faixaAlvo === "Azul") {
     return [
-      ...perguntasDaCategoriaSimples("defesas", DEFESAS_NUMERADAS, TEMPLATES_DEFESA, aleatorio),
-      ...perguntasDaCategoriaSimples("cambalhotas", CAMBALHOTAS, TEMPLATES_CAMBALHOTA, aleatorio),
-      ...perguntasDaCategoriaSimples("posturas", POSTURAS, TEMPLATES_POSTURA, aleatorio),
+      ...perguntasDaCategoriaSimples("defesas", DEFESAS_NUMERADAS, aleatorio),
+      ...perguntasDaCategoriaSimples("cambalhotas", CAMBALHOTAS, aleatorio),
+      ...perguntasDaCategoriaSimples("posturas", POSTURAS, aleatorio),
       ...perguntasComPares(
         "projecoes",
         PROJECOES,
         PARES_PROJECAO,
         PARES_USADOS_POR_EXAME,
-        TEMPLATES_PROJECAO_DESCREVER,
-        TEMPLATES_PROJECAO_COMPARAR,
         aleatorio,
       ),
-      ...perguntasDaCategoriaSimples("quedas", QUEDAS, TEMPLATES_QUEDA, aleatorio),
+      ...perguntasDaCategoriaSimples("quedas", QUEDAS, aleatorio),
     ];
   }
 
@@ -858,8 +1258,6 @@ export function gerarExame(
       bloco,
       PARES_DO_BLOCO.get(bloco) ?? [],
       PARES_ROXA_POR_BLOCO,
-      TEMPLATES_POSICAO,
-      TEMPLATES_POSICAO_COMPARAR,
       aleatorio,
     ),
   );
@@ -867,7 +1265,7 @@ export function gerarExame(
   // Os drills só no exame de faixa — ver a nota no topo sobre por quê.
   const drills =
     escopo === ESCOPO_FAIXA
-      ? perguntasDaCategoriaSimples("drills", ROXA_DRILLS, TEMPLATES_DRILL, aleatorio)
+      ? perguntasDaCategoriaSimples("drills", ROXA_DRILLS, aleatorio)
       : [];
 
   return [...posicoes, ...drills];
