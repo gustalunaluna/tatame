@@ -84,6 +84,36 @@ export type Database = {
         };
         Relationships: [];
       };
+      exames_de_faixa: {
+        Row: {
+          id: string;
+          user_id: string;
+          faixa_alvo: string;
+          semente: number;
+          perguntas: Json;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          faixa_alvo: string;
+          semente: number;
+          perguntas?: Json;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          faixa_alvo?: string;
+          semente?: number;
+          perguntas?: Json;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       lutas: {
         Row: {
           id: string;
