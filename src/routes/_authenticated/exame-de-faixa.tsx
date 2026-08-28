@@ -2,24 +2,13 @@ import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { Icone } from "@/design/icones";
 import { PageShell } from "@/components/PageShell";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Confirmar } from "@/components/Confirmar";
-import { acentoDaFaixa } from "@/lib/faixa-cores";
+import { GerarExameDeFaixa } from "@/components/GerarExameDeFaixa";
 import {
-  contagemDoExame,
   NOME_DA_CATEGORIA,
-  FAIXAS_ALVO,
   type Categoria,
-  type FaixaAlvo,
   type Pergunta,
   type ResumoDoExame,
 } from "@/lib/exame-de-faixa.ts";
@@ -59,73 +48,6 @@ function agruparPorCategoria(perguntas: Pergunta[]): [Categoria, Pergunta[]][] {
       perguntas.filter((p) => p.categoria === categoria),
     ],
   ).filter(([, itens]) => itens.length > 0);
-}
-
-/* ------------------------------------------------------------------ */
-
-function GerarExame({ aoGerar }: { aoGerar: (faixa: FaixaAlvo) => Promise<boolean> }) {
-  const [faixaAlvo, setFaixaAlvo] = useState<FaixaAlvo>("Azul");
-  const [gerando, setGerando] = useState(false);
-  const contagem = contagemDoExame(faixaAlvo);
-
-  return (
-    <Card>
-      <CardContent className="flex flex-col gap-3 p-4">
-        <div>
-          <p className="text-sm font-bold">Gerar exame de faixa</p>
-          <p className="mt-0.5 text-xs text-muted-foreground">
-            Cada geração varia as perguntas — mesmo syllabus, formulações diferentes.
-          </p>
-        </div>
-
-        <Select value={faixaAlvo} onValueChange={(v) => setFaixaAlvo(v as FaixaAlvo)}>
-          <SelectTrigger aria-label="Faixa que quero graduar">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {FAIXAS_ALVO.map((f) => (
-              <SelectItem key={f} value={f}>
-                <span className="flex items-center gap-2">
-                  <span
-                    aria-hidden
-                    className="h-2 w-2 rounded-full"
-                    style={{ background: acentoDaFaixa(f) }}
-                  />
-                  Branca → {f}
-                  {contagemDoExame(f) === null && (
-                    <span className="text-muted-foreground">(em breve)</span>
-                  )}
-                </span>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        {contagem === null ? (
-          <p className="text-xs text-muted-foreground">
-            Ainda não tenho o syllabus de {faixaAlvo} — só branca → azul está pronto.
-          </p>
-        ) : (
-          <p className="text-xs text-muted-foreground">
-            Vai gerar {contagem} perguntas, cobrindo defesas, cambalhotas, postura,
-            as dezenove projeções e as quatro quedas — cada uma com um gabarito
-            para você conferir depois de responder.
-          </p>
-        )}
-
-        <Button
-          disabled={contagem === null || gerando}
-          onClick={async () => {
-            setGerando(true);
-            await aoGerar(faixaAlvo);
-            setGerando(false);
-          }}
-        >
-          {gerando ? "Gerando…" : "Gerar exame"}
-        </Button>
-      </CardContent>
-    </Card>
-  );
 }
 
 /* ------------------------------------------------------------------ */
@@ -356,7 +278,7 @@ function ExameDeFaixaPage() {
       title="Exame de faixa"
       subtitle="Do syllabus da sua academia — cada geração varia as perguntas."
     >
-      <GerarExame aoGerar={gerar} />
+      <GerarExameDeFaixa aoGerar={gerar} />
 
       {ready && exames.length === 0 && (
         <Card className="border-dashed border-border/60 bg-transparent">

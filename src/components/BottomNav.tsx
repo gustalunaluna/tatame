@@ -44,6 +44,7 @@ const MENU = [
     grupo: "Progresso",
     itens: [
       { to: "/metas", label: "Evolução", icon: Icone.evolucao },
+      { to: "/graduacao", label: "Graduação", icon: Icone.graduacao },
       { to: "/plano", label: "Plano do mês", icon: Icone.listaDeTecnicas },
       { to: "/conquistas", label: "Conquistas", icon: Icone.conquista },
     ],

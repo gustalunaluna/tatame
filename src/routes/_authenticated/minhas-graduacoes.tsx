@@ -66,14 +66,14 @@ function MinhasGraduacoesPage() {
       </div>
 
       <Link
-        to="/exame-de-faixa"
+        to="/graduacao"
         className="tap flex items-center gap-3 rounded-xl border border-border/60 p-3"
       >
-        <Icone.listaDeTecnicas className="h-5 w-5 shrink-0 text-primary" />
+        <Icone.graduacao className="h-5 w-5 shrink-0 text-primary" />
         <span className="min-w-0 flex-1">
-          <span className="block text-sm font-bold">Exame de faixa</span>
+          <span className="block text-sm font-bold">Graduação</span>
           <span className="block text-xs text-muted-foreground">
-            Gere um exame a partir do syllabus da academia e responda no seu ritmo.
+            Todas as faixas com o tempo mínimo de cada uma, e o simulado de exame.
           </span>
         </span>
         <Icone.avancar className="h-4 w-4 shrink-0 text-muted-foreground" />

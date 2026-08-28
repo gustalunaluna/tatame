@@ -116,6 +116,93 @@ export const ESCADA_IBJJF: readonly DegrauDaEscada[] = [
   },
 ] as const;
 
+/**
+ * O começo da escada.
+ *
+ * Não está em `ESCADA_IBJJF` de propósito: aquela lista é "o que se recebe", e
+ * ninguém recebe a branca — ela é onde todo mundo entra. Mas uma tela que se
+ * propõe a mostrar TODAS as faixas precisa mostrar a branca também, senão a
+ * escada começa no segundo degrau e o faixa-branca não se encontra nela.
+ */
+export const INICIO_DA_ESCADA: DegrauDaEscada = {
+  faixa: "Branca",
+  grau: 0,
+  mesesMinimos: null,
+  idadeMinima: null,
+  regra: "O começo. Não há tempo mínimo para vestir a branca — há para sair dela.",
+};
+
+/** A escada inteira para ler de cima a baixo, branca incluída. */
+export const ESCADA_COMPLETA: readonly DegrauDaEscada[] = [
+  INICIO_DA_ESCADA,
+  ...ESCADA_IBJJF,
+] as const;
+
+export interface FaixaInfantil {
+  /** Como se chama no regulamento: "Cinza e branca", "Amarela", ... */
+  nome: string;
+  /** Idade mínima e máxima em que a faixa pode ser usada. */
+  de: number;
+  ate: number;
+}
+
+/**
+ * As faixas de 4 a 15 anos.
+ *
+ * Entram aqui porque "todas as faixas do jiu-jitsu" inclui estas — e porque
+ * elas são a fonte da pergunta que todo mundo faz uma vez: "verde com listra
+ * branca equivale a quê?". A quê nenhum: a escada infantil é paralela, não
+ * uma fatia da adulta. Um verde de 15 anos que faz aniversário de 16 vai para
+ * a AZUL, não para "meio caminho da azul".
+ *
+ * As faixas se sobrepõem em idade de propósito — é assim no regulamento. Um
+ * garoto de 13 anos pode estar na amarela, na laranja ou na verde, dependendo
+ * de quando começou e de como o professor gradua.
+ */
+export const ESCADA_INFANTIL: readonly FaixaInfantil[] = [
+  { nome: "Branca", de: 4, ate: 15 },
+  { nome: "Cinza e branca", de: 4, ate: 6 },
+  { nome: "Cinza", de: 4, ate: 6 },
+  { nome: "Cinza e preta", de: 4, ate: 6 },
+  { nome: "Amarela e branca", de: 7, ate: 15 },
+  { nome: "Amarela", de: 7, ate: 15 },
+  { nome: "Amarela e preta", de: 7, ate: 15 },
+  { nome: "Laranja e branca", de: 10, ate: 15 },
+  { nome: "Laranja", de: 10, ate: 15 },
+  { nome: "Laranja e preta", de: 10, ate: 15 },
+  { nome: "Verde e branca", de: 13, ate: 15 },
+  { nome: "Verde", de: 13, ate: 15 },
+  { nome: "Verde e preta", de: 13, ate: 15 },
+] as const;
+
+/**
+ * O tempo mínimo de um degrau, em uma expressão curta para caber ao lado do
+ * nome da faixa. "Sem prazo" é resposta, não buraco — ver o cabeçalho.
+ */
+export function tempoMinimoEmTexto(degrau: DegrauDaEscada): string {
+  if (degrau.mesesMinimos === null) {
+    return degrau.idadeMinima ? `${degrau.idadeMinima} anos de idade` : "Sem prazo";
+  }
+  return emPortugues(degrau.mesesMinimos);
+}
+
+/**
+ * Quantos meses, no mínimo, da branca até o degrau — somando a escada inteira.
+ *
+ * Serve para a tela dizer "24 anos de faixa-preta" em vez de obrigar quem lê a
+ * somar 3+3+3+5+5+5 de cabeça. Começa a contar da AZUL: o tempo de branca não
+ * existe como regra, então somá-lo seria inventar número.
+ */
+export function mesesAcumuladosAte(faixa: Faixa, grau: number): number | null {
+  const i = ESCADA_IBJJF.findIndex((d) => d.faixa === faixa && d.grau === grau);
+  if (i < 0) return null;
+  let total = 0;
+  for (const d of ESCADA_IBJJF.slice(0, i + 1)) {
+    if (d.mesesMinimos !== null) total += d.mesesMinimos;
+  }
+  return total;
+}
+
 /** O próximo degrau a partir de onde a pessoa está. */
 export function proximoDegrau(
   faixa: Faixa | string | undefined | null,
