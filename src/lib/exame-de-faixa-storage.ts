@@ -2,11 +2,14 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import {
+  escopoPadrao,
   gerarExame,
   resumoDoExame,
+  vereditoDoExame,
   type FaixaAlvo,
   type Pergunta,
   type ResumoDoExame,
+  type VereditoDoExame,
 } from "./exame-de-faixa.ts";
 
 /**
@@ -36,6 +39,8 @@ const ok = (p: Promise<unknown>) => p.then(() => true).catch(() => false);
 export interface ExameDeFaixa {
   id: string;
   faixaAlvo: FaixaAlvo;
+  /** O que a folha cobra neste exame — ver `escoposDaFaixa`. */
+  escopo: string;
   semente: number;
   perguntas: Pergunta[];
   criadoEm: string;
@@ -44,6 +49,9 @@ export interface ExameDeFaixa {
 const paraExame = (r: Record<string, unknown>): ExameDeFaixa => ({
   id: String(r.id),
   faixaAlvo: r.faixa_alvo as FaixaAlvo,
+  // Exames salvos antes da migração 040 não têm escopo. Todos eram azul, e a
+  // folha da azul tem um escopo só — o default rotula o passado sem chutar.
+  escopo: String(r.escopo ?? escopoPadrao(r.faixa_alvo as FaixaAlvo)),
   semente: Number(r.semente),
   // Exames gerados antes do gabarito existir não têm `gabarito`/`acertou`
   // salvos — completa com o padrão em vez de quebrar a tela.
@@ -73,6 +81,11 @@ export function resultadoDoExame(exame: ExameDeFaixa): ResumoDoExame {
   return resumoDoExame(exame.perguntas);
 }
 
+/** O veredito contra a nota de corte da folha, quando a folha tem uma. */
+export function vereditoDo(exame: ExameDeFaixa): VereditoDoExame | null {
+  return vereditoDoExame(resultadoDoExame(exame), exame.faixaAlvo);
+}
+
 export function useMeusExamesDeFaixa() {
   const qc = useQueryClient();
 
@@ -96,7 +109,7 @@ export function useMeusExamesDeFaixa() {
   const invalidar = () => qc.invalidateQueries({ queryKey: ["exames_de_faixa"] });
 
   const gerarMut = useMutation({
-    mutationFn: async (faixaAlvo: FaixaAlvo) => {
+    mutationFn: async ({ faixaAlvo, escopo }: { faixaAlvo: FaixaAlvo; escopo: string }) => {
       const { data: sessao } = await supabase.auth.getUser();
       const eu = sessao.user?.id;
       if (!eu) throw new Error("Sem sessão");
@@ -104,14 +117,17 @@ export function useMeusExamesDeFaixa() {
       // A semente é o instante da geração — cada toque em "gerar" produz uma
       // semente nova, e a mesma semente nunca mais se repete por acaso.
       const semente = Date.now();
-      const perguntas = gerarExame(faixaAlvo, semente);
+      const perguntas = gerarExame(faixaAlvo, semente, escopo);
       if (!perguntas) {
-        throw new Error(`Ainda não tenho o exame de ${faixaAlvo} — só branca → azul está pronto.`);
+        throw new Error(
+          `Ainda não tenho o exame de ${faixaAlvo} — só branca → azul e azul → roxa estão prontos.`,
+        );
       }
 
       const { error } = await supabase.from("exames_de_faixa").insert({
         user_id: eu,
         faixa_alvo: faixaAlvo,
+        escopo,
         semente,
         perguntas: perguntas as unknown as never,
       } as never);
@@ -207,7 +223,8 @@ export function useMeusExamesDeFaixa() {
   return {
     exames: query.data ?? [],
     ready: query.isSuccess,
-    gerar: (faixaAlvo: FaixaAlvo) => ok(gerarMut.mutateAsync(faixaAlvo)),
+    gerar: (faixaAlvo: FaixaAlvo, escopo: string = escopoPadrao(faixaAlvo)) =>
+      ok(gerarMut.mutateAsync({ faixaAlvo, escopo })),
     apagar: (id: string) => ok(apagarMut.mutateAsync(id)),
     responder: (exameId: string, perguntaId: string, resposta: string) =>
       ok(responderMut.mutateAsync({ exameId, perguntaId, resposta })),

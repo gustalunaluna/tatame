@@ -7,15 +7,19 @@ import { Textarea } from "@/components/ui/textarea";
 import { Confirmar } from "@/components/Confirmar";
 import { GerarExameDeFaixa } from "@/components/GerarExameDeFaixa";
 import {
+  avisoDaFaixa,
+  ESCOPO_FAIXA,
   NOME_DA_CATEGORIA,
   type Categoria,
   type Pergunta,
   type ResumoDoExame,
+  type VereditoDoExame,
 } from "@/lib/exame-de-faixa.ts";
 import {
   progressoDoExame,
   resultadoDoExame,
   useMeusExamesDeFaixa,
+  vereditoDo,
   type ExameDeFaixa,
 } from "@/lib/exame-de-faixa-storage.ts";
 import { cn } from "@/lib/utils";
@@ -39,7 +43,16 @@ const CATEGORIAS_EM_ORDEM: Categoria[] = [
   "posturas",
   "projecoes",
   "quedas",
+  "posicoes",
+  "drills",
 ];
+
+/** "Branca → Azul" / "Azul → Roxa · 1º e 2º grau" */
+function tituloDoExame(exame: ExameDeFaixa): string {
+  const de = exame.faixaAlvo === "Azul" ? "Branca" : "Azul";
+  const rota = `${de} → ${exame.faixaAlvo}`;
+  return exame.escopo === ESCOPO_FAIXA ? rota : `${rota} · ${exame.escopo}`;
+}
 
 function agruparPorCategoria(perguntas: Pergunta[]): [Categoria, Pergunta[]][] {
   return CATEGORIAS_EM_ORDEM.map(
@@ -51,6 +64,63 @@ function agruparPorCategoria(perguntas: Pergunta[]): [Categoria, Pergunta[]][] {
 }
 
 /* ------------------------------------------------------------------ */
+
+/**
+ * A nota de corte da folha, quando a folha tem uma.
+ *
+ * Enquanto sobrar pergunta em branco ou por conferir, isto mostra quanto
+ * FALTA — nunca um veredito. Dizer "reprovado" para quem respondeu metade
+ * seria dizer uma coisa falsa, e dizer "aprovado" antes do fim é pior.
+ */
+function Veredito({ v, resumo }: { v: VereditoDoExame; resumo: ResumoDoExame }) {
+  const pct = Math.round((resumo.aproveitamento ?? 0) * 100);
+  const minimo = Math.round(v.minimo * 100);
+
+  return (
+    <div
+      className={cn(
+        "rounded-xl border p-3",
+        v.aprovado === true && "border-primary/60 bg-primary/10",
+        v.aprovado === false && "border-destructive/40 bg-destructive/5",
+        v.aprovado === null && "border-border/60 bg-muted/30",
+      )}
+    >
+      <div className="flex items-baseline justify-between gap-2">
+        <p
+          className={cn(
+            "text-sm font-black",
+            v.aprovado === true && "text-primary",
+            v.aprovado === false && "text-destructive",
+          )}
+        >
+          {v.aprovado === true
+            ? `Passou — ${pct}%`
+            : v.aprovado === false
+              ? `Não passou — ${pct}%`
+              : `${pct}% até agora`}
+        </p>
+        <p className="text-xs tabular-nums text-muted-foreground">
+          mínimo {minimo}%
+        </p>
+      </div>
+
+      <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+        {v.aprovado === null ? (
+          <>
+            Ainda faltam {resumo.emBranco + resumo.porConferir} de {resumo.total}.
+            {v.faltamParaPassar > 0 && (
+              <> Você precisa de mais {v.faltamParaPassar} certas para bater os {minimo}%.</>
+            )}
+          </>
+        ) : v.aprovado ? (
+          "Pelo seu próprio julgamento contra o gabarito. Quem avalia de verdade é o professor."
+        ) : (
+          `Faltaram ${v.faltamParaPassar} certas. A lista de revisão está logo abaixo.`
+        )}
+      </p>
+    </div>
+  );
+}
 
 /**
  * O placar: certas, erradas, por conferir, em branco — numa linha, sempre
@@ -203,6 +273,8 @@ function CartaoDeExame({
   const resumo = resultadoDoExame(exame);
   const grupos = agruparPorCategoria(exame.perguntas);
   const avaliadas = resumo.certas + resumo.erradas;
+  const veredito = vereditoDo(exame);
+  const aviso = avisoDaFaixa(exame.faixaAlvo, exame.escopo);
 
   return (
     <Card>
@@ -213,7 +285,7 @@ function CartaoDeExame({
           aria-expanded={aberto}
         >
           <div className="min-w-0">
-            <p className="text-sm font-bold">Branca → {exame.faixaAlvo}</p>
+            <p className="text-sm font-bold">{tituloDoExame(exame)}</p>
             <p className="text-xs text-muted-foreground">
               {exame.criadoEm.slice(0, 10).split("-").reverse().join("/")}
               {" · "}
@@ -231,8 +303,15 @@ function CartaoDeExame({
 
         {aberto && (
           <div className="mt-4 flex flex-col gap-5">
+            {veredito && <Veredito v={veredito} resumo={resumo} />}
             <Placar resumo={resumo} />
             <ParaRever itens={resumo.paraRever} />
+
+            {aviso && (
+              <p className="rounded-lg bg-muted/40 p-2.5 text-xs leading-relaxed text-muted-foreground">
+                {aviso}
+              </p>
+            )}
 
             {grupos.map(([categoria, perguntas]) => (
               <div key={categoria} className="flex flex-col gap-3">

@@ -10,7 +10,10 @@ import {
 } from "@/components/ui/select";
 import { acentoDaFaixa } from "@/lib/faixa-cores";
 import {
+  avisoDaFaixa,
   contagemDoExame,
+  escoposDaFaixa,
+  escopoPadrao,
   FAIXAS_ALVO,
   type FaixaAlvo,
 } from "@/lib/exame-de-faixa.ts";
@@ -32,13 +35,21 @@ export function GerarExameDeFaixa({
   depoisDeGerar,
   titulo = "Gerar exame de faixa",
 }: {
-  aoGerar: (faixa: FaixaAlvo) => Promise<boolean>;
+  aoGerar: (faixa: FaixaAlvo, escopo: string) => Promise<boolean>;
   depoisDeGerar?: () => void;
   titulo?: string;
 }) {
   const [faixaAlvo, setFaixaAlvo] = useState<FaixaAlvo>("Azul");
+  const [escopo, setEscopo] = useState<string>(escopoPadrao("Azul"));
   const [gerando, setGerando] = useState(false);
-  const contagem = contagemDoExame(faixaAlvo);
+
+  const escopos = escoposDaFaixa(faixaAlvo);
+  // Trocar de faixa pode invalidar o escopo escolhido — a azul não tem "3º e
+  // 4º grau". Cair no padrão da faixa nova é o que impede o botão de gerar
+  // com uma combinação que não existe.
+  const escopoValido = escopos?.includes(escopo) ? escopo : escopoPadrao(faixaAlvo);
+  const contagem = contagemDoExame(faixaAlvo, escopoValido);
+  const aviso = avisoDaFaixa(faixaAlvo, escopoValido);
 
   return (
     <Card>
@@ -50,7 +61,13 @@ export function GerarExameDeFaixa({
           </p>
         </div>
 
-        <Select value={faixaAlvo} onValueChange={(v) => setFaixaAlvo(v as FaixaAlvo)}>
+        <Select
+          value={faixaAlvo}
+          onValueChange={(v) => {
+            setFaixaAlvo(v as FaixaAlvo);
+            setEscopo(escopoPadrao(v as FaixaAlvo));
+          }}
+        >
           <SelectTrigger aria-label="Faixa que quero graduar">
             <SelectValue />
           </SelectTrigger>
@@ -63,7 +80,7 @@ export function GerarExameDeFaixa({
                     className="h-2 w-2 rounded-full"
                     style={{ background: acentoDaFaixa(f) }}
                   />
-                  Branca → {f}
+                  {f === "Azul" ? "Branca" : "Azul"} → {f}
                   {contagemDoExame(f) === null && (
                     <span className="text-muted-foreground">(em breve)</span>
                   )}
@@ -73,15 +90,38 @@ export function GerarExameDeFaixa({
           </SelectContent>
         </Select>
 
+        {/* O escopo só aparece onde há escolha a fazer. A folha da azul tem um
+            só; a da roxa divide por grau. */}
+        {escopos && escopos.length > 1 && (
+          <Select value={escopoValido} onValueChange={setEscopo}>
+            <SelectTrigger aria-label="O que o exame cobra">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {escopos.map((e) => (
+                <SelectItem key={e} value={e}>
+                  {e}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+
         {contagem === null ? (
           <p className="text-xs text-muted-foreground">
-            Ainda não tenho o syllabus de {faixaAlvo} — só branca → azul está pronto.
+            Ainda não tenho o syllabus de {faixaAlvo} — só branca → azul e
+            azul → roxa estão prontos.
           </p>
         ) : (
           <p className="text-xs text-muted-foreground">
-            Vai gerar {contagem} perguntas, cobrindo defesas, cambalhotas, postura,
-            as dezenove projeções e as quatro quedas — cada uma com um gabarito
-            para você conferir depois de responder.
+            Vai gerar {contagem} perguntas, cada uma com um gabarito para você
+            conferir depois de responder.
+          </p>
+        )}
+
+        {aviso && (
+          <p className="rounded-lg bg-muted/50 p-2.5 text-xs leading-relaxed text-muted-foreground">
+            {aviso}
           </p>
         )}
 
@@ -89,7 +129,7 @@ export function GerarExameDeFaixa({
           disabled={contagem === null || gerando}
           onClick={async () => {
             setGerando(true);
-            const deuCerto = await aoGerar(faixaAlvo);
+            const deuCerto = await aoGerar(faixaAlvo, escopoValido);
             setGerando(false);
             if (deuCerto) depoisDeGerar?.();
           }}

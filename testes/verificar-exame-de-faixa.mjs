@@ -13,8 +13,9 @@
  *      novo" seria decoração
  *   3. as 19 projeções do syllabus aparecem todas, cobertas por descrição OU
  *      por comparação — nenhuma pode ficar de fora do exame
- *   4. faixa sem syllabus (Roxa, Marrom, Preta) retorna null — nunca inventa
- *      conteúdo de exame que a academia não forneceu
+ *   4. faixa sem syllabus (Marrom, Preta) retorna null — nunca inventa
+ *      conteúdo de exame que a academia não forneceu. A roxa tem folha e tem
+ *      teste próprio: verificar-exame-roxa.mjs
  *   5. nenhuma pergunta nasce respondida ou com resposta preenchida
  *   6. TODA pergunta gerada tem gabarito não vazio — sem isso a
  *      autoavaliação não tem contra o que se medir
@@ -67,10 +68,10 @@ for (const semente of [7, 99, 12345]) {
 }
 
 /* --- 4. faixa sem syllabus ------------------------------------------------ */
-conferir("Roxa retorna null — sem syllabus fornecido", gerarExame("Roxa", 1) === null);
 conferir("Marrom retorna null — sem syllabus fornecido", gerarExame("Marrom", 1) === null);
 conferir("Preta retorna null — sem syllabus fornecido", gerarExame("Preta", 1) === null);
-conferir("contagemDoExame de Roxa é null", contagemDoExame("Roxa") === null);
+conferir("contagemDoExame de Marrom é null", contagemDoExame("Marrom") === null);
+conferir("contagemDoExame de Preta é null", contagemDoExame("Preta") === null);
 conferir("contagemDoExame de Azul é um número > 0", (contagemDoExame("Azul") ?? 0) > 0);
 
 /* --- 5. nada nasce respondido ---------------------------------------------- */
