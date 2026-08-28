@@ -16,6 +16,10 @@
  *      nenhum, e o app não pode inventar um.
  *   3. DRILLS SÓ NO EXAME DE FAIXA. A regra de blocos fala em "posições", e
  *      drill não é posição.
+ *   4. ORDEM DA FOLHA. O exame é para ser usado ao lado do papel da academia:
+ *      a pergunta da posição 14 vem depois da 13 e antes da 15, e os drills
+ *      vêm no fim, como na folha. Embaralhado, cada exame vira caça ao
+ *      número.
  *
  * Mais o que já valia para a azul: determinismo, cobertura total do syllabus,
  * gabarito em toda pergunta, e nada nascendo respondido.
@@ -198,6 +202,50 @@ conferir(
       .filter((p) => p.categoria === "posicoes")
       .flatMap((p) => p.item.split(" × "));
     return new Set(vistos).size === vistos.length;
+  })(),
+);
+
+/* --- 6b. a ordem da folha ------------------------------------------------ */
+for (const escopo of [PRIMEIRO, SEGUNDO, ESCOPO_FAIXA]) {
+  for (const semente of [2, 31, 60606]) {
+    const ex = gerarExame("Roxa", semente, escopo);
+
+    // Cada pergunta de posição entra na folha pelo MENOR dos seus números —
+    // uma comparação "07 × 10" ocupa o lugar da 07.
+    const numeros = ex
+      .filter((p) => p.categoria === "posicoes")
+      .map((p) => Math.min(...p.item.split(" × ").map((i) => Number(i.slice(0, 2)))));
+
+    const foraDeOrdem = numeros.filter((n, i) => i > 0 && n < numeros[i - 1]);
+    conferir(
+      `${escopo}, semente ${semente}: as posições saem na ordem da folha`,
+      foraDeOrdem.length === 0,
+      `${JSON.stringify(numeros)}`,
+    );
+  }
+}
+conferir(
+  "os drills vêm depois das posições, como na folha",
+  (() => {
+    const cats = gerarExame("Roxa", 9, ESCOPO_FAIXA).map((p) => p.categoria);
+    return cats.lastIndexOf("posicoes") < cats.indexOf("drills");
+  })(),
+);
+conferir(
+  "a ordem não depende da semente — o que varia é o par e a formulação",
+  (() => {
+    const num = (semente) =>
+      gerarExame("Roxa", semente, ESCOPO_FAIXA)
+        .filter((p) => p.categoria === "posicoes")
+        .map((p) => Math.min(...p.item.split(" × ").map((i) => Number(i.slice(0, 2)))));
+    const a = num(100);
+    const b = num(200);
+    // Listas possivelmente diferentes (pares diferentes), mas as duas
+    // crescentes — a folha manda na ordem, o sorteio manda no conteúdo.
+    return (
+      a.every((n, i) => i === 0 || n >= a[i - 1]) &&
+      b.every((n, i) => i === 0 || n >= b[i - 1])
+    );
   })(),
 );
 

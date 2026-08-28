@@ -764,7 +764,23 @@ function perguntasComPares(
     aleatorio,
   );
 
-  return embaralhar([...comparacoes, ...descricoes], aleatorio);
+  // NA ORDEM DA FOLHA, não embaralhada.
+  //
+  // O exame gerado é para ser usado ao lado do papel que a academia entregou:
+  // o atleta lê a pergunta 14 e procura a posição 14 na folha. Embaralhar
+  // fazia cada exame virar uma caça ao número, e não acrescentava nada — o
+  // que precisa variar entre gerações é QUAIS pares entram e COMO a pergunta
+  // é formulada, e isso o sorteio já fez acima.
+  //
+  // Uma comparação entra na posição do menor dos dois itens: é onde a folha
+  // toca o assunto pela primeira vez.
+  const ordem = new Map(itens.map((item, i) => [item, i]));
+  const posicaoNaFolha = (p: Pergunta) =>
+    Math.min(...p.item.split(" × ").map((i) => ordem.get(i) ?? Number.MAX_SAFE_INTEGER));
+
+  return [...comparacoes, ...descricoes].sort(
+    (a, b) => posicaoNaFolha(a) - posicaoNaFolha(b),
+  );
 }
 
 /** Quantas perguntas `perguntasComPares` produz — sem gerar nada. */

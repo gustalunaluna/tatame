@@ -21,6 +21,8 @@
  *      autoavaliação não tem contra o que se medir
  *   7. resumoDoExame conta certas/erradas/por conferir/em branco a partir
  *      só do que o atleta marcou, e lista "para rever" com as erradas
+ *   8. as projeções saem NA ORDEM DA FOLHA — o exame é para ser usado ao lado
+ *      do papel da academia, não embaralhado
  */
 import { gerarExame, contagemDoExame, resumoDoExame } from "../src/lib/exame-de-faixa.ts";
 
@@ -98,6 +100,21 @@ for (const semente of [3, 404, 8080]) {
     `semente ${semente}: toda pergunta tem gabarito não vazio`,
     semGabarito.length === 0,
     JSON.stringify(semGabarito.map((p) => p.item)),
+  );
+}
+
+/* --- 6b. a ordem da folha ------------------------------------------------ */
+const ORDEM_DA_FOLHA = new Map(PROJECOES.map((p, i) => [p, i]));
+for (const semente of [2, 31, 60606]) {
+  const proj = gerarExame("Azul", semente)
+    .filter((p) => p.categoria === "projecoes")
+    .map((p) =>
+      Math.min(...p.item.split(" × ").map((i) => ORDEM_DA_FOLHA.get(i) ?? -1)),
+    );
+  conferir(
+    `semente ${semente}: as projeções saem na ordem da folha`,
+    proj.every((n, i) => n >= 0 && (i === 0 || n >= proj[i - 1])),
+    JSON.stringify(proj),
   );
 }
 
