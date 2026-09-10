@@ -69,8 +69,12 @@ export interface PerfilDaDieta {
   objetivo: Objetivo;
   /** Sobrescreve a meta calculada. `null` = usa o cálculo. */
   metaKcal: number | null;
-  /** Idem para a proteína, em gramas. */
+  /** Idem para os macros, em gramas. Cada um vale por si. */
   metaProteinaG: number | null;
+  metaCarboidratoG: number | null;
+  metaGorduraG: number | null;
+  /** Meta de água do dia, em ml. `null` = calcula pelo peso e pelo treino. */
+  metaAguaMl: number | null;
 }
 
 export interface Pesagem {
@@ -94,6 +98,14 @@ export interface Refeicao {
   proteinaG: number;
   carboidratoG: number;
   gorduraG: number;
+  /**
+   * Qual item do cardápio esta refeição responde. `null` = comeu fora do plano.
+   *
+   * É este campo que faz o check diário funcionar sem duplicar dado: a
+   * refeição continua sendo a única verdade sobre o que entrou na boca, e o
+   * vínculo só diz a que pergunta ela respondeu.
+   */
+  itemDoCardapioId: string | null;
 }
 
 export type NovaRefeicao = Omit<Refeicao, "id">;
@@ -282,24 +294,203 @@ export const PROTEINA_POR_KG: Record<Objetivo, number> = {
 /** Gordura como fração das calorias. Abaixo de 20% mexe com hormônio. */
 export const FRACAO_DE_GORDURA = 0.25;
 
+/** As metas escritas na mão. `null` em qualquer uma = o app calcula aquela. */
+export interface MetasManuais {
+  kcal: number | null;
+  proteinaG: number | null;
+  carboidratoG: number | null;
+  gorduraG: number | null;
+}
+
+export const SEM_METAS_MANUAIS: MetasManuais = {
+  kcal: null,
+  proteinaG: null,
+  carboidratoG: null,
+  gorduraG: null,
+};
+
+/**
+ * Cada macro pode ser escrito na mão ou calculado, independentemente dos
+ * outros — quem tem nutricionista costuma receber os quatro números prontos,
+ * e quem não tem quer só travar a proteína.
+ *
+ * O carboidrato continua sendo o que sobra QUANDO ninguém o escreveu: proteína
+ * e gordura têm piso fisiológico e ele não tem. Escrito na mão, ele manda — e
+ * aí a soma dos três pode não bater com a meta de caloria. Isso é de propósito:
+ * quem escreveu os quatro números quer os quatro números, não uma correção
+ * automática que ele não pediu. Quem confere a soma é a tela, avisando.
+ */
 export function metasDeMacro(
   objetivo: Objetivo,
   pesoKg: number,
   metaKcal: number,
-  overrideProteina: number | null,
+  manuais: MetasManuais = SEM_METAS_MANUAIS,
 ): Macros {
-  const proteinaG =
-    overrideProteina !== null && overrideProteina > 0
-      ? overrideProteina
-      : Math.round(PROTEINA_POR_KG[objetivo] * pesoKg);
-  const gorduraG = Math.round((metaKcal * FRACAO_DE_GORDURA) / 9);
-  // O carboidrato é o que sobra — é ele que se ajusta, porque proteína e
-  // gordura têm piso fisiológico e carboidrato não tem.
-  const carboidratoG = Math.max(
-    0,
-    Math.round((metaKcal - proteinaG * 4 - gorduraG * 9) / 4),
-  );
+  const escrito = (n: number | null) => n !== null && n > 0;
+
+  const proteinaG = escrito(manuais.proteinaG)
+    ? manuais.proteinaG!
+    : Math.round(PROTEINA_POR_KG[objetivo] * pesoKg);
+
+  const gorduraG = escrito(manuais.gorduraG)
+    ? manuais.gorduraG!
+    : Math.round((metaKcal * FRACAO_DE_GORDURA) / 9);
+
+  const carboidratoG = escrito(manuais.carboidratoG)
+    ? manuais.carboidratoG!
+    : Math.max(0, Math.round((metaKcal - proteinaG * 4 - gorduraG * 9) / 4));
+
   return { kcal: metaKcal, proteinaG, carboidratoG, gorduraG };
+}
+
+/** Quantas calorias os três macros somam. Serve para conferir metas escritas na mão. */
+export function kcalDosMacros(m: Macros): number {
+  return Math.round(m.proteinaG * 4 + m.carboidratoG * 4 + m.gorduraG * 9);
+}
+
+/* ========================================================================== */
+/* Água                                                                       */
+/* ========================================================================== */
+
+/** Base de manutenção: 35 ml por quilo é a referência para adulto ativo. */
+export const AGUA_POR_KG = 35;
+
+/**
+ * Reposição de treino, por hora.
+ *
+ * O ACSM fala em 0,4 a 0,8 L por hora de exercício, e a faixa é larga porque
+ * depende de calor, roupa e de quanto a pessoa sua. Jiu-jitsu de kimono num
+ * tatame sem ar-condicionado fica na parte de cima dessa faixa; 600 ml/h é o
+ * meio, e a tela deixa escrever outro número.
+ */
+export const AGUA_POR_HORA_DE_TREINO = 600;
+
+export function metaDeAgua(
+  pesoKg: number,
+  minutosTreinados: number,
+  override: number | null,
+): number {
+  if (override !== null && override > 0) return override;
+  const base = pesoKg * AGUA_POR_KG;
+  const reposicao = (Math.max(0, minutosTreinados) / 60) * AGUA_POR_HORA_DE_TREINO;
+  // Arredonda para 50 ml: ninguém bebe 2 697 ml, e um número desses na tela
+  // finge uma precisão que a recomendação não tem.
+  return Math.round((base + reposicao) / 50) * 50;
+}
+
+/** Os tamanhos que um toque adiciona. Copo, garrafinha, garrafa. */
+export const GOLES_ML = [250, 500, 750] as const;
+
+/* ========================================================================== */
+/* O cardápio                                                                 */
+/* ========================================================================== */
+
+/**
+ * Um item do cardápio: o que ESTÁ PLANEJADO comer naquele momento do dia.
+ *
+ * A diferença entre isto e `Refeicao` é a diferença entre plano e fato, e ela
+ * é o motivo de as duas coisas serem tabelas separadas. O cardápio é escrito
+ * uma vez e vale todos os dias; a refeição é o que aconteceu num dia. Guardar
+ * as duas na mesma tabela obrigaria a copiar o cardápio inteiro para cada dia
+ * do calendário — inclusive os dias que ainda não chegaram.
+ */
+export interface ItemDoCardapio {
+  id: string;
+  momento: string;
+  alimento: string;
+  porcao: string;
+  kcal: number;
+  proteinaG: number;
+  carboidratoG: number;
+  gorduraG: number;
+  ordem: number;
+}
+
+export type NovoItemDoCardapio = Omit<ItemDoCardapio, "id">;
+
+/**
+ * Como um item do cardápio terminou o dia.
+ *
+ *   "aberto"     ainda não foi comido (ou não foi marcado)
+ *   "comido"     comeu o que estava planejado
+ *   "trocado"    comeu outra coisa no lugar — o que entrou está em `substituto`
+ *
+ * "Trocado" não é uma falha. É o caso normal: a marmita acabou, o restaurante
+ * fechou, alguém trouxe bolo. Um app que só oferece "comi" e "não comi"
+ * empurra a pessoa a mentir no primeiro dia em que a vida não seguiu o plano.
+ */
+export type SituacaoDoItem = "aberto" | "comido" | "trocado";
+
+export interface ItemNoDia {
+  item: ItemDoCardapio;
+  situacao: SituacaoDoItem;
+  /** A refeição que resolveu este item, quando houve. */
+  registro: Refeicao | null;
+}
+
+/**
+ * Cruza o cardápio com o que foi de fato registrado no dia.
+ *
+ * O vínculo vem de `Refeicao.itemDoCardapioId`: é ele que diz "esta refeição
+ * é a resposta àquele item", e é o que permite trocar sem perder a conta de
+ * quais momentos do dia já foram resolvidos.
+ *
+ * O que separa "comido" de "trocado" é o NOME. Comparar caloria não serviria
+ * (dois alimentos diferentes podem ter a mesma), e comparar o id do item
+ * também não — ele é o mesmo nos dois casos, já que é ele quem liga as duas
+ * linhas.
+ */
+export function cardapioNoDia(
+  cardapio: ItemDoCardapio[],
+  refeicoes: Refeicao[],
+): ItemNoDia[] {
+  const porItem = new Map<string, Refeicao>();
+  for (const r of refeicoes) {
+    if (r.itemDoCardapioId) porItem.set(r.itemDoCardapioId, r);
+  }
+
+  return [...cardapio]
+    .sort((a, b) => ordemDoMomento(a) - ordemDoMomento(b) || a.ordem - b.ordem)
+    .map((item) => {
+      const registro = porItem.get(item.id) ?? null;
+      if (!registro) return { item, situacao: "aberto" as const, registro: null };
+      const igual =
+        registro.alimento.trim().toLowerCase() === item.alimento.trim().toLowerCase();
+      return { item, situacao: igual ? ("comido" as const) : ("trocado" as const), registro };
+    });
+}
+
+/** O que o cardápio inteiro somaria, se o dia saísse exatamente como planejado. */
+export function somarCardapio(cardapio: ItemDoCardapio[]): Macros {
+  return cardapio.reduce<Macros>(
+    (soma, i) => ({
+      kcal: soma.kcal + i.kcal,
+      proteinaG: soma.proteinaG + i.proteinaG,
+      carboidratoG: soma.carboidratoG + i.carboidratoG,
+      gorduraG: soma.gorduraG + i.gorduraG,
+    }),
+    { kcal: 0, proteinaG: 0, carboidratoG: 0, gorduraG: 0 },
+  );
+}
+
+/** As refeições que NÃO respondem a nenhum item do cardápio — o que saiu do plano. */
+export function foraDoCardapio(refeicoes: Refeicao[]): Refeicao[] {
+  return refeicoes.filter((r) => !r.itemDoCardapioId);
+}
+
+/** Agrupa os itens do dia por momento, na ordem do dia. */
+export function cardapioPorMomento(itens: ItemNoDia[]): [string, ItemNoDia[]][] {
+  const grupos = new Map<string, ItemNoDia[]>();
+  for (const i of itens) {
+    const chave = i.item.momento || "Sem horário";
+    grupos.set(chave, [...(grupos.get(chave) ?? []), i]);
+  }
+  return [...grupos.entries()];
+}
+
+function ordemDoMomento(i: { momento: string }): number {
+  const pos = (MOMENTOS as readonly string[]).indexOf(i.momento);
+  return pos === -1 ? MOMENTOS.length : pos;
 }
 
 /* ========================================================================== */

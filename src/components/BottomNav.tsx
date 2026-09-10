@@ -63,6 +63,7 @@ const MENU = [
     icone: Icone.dieta,
     itens: [
       { to: "/dieta", label: "Hoje", icon: Icone.dieta },
+      { to: "/dieta/cardapio", label: "Cardápio", icon: Icone.listaDeTecnicas },
       { to: "/dieta/peso", label: "Peso", icon: Icone.peso },
       { to: "/dieta/ajustes", label: "Metas da dieta", icon: Icone.meta },
     ],

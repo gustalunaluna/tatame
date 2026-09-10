@@ -9,8 +9,12 @@ import { Label } from "@/components/ui/label";
 import { CampoNumero } from "@/components/CampoNumero";
 import { usePerfil } from "@/lib/bjj-storage";
 import {
+  AGUA_POR_HORA_DE_TREINO,
+  AGUA_POR_KG,
   AJUSTE_DO_OBJETIVO,
   idadeEm,
+  kcalDosMacros,
+  metaDeAgua,
   metaDeCalorias,
   metasDeMacro,
   OBJETIVOS,
@@ -53,6 +57,11 @@ function AjustesDaDietaPage() {
   const [objetivo, setObjetivo] = useState<Objetivo>(perfil.objetivo);
   const [metaKcal, setMetaKcal] = useState(perfil.metaKcal ?? 0);
   const [metaProteinaG, setMetaProteinaG] = useState(perfil.metaProteinaG ?? 0);
+  const [metaCarboidratoG, setMetaCarboidratoG] = useState(
+    perfil.metaCarboidratoG ?? 0,
+  );
+  const [metaGorduraG, setMetaGorduraG] = useState(perfil.metaGorduraG ?? 0);
+  const [metaAguaMl, setMetaAguaMl] = useState(perfil.metaAguaMl ?? 0);
 
   // O formulário começa vazio e o banco chega depois. Sem isto, quem abre a
   // tela com a conexão lenta vê os próprios dados serem substituídos por zero
@@ -64,6 +73,9 @@ function AjustesDaDietaPage() {
     setObjetivo(perfil.objetivo);
     setMetaKcal(perfil.metaKcal ?? 0);
     setMetaProteinaG(perfil.metaProteinaG ?? 0);
+    setMetaCarboidratoG(perfil.metaCarboidratoG ?? 0);
+    setMetaGorduraG(perfil.metaGorduraG ?? 0);
+    setMetaAguaMl(perfil.metaAguaMl ?? 0);
   }, [ready, perfil]);
 
   const idade = idadeEm(perfilAtleta?.birthDate ?? null, hoje());
@@ -83,17 +95,35 @@ function AjustesDaDietaPage() {
           return {
             basal,
             gastoSemTreino,
-            macros: metasDeMacro(
-              objetivo,
-              peso,
-              kcal,
-              metaProteinaG > 0 ? metaProteinaG : null,
-            ),
+            macros: metasDeMacro(objetivo, peso, kcal, {
+              kcal: metaKcal > 0 ? metaKcal : null,
+              proteinaG: metaProteinaG > 0 ? metaProteinaG : null,
+              carboidratoG: metaCarboidratoG > 0 ? metaCarboidratoG : null,
+              gorduraG: metaGorduraG > 0 ? metaGorduraG : null,
+            }),
           };
         })()
       : null;
 
   const ajuste = AJUSTE_DO_OBJETIVO[objetivo];
+
+  /**
+   * Quem escreve os quatro números na mão pode escrever quatro números que não
+   * fecham entre si — e o app não corrige sozinho, porque corrigir seria
+   * desfazer o que a pessoa acabou de digitar. O que ele faz é avisar.
+   */
+  const conferencia =
+    metaKcal > 0 && metaProteinaG > 0 && metaCarboidratoG > 0 && metaGorduraG > 0
+      ? (() => {
+          const soma = kcalDosMacros({
+            kcal: metaKcal,
+            proteinaG: metaProteinaG,
+            carboidratoG: metaCarboidratoG,
+            gorduraG: metaGorduraG,
+          });
+          return { soma, meta: metaKcal, bate: Math.abs(soma - metaKcal) <= 50 };
+        })()
+      : null;
 
   return (
     <PageShell title="Metas da dieta" subtitle="O que não muda todo dia.">
@@ -221,6 +251,80 @@ function AjustesDaDietaPage() {
                 max={500}
               />
             </div>
+            <div>
+              <Label htmlFor="dieta-carb">Carboidrato (g)</Label>
+              <CampoNumero
+                id="dieta-carb"
+                valor={metaCarboidratoG}
+                aoMudar={setMetaCarboidratoG}
+                min={0}
+                max={1200}
+              />
+            </div>
+            <div>
+              <Label htmlFor="dieta-gord">Gordura (g)</Label>
+              <CampoNumero
+                id="dieta-gord"
+                valor={metaGorduraG}
+                aoMudar={setMetaGorduraG}
+                min={0}
+                max={400}
+              />
+            </div>
+          </div>
+
+          {conferencia && (
+            <p
+              className={cn(
+                "rounded-lg p-2.5 text-xs leading-relaxed",
+                conferencia.bate
+                  ? "bg-muted/50 text-muted-foreground"
+                  : "bg-destructive/10 text-destructive",
+              )}
+            >
+              {conferencia.bate ? (
+                <>
+                  Os três macros somam {conferencia.soma} kcal, que bate com a
+                  meta de calorias.
+                </>
+              ) : (
+                <>
+                  <Icone.alerta className="mr-1 inline h-3 w-3" />
+                  Atenção: os três macros somam {conferencia.soma} kcal, e a meta
+                  de calorias está em {conferencia.meta}. O app não corrige
+                  sozinho — quem escreveu os quatro números quer os quatro
+                  números. Mas um dos dois está errado.
+                </>
+              )}
+            </p>
+          )}
+
+          <div>
+            <Label htmlFor="dieta-agua">Água (ml por dia)</Label>
+            <div className="mt-1.5 flex items-center gap-2">
+              <CampoNumero
+                id="dieta-agua"
+                valor={metaAguaMl}
+                aoMudar={setMetaAguaMl}
+                min={0}
+                max={15000}
+                className="w-28"
+              />
+              <span className="text-sm text-muted-foreground">ml</span>
+            </div>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Em zero, o app calcula: {AGUA_POR_KG} ml por quilo mais{" "}
+              {AGUA_POR_HORA_DE_TREINO} ml por hora de treino
+              {peso !== null && (
+                <>
+                  {" "}
+                  — hoje, sem treino, daria{" "}
+                  {metaDeAgua(peso, 0, null).toLocaleString("pt-BR")} ml
+                </>
+              )}
+              . A faixa do ACSM é larga (0,4 a 0,8 L por hora) porque depende de
+              calor, kimono e de quanto você sua.
+            </p>
           </div>
 
           {metaKcal === 0 && peso !== null && (
@@ -292,8 +396,12 @@ function AjustesDaDietaPage() {
             alturaCm,
             sexo,
             objetivo,
+            // Zero é o campo em branco, não uma meta de zero grama.
             metaKcal: metaKcal > 0 ? metaKcal : null,
             metaProteinaG: metaProteinaG > 0 ? metaProteinaG : null,
+            metaCarboidratoG: metaCarboidratoG > 0 ? metaCarboidratoG : null,
+            metaGorduraG: metaGorduraG > 0 ? metaGorduraG : null,
+            metaAguaMl: metaAguaMl > 0 ? metaAguaMl : null,
           });
           if (salvou) toast.success("Metas salvas.");
         }}

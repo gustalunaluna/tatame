@@ -39,18 +39,27 @@ import { cn } from "@/lib/utils";
 export function RegistrarRefeicao({
   data,
   momentoSugerido,
+  /**
+   * Quando presente, este diálogo é uma TROCA: a refeição nasce ligada a este
+   * item do cardápio, e o app passa a saber que aquele momento do dia foi
+   * resolvido — só que com outra coisa.
+   */
+  substituindo,
   gatilho,
   aoSalvar,
 }: {
   data: string;
   momentoSugerido?: string;
+  substituindo?: { id: string; momento: string; alimento: string } | null;
   gatilho: React.ReactNode;
   aoSalvar: (r: NovaRefeicao) => Promise<boolean>;
 }) {
   const [aberto, setAberto] = useState(false);
   const { alimentos: usados } = useAlimentosRecentes(12);
 
-  const [momento, setMomento] = useState(momentoSugerido ?? MOMENTOS[0]);
+  const [momento, setMomento] = useState(
+    substituindo?.momento ?? momentoSugerido ?? MOMENTOS[0],
+  );
   const [busca, setBusca] = useState("");
   const [base, setBase] = useState<Alimento | null>(null);
   const [quantidade, setQuantidade] = useState(1);
@@ -65,7 +74,7 @@ export function RegistrarRefeicao({
   const encontrados = useMemo(() => buscarAlimentos(busca, busca ? 24 : 10), [busca]);
 
   function limpar() {
-    setMomento(momentoSugerido ?? MOMENTOS[0]);
+    setMomento(substituindo?.momento ?? momentoSugerido ?? MOMENTOS[0]);
     setBusca("");
     setBase(null);
     setQuantidade(1);
@@ -140,8 +149,18 @@ export function RegistrarRefeicao({
       <DialogTrigger asChild>{gatilho}</DialogTrigger>
       <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>O que você comeu</DialogTitle>
+          <DialogTitle>
+            {substituindo ? "O que você comeu no lugar" : "O que você comeu"}
+          </DialogTitle>
         </DialogHeader>
+
+        {substituindo && (
+          <p className="rounded-xl border border-border/60 p-3 text-xs text-muted-foreground">
+            No lugar de <span className="font-bold">{substituindo.alimento}</span>.
+            Trocar não é falhar — o cardápio é um plano, e plano encontra a vida.
+            O que conta para o saldo do dia é o que entrou de verdade.
+          </p>
+        )}
 
         <div className="space-y-3">
           <div>
@@ -348,6 +367,7 @@ export function RegistrarRefeicao({
                 proteinaG,
                 carboidratoG,
                 gorduraG,
+                itemDoCardapioId: substituindo?.id ?? null,
               });
               if (salvou) {
                 setAberto(false);

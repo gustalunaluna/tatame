@@ -393,6 +393,9 @@ export type Database = {
           objetivo: string;
           meta_kcal: number | null;
           meta_proteina_g: number | null;
+          meta_carboidrato_g: number | null;
+          meta_gordura_g: number | null;
+          meta_agua_ml: number | null;
           updated_at: string;
         };
         Insert: {
@@ -402,6 +405,9 @@ export type Database = {
           objetivo?: string;
           meta_kcal?: number | null;
           meta_proteina_g?: number | null;
+          meta_carboidrato_g?: number | null;
+          meta_gordura_g?: number | null;
+          meta_agua_ml?: number | null;
           updated_at?: string;
         };
         Update: {
@@ -411,6 +417,9 @@ export type Database = {
           objetivo?: string;
           meta_kcal?: number | null;
           meta_proteina_g?: number | null;
+          meta_carboidrato_g?: number | null;
+          meta_gordura_g?: number | null;
+          meta_agua_ml?: number | null;
           updated_at?: string;
         };
         Relationships: [];
@@ -458,6 +467,7 @@ export type Database = {
           carboidrato_g: number;
           gordura_g: number;
           created_at: string;
+          cardapio_item_id: string | null;
         };
         Insert: {
           id?: string;
@@ -471,6 +481,7 @@ export type Database = {
           carboidrato_g?: number;
           gordura_g?: number;
           created_at?: string;
+          cardapio_item_id?: string | null;
         };
         Update: {
           id?: string;
@@ -484,6 +495,70 @@ export type Database = {
           carboidrato_g?: number;
           gordura_g?: number;
           created_at?: string;
+          cardapio_item_id?: string | null;
+        };
+        Relationships: [];
+      };
+      cardapio_itens: {
+        Row: {
+          id: string;
+          user_id: string;
+          momento: string;
+          alimento: string;
+          porcao: string;
+          kcal: number;
+          proteina_g: number;
+          carboidrato_g: number;
+          gordura_g: number;
+          ordem: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          momento?: string;
+          alimento: string;
+          porcao?: string;
+          kcal?: number;
+          proteina_g?: number;
+          carboidrato_g?: number;
+          gordura_g?: number;
+          ordem?: number;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          momento?: string;
+          alimento?: string;
+          porcao?: string;
+          kcal?: number;
+          proteina_g?: number;
+          carboidrato_g?: number;
+          gordura_g?: number;
+          ordem?: number;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      consumo_de_agua: {
+        Row: {
+          user_id: string;
+          data: string;
+          ml: number;
+          updated_at: string;
+        };
+        Insert: {
+          user_id: string;
+          data: string;
+          ml?: number;
+          updated_at?: string;
+        };
+        Update: {
+          user_id?: string;
+          data?: string;
+          ml?: number;
+          updated_at?: string;
         };
         Relationships: [];
       };

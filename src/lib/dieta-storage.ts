@@ -3,22 +3,28 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { usePerfil, useTrainings } from "./bjj-storage";
 import {
+  cardapioNoDia,
   gastoDoDia,
   idadeEm,
+  metaDeAgua,
   metaDeCalorias,
   metasDeMacro,
   pesoEm,
   somarRefeicoes,
   taxaBasal,
   tendenciaDePeso,
+  somarCardapio,
   treinosDoDia,
   type GastoDoDia,
+  type ItemNoDia,
   type Macros,
   type Tendencia,
 } from "./dieta";
 import type {
+  ItemDoCardapio,
   NovaPesagem,
   NovaRefeicao,
+  NovoItemDoCardapio,
   PerfilDaDieta,
   Pesagem,
   Refeicao,
@@ -63,6 +69,9 @@ export const PERFIL_PADRAO: PerfilDaDieta = {
   objetivo: "manter",
   metaKcal: null,
   metaProteinaG: null,
+  metaCarboidratoG: null,
+  metaGorduraG: null,
+  metaAguaMl: null,
 };
 
 /* ========================================================================== */
@@ -87,6 +96,9 @@ export function usePerfilDaDieta() {
         objetivo: (data.objetivo as Objetivo) ?? "manter",
         metaKcal: data.meta_kcal,
         metaProteinaG: data.meta_proteina_g,
+        metaCarboidratoG: data.meta_carboidrato_g,
+        metaGorduraG: data.meta_gordura_g,
+        metaAguaMl: data.meta_agua_ml,
       };
     },
   });
@@ -105,6 +117,9 @@ export function usePerfilDaDieta() {
           objetivo: novo.objetivo,
           meta_kcal: novo.metaKcal,
           meta_proteina_g: novo.metaProteinaG,
+          meta_carboidrato_g: novo.metaCarboidratoG,
+          meta_gordura_g: novo.metaGorduraG,
+          meta_agua_ml: novo.metaAguaMl,
           updated_at: new Date().toISOString(),
         },
         { onConflict: "user_id" },
@@ -220,6 +235,7 @@ export function useRefeicoes(data: string) {
         proteinaG: Number(r.proteina_g),
         carboidratoG: Number(r.carboidrato_g),
         gorduraG: Number(r.gordura_g),
+        itemDoCardapioId: r.cardapio_item_id,
       }));
     },
   });
@@ -243,6 +259,7 @@ export function useRefeicoes(data: string) {
         proteina_g: Math.max(0, r.proteinaG),
         carboidrato_g: Math.max(0, r.carboidratoG),
         gordura_g: Math.max(0, r.gorduraG),
+        cardapio_item_id: r.itemDoCardapioId,
       });
       if (error) throw error;
     },
@@ -282,6 +299,138 @@ export interface AlimentoUsado {
 }
 
 /* ========================================================================== */
+/* O cardápio                                                                 */
+/* ========================================================================== */
+
+export function useCardapio() {
+  const qc = useQueryClient();
+
+  const query = useQuery({
+    queryKey: ["cardapio"],
+    queryFn: async (): Promise<ItemDoCardapio[]> => {
+      const { data, error } = await supabase
+        .from("cardapio_itens")
+        .select("*")
+        .order("ordem", { ascending: true });
+      if (error) throw error;
+      return (data ?? []).map((r) => ({
+        id: r.id,
+        momento: r.momento ?? "",
+        alimento: r.alimento,
+        porcao: r.porcao ?? "",
+        kcal: r.kcal,
+        proteinaG: Number(r.proteina_g),
+        carboidratoG: Number(r.carboidrato_g),
+        gorduraG: Number(r.gordura_g),
+        ordem: r.ordem,
+      }));
+    },
+  });
+
+  // Mexeu no cardápio, mexeu no dia: a tela de hoje é o cruzamento dos dois.
+  const invalidar = () => {
+    qc.invalidateQueries({ queryKey: ["cardapio"] });
+    qc.invalidateQueries({ queryKey: ["refeicoes"], refetchType: "all" });
+  };
+
+  const criarMut = useMutation({
+    mutationFn: async (i: NovoItemDoCardapio) => {
+      const { error } = await supabase.from("cardapio_itens").insert({
+        user_id: await meuId(),
+        momento: i.momento,
+        alimento: i.alimento.trim(),
+        porcao: i.porcao.trim(),
+        kcal: Math.max(0, Math.round(i.kcal)),
+        proteina_g: Math.max(0, i.proteinaG),
+        carboidrato_g: Math.max(0, i.carboidratoG),
+        gordura_g: Math.max(0, i.gorduraG),
+        ordem: i.ordem,
+      });
+      if (error) throw error;
+    },
+    onSuccess: invalidar,
+    onError: aoFalhar("adicionar o item ao cardápio"),
+  });
+
+  const apagarMut = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("cardapio_itens").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: invalidar,
+    onError: aoFalhar("remover o item do cardápio"),
+  });
+
+  return {
+    cardapio: query.data ?? [],
+    ready: query.isSuccess,
+    total: somarCardapio(query.data ?? []),
+    criar: (i: NovoItemDoCardapio) => ok(criarMut.mutateAsync(i)),
+    apagar: (id: string) => ok(apagarMut.mutateAsync(id)),
+  };
+}
+
+/* ========================================================================== */
+/* Água                                                                       */
+/* ========================================================================== */
+
+export function useAgua(data: string) {
+  const qc = useQueryClient();
+
+  const query = useQuery({
+    queryKey: ["agua", data],
+    queryFn: async (): Promise<number> => {
+      const { data: linha, error } = await supabase
+        .from("consumo_de_agua")
+        .select("ml")
+        .eq("data", data)
+        .maybeSingle();
+      if (error) throw error;
+      return linha?.ml ?? 0;
+    },
+  });
+
+  const salvarMut = useMutation({
+    mutationFn: async (ml: number) => {
+      const { error } = await supabase.from("consumo_de_agua").upsert(
+        {
+          user_id: await meuId(),
+          data,
+          ml: Math.max(0, Math.min(20000, Math.round(ml))),
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "user_id,data" },
+      );
+      if (error) throw error;
+    },
+    // A tela de água é feita de toques rápidos — três copos em três segundos.
+    // Sem o valor otimista, cada toque esperaria a ida e volta do banco e a
+    // barra andaria depois do dedo.
+    onMutate: async (ml: number) => {
+      await qc.cancelQueries({ queryKey: ["agua", data] });
+      const antes = qc.getQueryData<number>(["agua", data]);
+      qc.setQueryData(["agua", data], Math.max(0, ml));
+      return { antes };
+    },
+    onError: (erro, _ml, contexto) => {
+      if (contexto?.antes !== undefined) {
+        qc.setQueryData(["agua", data], contexto.antes);
+      }
+      aoFalhar("registrar a água")(erro);
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: ["agua", data] }),
+  });
+
+  const ml = query.data ?? 0;
+  return {
+    ml,
+    ready: query.isSuccess,
+    definir: (novo: number) => ok(salvarMut.mutateAsync(novo)),
+    somar: (delta: number) => ok(salvarMut.mutateAsync(Math.max(0, ml + delta))),
+  };
+}
+
+/* ========================================================================== */
 /* A conta do dia inteira                                                     */
 /* ========================================================================== */
 
@@ -302,16 +451,27 @@ export interface ContaDaDieta {
   perfil: PerfilDaDieta;
   refeicoes: Refeicao[];
   pesagens: Pesagem[];
+  /** O cardápio cruzado com o dia: o que já foi comido, trocado, ou está aberto. */
+  cardapioDoDia: ItemNoDia[];
+  /** Quanto o cardápio somaria se o dia saísse exatamente como planejado. */
+  planejado: Macros;
+  aguaMl: number;
+  metaAguaMl: number;
   ready: boolean;
 }
 
 /**
- * Junta as quatro fontes e devolve o dia fechado.
+ * Junta tudo e devolve o dia fechado.
  *
- * A quarta fonte é a que faz as duas áreas do app valerem a pena estar no
- * mesmo lugar: o gasto de treino sai de `trainings` — a duração e o número de
- * rolas que ele já anotou no Diário. Não existe formulário de exercício aqui,
- * e é de propósito: dado digitado duas vezes é dado que diverge.
+ * A fonte que faz as duas áreas do app valerem a pena estar no mesmo lugar é
+ * `trainings`: o gasto de treino sai da duração e do número de rolas que ele
+ * já anotou no Diário. Não existe formulário de exercício aqui, e é de
+ * propósito — dado digitado duas vezes é dado que diverge.
+ *
+ * O cardápio entra pelo mesmo princípio: ele não é uma segunda lista de
+ * refeições, é o PLANO cruzado com as refeições que já existiam. Marcar "comi"
+ * cria uma refeição de verdade; a tela só sabe dizer o que ainda está aberto
+ * porque as duas coisas se conhecem.
  */
 export function useContaDaDieta(data: string): ContaDaDieta {
   const { perfil: perfilAtleta } = usePerfil();
@@ -319,9 +479,16 @@ export function useContaDaDieta(data: string): ContaDaDieta {
   const { pesagens, ready: pesagensProntas } = usePesagens();
   const { refeicoes, ready: refeicoesProntas } = useRefeicoes(data);
   const { items: treinos, ready: treinosProntos } = useTrainings();
+  const { cardapio, ready: cardapioPronto } = useCardapio();
+  const { ml: aguaMl, ready: aguaPronta } = useAgua(data);
 
   const ready =
-    perfilPronto && pesagensProntas && refeicoesProntas && treinosProntos;
+    perfilPronto &&
+    pesagensProntas &&
+    refeicoesProntas &&
+    treinosProntos &&
+    cardapioPronto &&
+    aguaPronta;
 
   const pesoKg = pesoEm(pesagens, data);
   const idade = idadeEm(perfilAtleta?.birthDate ?? null, data);
@@ -333,49 +500,59 @@ export function useContaDaDieta(data: string): ContaDaDieta {
   if (pesoKg === null) pendencias.push("peso");
 
   const consumido = somarRefeicoes(refeicoes);
+  const cardapioDoDia = cardapioNoDia(cardapio, refeicoes);
+  const planejado = somarCardapio(cardapio);
+  const minutosTreinados = treinosDoDia(treinos, data).reduce(
+    (n, t) => n + Math.max(0, t.durationMin),
+    0,
+  );
+
+  const comum = {
+    pendencias,
+    pesoKg,
+    idade,
+    consumido,
+    tendencia: tendenciaDePeso(pesagens, data),
+    perfil,
+    refeicoes,
+    pesagens,
+    cardapioDoDia,
+    planejado,
+    aguaMl,
+    ready,
+  };
 
   if (pendencias.length || pesoKg === null || idade === null || !perfil.sexo) {
     return {
+      ...comum,
       pronta: false,
-      pendencias,
-      pesoKg,
-      idade,
       gasto: null,
       meta: null,
-      consumido,
       saldo: 0,
-      tendencia: tendenciaDePeso(pesagens, data),
-      perfil,
-      refeicoes,
-      pesagens,
-      ready,
+      // Sem peso não dá para calcular a base de 35 ml/kg, mas uma meta escrita
+      // na mão não depende de peso nenhum — e a barra de água é a única parte
+      // da tela que funciona sem a conta toda estar de pé.
+      metaAguaMl: perfil.metaAguaMl ?? 0,
     };
   }
 
   const basal = taxaBasal(perfil.sexo, pesoKg, perfil.alturaCm, idade);
   const gasto = gastoDoDia(treinosDoDia(treinos, data), pesoKg, basal);
   const metaKcal = metaDeCalorias(perfil.objetivo, gasto.total, perfil.metaKcal);
-  const meta = metasDeMacro(
-    perfil.objetivo,
-    pesoKg,
-    metaKcal,
-    perfil.metaProteinaG,
-  );
+  const meta = metasDeMacro(perfil.objetivo, pesoKg, metaKcal, {
+    kcal: perfil.metaKcal,
+    proteinaG: perfil.metaProteinaG,
+    carboidratoG: perfil.metaCarboidratoG,
+    gorduraG: perfil.metaGorduraG,
+  });
 
   return {
+    ...comum,
     pronta: true,
-    pendencias,
-    pesoKg,
-    idade,
     gasto,
     meta,
-    consumido,
     saldo: meta.kcal - consumido.kcal,
-    tendencia: tendenciaDePeso(pesagens, data),
-    perfil,
-    refeicoes,
-    pesagens,
-    ready,
+    metaAguaMl: metaDeAgua(pesoKg, minutosTreinados, perfil.metaAguaMl),
   };
 }
 

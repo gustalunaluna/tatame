@@ -8,13 +8,17 @@ import { Bar } from "@/components/ui/bar";
 import { Confirmar } from "@/components/Confirmar";
 import { RegistrarRefeicao } from "@/components/RegistrarRefeicao";
 import { RegistrarPeso } from "@/components/RegistrarPeso";
+import { Agua } from "@/components/Agua";
+import { CardapioDoDia, ConviteDoCardapio } from "@/components/CardapioDoDia";
 import {
+  foraDoCardapio,
   MET_ROLA,
   MET_TECNICA,
   porMomento,
   type Macros,
 } from "@/lib/dieta";
 import {
+  useAgua,
   useContaDaDieta,
   usePesagens,
   useRefeicoes,
@@ -87,8 +91,13 @@ function DietaPage() {
   const conta = useContaDaDieta(dia);
   const { criar, apagar } = useRefeicoes(dia);
   const { salvar: salvarPeso } = usePesagens();
+  const agua = useAgua(dia);
 
-  const grupos = porMomento(conta.refeicoes);
+  // Só o que NÃO responde ao cardápio aparece na lista solta: o resto já está
+  // desenhado acima, com o check. Sem este filtro, cada item confirmado
+  // apareceria duas vezes na mesma tela.
+  const grupos = porMomento(foraDoCardapio(conta.refeicoes));
+  const temCardapio = conta.cardapioDoDia.length > 0;
 
   return (
     <PageShell
@@ -235,8 +244,26 @@ function DietaPage() {
         </Card>
       )}
 
-      {/* ---- o que comeu ---- */}
-      {conta.ready && conta.refeicoes.length === 0 && (
+      {/* ---- a água ---- */}
+      <Agua
+        ml={conta.aguaMl}
+        meta={conta.metaAguaMl}
+        aoSomar={(d) => void agua.somar(d)}
+        aoZerar={() => void agua.definir(0)}
+      />
+
+      {/* ---- o cardápio, com o check ---- */}
+      <CardapioDoDia
+        data={dia}
+        itens={conta.cardapioDoDia}
+        aoRegistrar={criar}
+        aoApagar={(id) => void apagar(id)}
+      />
+
+      {conta.ready && !temCardapio && <ConviteDoCardapio />}
+
+      {/* ---- o que comeu fora do plano ---- */}
+      {conta.ready && conta.refeicoes.length === 0 && !temCardapio && (
         <Card className="border-dashed border-border/60 bg-transparent">
           <CardContent className="p-6 text-center text-sm text-muted-foreground">
             <Icone.refeicao className="mx-auto mb-2 h-5 w-5 text-primary" />
@@ -245,6 +272,12 @@ function DietaPage() {
             qualquer tabela pronta — porque é a sua.
           </CardContent>
         </Card>
+      )}
+
+      {temCardapio && grupos.length > 0 && (
+        <h2 className="-mb-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">
+          Fora do cardápio
+        </h2>
       )}
 
       {grupos.map(([momento, itens]) => (
@@ -347,6 +380,23 @@ function DietaPage() {
           <Icone.avancar className="h-4 w-4 shrink-0 text-muted-foreground" />
         </Link>
       </div>
+
+      {temCardapio && (
+        <Link
+          to="/dieta/cardapio"
+          className="tap flex items-center gap-3 rounded-xl border border-border/60 p-3 active:scale-[0.98]"
+        >
+          <Icone.listaDeTecnicas className="h-5 w-5 shrink-0 text-primary" />
+          <span className="min-w-0 flex-1">
+            <span className="block text-sm font-bold">Editar o cardápio</span>
+            <span className="block text-xs tabular-nums text-muted-foreground">
+              {conta.cardapioDoDia.length} itens · {conta.planejado.kcal} kcal
+              planejadas
+            </span>
+          </span>
+          <Icone.avancar className="h-4 w-4 shrink-0 text-muted-foreground" />
+        </Link>
+      )}
     </PageShell>
   );
 }

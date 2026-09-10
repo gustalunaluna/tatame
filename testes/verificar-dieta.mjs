@@ -25,24 +25,37 @@
  *      null quando falta amostra, em vez de inventar "estável"
  *   9. o déficit de secar é 15%, não um número agressivo
  *  10. escalar um alimento por 1 devolve ele mesmo
+ *  11. a meta de água soma a base por quilo com a reposição do treino
+ *  12. o cardápio cruzado com o dia separa COMIDO de TROCADO pelo nome, e
+ *      "trocado" carrega o que entrou de verdade — não o plano
+ *  13. o que foi comido fora do cardápio fica visível E conta no saldo
+ *  14. cada meta manual vale por si, e quatro números escritos na mão são
+ *      respeitados mesmo quando não fecham entre si
  */
 import {
+  AGUA_POR_HORA_DE_TREINO,
+  AGUA_POR_KG,
   AJUSTE_DO_OBJETIVO,
   ALIMENTOS,
+  cardapioNoDia,
   buscarAlimentos,
   escalar,
   FATOR_VIDA,
   gastoDoDia,
   gastoDoTreino,
   idadeEm,
+  foraDoCardapio,
   imc,
+  kcalDosMacros,
   MET_ROLA,
   MET_TECNICA,
+  metaDeAgua,
   metaDeCalorias,
   metasDeMacro,
   MINUTOS_POR_ROLA,
   pesoEm,
   porMomento,
+  somarCardapio,
   somarRefeicoes,
   taxaBasal,
   tendenciaDePeso,
@@ -166,7 +179,7 @@ conferir(
   metaDeCalorias("manter", 3000, 0) === 3000,
 );
 
-const macros = metasDeMacro("secar", 77, 2550, null);
+const macros = metasDeMacro("secar", 77, 2550);
 conferir("proteína de secar é 2,2 g/kg", macros.proteinaG === Math.round(2.2 * 77), String(macros.proteinaG));
 conferir("gordura é 25% das calorias", macros.gorduraG === Math.round((2550 * 0.25) / 9));
 conferir(
@@ -177,12 +190,45 @@ conferir(
 
 // Meta absurdamente baixa: proteína e gordura sozinhas já estouram. O
 // carboidrato não pode virar negativo e mandar a tela desenhar barra invertida.
-const apertado = metasDeMacro("secar", 100, 800, null);
+const apertado = metasDeMacro("secar", 100, 800);
 conferir("carboidrato nunca fica negativo", apertado.carboidratoG >= 0, JSON.stringify(apertado));
 
 conferir(
   "proteína manual manda mais que a fórmula",
-  metasDeMacro("manter", 77, 2500, 200).proteinaG === 200,
+  metasDeMacro("manter", 77, 2500, {
+    kcal: null, proteinaG: 200, carboidratoG: null, gorduraG: null,
+  }).proteinaG === 200,
+);
+
+// Cada macro vale por si: travar só a gordura não pode travar os outros dois.
+const soGordura = metasDeMacro("manter", 77, 2500, {
+  kcal: null, proteinaG: null, carboidratoG: null, gorduraG: 60,
+});
+conferir(
+  "gordura manual manda, e os outros continuam calculados",
+  soGordura.gorduraG === 60 &&
+    soGordura.proteinaG === Math.round(1.8 * 77) &&
+    soGordura.carboidratoG > 0,
+  JSON.stringify(soGordura),
+);
+
+// Os quatro escritos na mão: o app NÃO corrige, porque corrigir seria desfazer
+// o que a pessoa digitou. Quem confere e avisa é a tela.
+const quatroNaMao = metasDeMacro("manter", 77, 2000, {
+  kcal: 2000, proteinaG: 200, carboidratoG: 200, gorduraG: 100,
+});
+conferir(
+  "com os quatro escritos na mão, os quatro são respeitados mesmo sem fechar",
+  quatroNaMao.proteinaG === 200 &&
+    quatroNaMao.carboidratoG === 200 &&
+    quatroNaMao.gorduraG === 100 &&
+    quatroNaMao.kcal === 2000,
+  JSON.stringify(quatroNaMao),
+);
+conferir(
+  "kcalDosMacros denuncia a diferença, para a tela poder avisar",
+  kcalDosMacros(quatroNaMao) === 200 * 4 + 200 * 4 + 100 * 9,
+  String(kcalDosMacros(quatroNaMao)),
 );
 
 /* --- o que entrou --------------------------------------------------------- */
@@ -196,6 +242,7 @@ const refeicao = (p) => ({
   proteinaG: 2.5,
   carboidratoG: 28,
   gorduraG: 0.2,
+  itemDoCardapioId: null,
   ...p,
 });
 
@@ -294,17 +341,17 @@ conferir(
 // Este era o teste que pegava erro de digitação na tabela — e pegou de cara uma
 // coisa melhor: a cerveja não fechava, porque dois terços das calorias dela são
 // etanol, que não é nenhum dos três macros. Daí o campo `alcoolG`.
-const kcalDosMacros = (a) =>
+const kcalDoAlimento = (a) =>
   a.proteinaG * 4 + a.carboidratoG * 4 + a.gorduraG * 9 + (a.alcoolG ?? 0) * 7;
 // A folga acomoda fibra, poliol e arredondamento de tabela; o que ela NÃO
 // acomoda é uma vírgula fora do lugar, que é o erro que este teste caça.
-const fecha = (a) => a.kcal === 0 || Math.abs(kcalDosMacros(a) - a.kcal) <= Math.max(35, a.kcal * 0.2);
+const fecha = (a) => a.kcal === 0 || Math.abs(kcalDoAlimento(a) - a.kcal) <= Math.max(35, a.kcal * 0.2);
 
 conferir(
   "os macros de cada alimento batem com a caloria declarada",
   ALIMENTOS.every(fecha),
   ALIMENTOS.filter((a) => !fecha(a))
-    .map((a) => `${a.nome} (${a.kcal} vs ${Math.round(kcalDosMacros(a))})`)
+    .map((a) => `${a.nome} (${a.kcal} vs ${Math.round(kcalDoAlimento(a))})`)
     .join(", "),
 );
 
@@ -323,6 +370,137 @@ conferir(
   buscarAlimentos("FRANGO").some((a) => a.nome.includes("frango")),
 );
 conferir("busca sem resultado devolve lista vazia", buscarAlimentos("zzzzz").length === 0);
+
+/* --- a água --------------------------------------------------------------- */
+// 77 kg parado: 77 · 35 = 2695 → arredondado para 2700
+conferir(
+  "sem treino, a meta de água é 35 ml por quilo",
+  metaDeAgua(77, 0, null) === 2700,
+  String(metaDeAgua(77, 0, null)),
+);
+// mais 100 min de treino: 2695 + 1000 = 3695 → 3700
+conferir(
+  "o treino soma reposição por hora",
+  metaDeAgua(77, 100, null) === 3700,
+  String(metaDeAgua(77, 100, null)),
+);
+conferir(
+  "a meta escrita na mão manda mais que a fórmula",
+  metaDeAgua(77, 100, 3000) === 3000,
+);
+conferir("meta zerada é ausência de meta", metaDeAgua(77, 0, 0) === 2700);
+conferir(
+  "os dois números da conta de água estão onde a tela pode citá-los",
+  AGUA_POR_KG === 35 && AGUA_POR_HORA_DE_TREINO === 600,
+);
+
+/* --- o cardápio ----------------------------------------------------------- */
+const item = (p) => ({
+  id: p.id,
+  momento: "Almoço",
+  alimento: "Arroz, feijão e frango",
+  porcao: "1 prato",
+  kcal: 600,
+  proteinaG: 45,
+  carboidratoG: 70,
+  gorduraG: 12,
+  ordem: 0,
+  ...p,
+});
+
+const cardapio = [
+  item({ id: "c1", momento: "Café da manhã", alimento: "Ovos e pão" }),
+  item({ id: "c2", momento: "Almoço" }),
+  item({ id: "c3", momento: "Jantar", alimento: "Frango e batata doce" }),
+];
+
+// Nada registrado: os três abertos, e "aberto" não é falha.
+const diaVazio = cardapioNoDia(cardapio, []);
+conferir(
+  "sem registro, todo item do cardápio fica aberto",
+  diaVazio.length === 3 && diaVazio.every((i) => i.situacao === "aberto"),
+  diaVazio.map((i) => i.situacao).join(", "),
+);
+
+// Comeu o que estava planejado: o nome bate, então é "comido".
+const comeuIgual = cardapioNoDia(cardapio, [
+  refeicao({ alimento: "Arroz, feijão e frango", itemDoCardapioId: "c2" }),
+]);
+conferir(
+  "refeição com o mesmo nome do item marca COMIDO",
+  comeuIgual.find((i) => i.item.id === "c2").situacao === "comido",
+  comeuIgual.find((i) => i.item.id === "c2").situacao,
+);
+
+// Comeu outra coisa no lugar: mesmo vínculo, nome diferente → "trocado".
+// Este é o caso que separa este app de um checklist: a marmita acabou e a
+// pessoa comeu X-salada, e isso precisa contar como resolvido E como troca.
+const trocou = cardapioNoDia(cardapio, [
+  refeicao({ alimento: "X-salada", kcal: 560, itemDoCardapioId: "c2" }),
+]);
+const oItem = trocou.find((i) => i.item.id === "c2");
+conferir(
+  "refeição com nome diferente no mesmo item marca TROCADO",
+  oItem.situacao === "trocado",
+  oItem.situacao,
+);
+conferir(
+  "a troca carrega o que foi comido de verdade, e não o plano",
+  oItem.registro.alimento === "X-salada" && oItem.registro.kcal === 560,
+  JSON.stringify(oItem.registro),
+);
+
+// Maiúscula e espaço não podem inventar uma troca que não houve.
+const mesmaCoisa = cardapioNoDia(cardapio, [
+  refeicao({ alimento: "  ARROZ, FEIJÃO E FRANGO ", itemDoCardapioId: "c2" }),
+]);
+conferir(
+  "caixa e espaço não transformam 'comi' em 'troquei'",
+  mesmaCoisa.find((i) => i.item.id === "c2").situacao === "comido",
+);
+
+// A ordem é a do dia, não a de inserção.
+conferir(
+  "o cardápio sai na ordem dos momentos do dia",
+  diaVazio.map((i) => i.item.momento).join(" | ") ===
+    "Café da manhã | Almoço | Jantar",
+  diaVazio.map((i) => i.item.momento).join(" | "),
+);
+
+conferir(
+  "somarCardapio soma o dia planejado",
+  somarCardapio(cardapio).kcal === 1800,
+  String(somarCardapio(cardapio).kcal),
+);
+conferir("cardápio vazio soma zero", somarCardapio([]).kcal === 0);
+
+// O que foi comido fora do plano precisa aparecer em algum lugar — senão a
+// caloria entra no saldo e some da lista, e a pessoa não acha o que registrou.
+const doDia = [
+  refeicao({ alimento: "Arroz, feijão e frango", kcal: 600, itemDoCardapioId: "c2" }),
+  refeicao({ alimento: "Coxinha", kcal: 230, itemDoCardapioId: null }),
+];
+conferir(
+  "o que não responde ao cardápio fica separado",
+  foraDoCardapio(doDia).length === 1 &&
+    foraDoCardapio(doDia)[0].alimento === "Coxinha",
+  foraDoCardapio(doDia).map((r) => r.alimento).join(", "),
+);
+conferir(
+  "mas continua contando no total do dia",
+  somarRefeicoes(doDia).kcal === 600 + 230,
+  String(somarRefeicoes(doDia).kcal),
+);
+
+// Um item apagado do cardápio deixa a refeição órfã (on delete set null no
+// banco). Ela não pode sumir da tela por causa disso.
+const orfa = cardapioNoDia(cardapio, [
+  refeicao({ alimento: "Sobra de ontem", itemDoCardapioId: "c9-que-nao-existe" }),
+]);
+conferir(
+  "vínculo apontando para item inexistente não quebra a tela",
+  orfa.length === 3 && orfa.every((i) => i.situacao === "aberto"),
+);
 
 /* --- relatório ------------------------------------------------------------ */
 console.log(`${ok.length} conferências passaram`);
