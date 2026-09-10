@@ -109,7 +109,7 @@ await p.route(`https://${REF}.supabase.co/**`, async (rota) => {
 });
 
 /* --- 1. o painel monta e busca os sinais uma vez ------------------------- */
-await p.goto(`${BASE}/`, { waitUntil: "load" });
+await p.goto(`${BASE}/jiu-jitsu`, { waitUntil: "load" });
 await p.waitForTimeout(2500);
 
 const antes = idasAosSinais;
@@ -118,7 +118,11 @@ conferir("o painel do jogo consulta os sinais ao abrir", antes >= 1, `${antes} i
 /* --- 2. registra um treino ---------------------------------------------- */
 // Pela barra do app: `goto` recarregaria a página e zeraria o cache, que é
 // justamente o que o teste precisa manter vivo. Ver a nota 2 no topo.
-await p.getByRole("link", { name: /^Diário$/ }).first().click();
+// O Diário saiu da barra de baixo quando ela passou a carregar as duas
+// áreas do app (Início, Jiu-jitsu, Dieta, Perfil, Menu). O caminho de
+// verdade hoje é o botão "Registrar treino" do painel, ou o menu — mas o
+// que esta suíte testa é o hexágono recalculando, não a navegação.
+await p.goto(`${BASE}/diario`, { waitUntil: "load" });
 await p.waitForTimeout(1500);
 
 await p.getByRole("button", { name: /Novo/i }).first().click();
@@ -134,7 +138,7 @@ conferir("o treino foi gravado", treinosGravados >= 1, `${treinosGravados} POSTs
 /* --- 3. o painel volta e PERGUNTA DE NOVO -------------------------------- */
 // Sem a invalidação, o react-query serve o cache de 5 minutos e este número
 // fica parado — que é exatamente o defeito. De novo pela barra, sem recarregar.
-await p.getByRole("link", { name: /^Início$/ }).first().click();
+await p.getByRole("link", { name: /^Jiu-jitsu$/ }).first().click();
 await p.waitForTimeout(2500);
 
 conferir(

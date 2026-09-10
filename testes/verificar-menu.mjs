@@ -69,9 +69,39 @@ await pagina.waitForTimeout(900);
 await pagina.locator('button[aria-label="Abrir menu"]').click();
 await pagina.waitForTimeout(600);
 
-const itens = pagina.locator('aside[role="dialog"] nav a');
+// O menu virou três gavetas que abrem e fecham, e a do lugar onde a pessoa
+// está já vem aberta. Este teste é sobre EMPILHAMENTO — se a barra de baixo
+// cobre o fim da lista —, então ele precisa da lista no comprimento máximo:
+// abre as três antes de medir qualquer coisa.
+const gavetas = pagina.locator('aside[role="dialog"] nav button[aria-expanded]');
+const quantasGavetas = await gavetas.count();
+ver("o menu tem as três gavetas", quantasGavetas === 3, `gavetas: ${quantasGavetas}`);
+
+for (let i = 0; i < quantasGavetas; i++) {
+  const g = gavetas.nth(i);
+  if ((await g.getAttribute("aria-expanded")) !== "true") {
+    await g.click();
+    await pagina.waitForTimeout(250);
+  }
+}
+
+// Uma gaveta fechada some da lista de visíveis — é para isso que ela serve.
+// Se `:visible` deixar de filtrar, este número denuncia.
+const itens = pagina.locator('aside[role="dialog"] nav a:visible');
 const total = await itens.count();
-ver("o menu abre com todos os itens", total >= 10, `itens: ${total}`);
+ver("com as três gavetas abertas, todos os itens aparecem", total >= 10, `itens: ${total}`);
+
+// E fechando uma, os itens dela saem mesmo do alcance do dedo.
+await gavetas.nth(0).click();
+await pagina.waitForTimeout(300);
+const depoisDeFechar = await itens.count();
+ver(
+  "fechar uma gaveta esconde os itens dela",
+  depoisDeFechar < total,
+  `${total} → ${depoisDeFechar}`,
+);
+await gavetas.nth(0).click();
+await pagina.waitForTimeout(300);
 
 // O painel empilha acima da barra inferior?
 const zPainel = await pagina.evaluate(() => {

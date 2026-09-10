@@ -1,84 +1,66 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Icone } from "@/design/icones";
+import { Icone, type LucideIcon } from "@/design/icones";
 import { cn } from "@/lib/utils";
 
 /**
- * Cinco abas, agrupadas por assunto em vez de uma por funcionalidade.
- * Conquistas, Parceiros e Equipe deixaram de ser abas: viram caixas no
- * Perfil que abrem ao toque. Plano virou parte de Evolução, e Análises
- * ficam no Diário, junto dos treinos que as originaram.
+ * A barra de baixo, depois que o app virou dois.
+ *
+ * Ela é FIXA nas duas áreas, e isso é uma decisão, não uma economia. A versão
+ * anterior trocava os cinco atalhos ao entrar em /dieta — o que dava a
+ * sensação certa de "dois apps", mas cobrava caro: quem estava anotando o
+ * almoço e lembrava de um detalhe do treino perdia o caminho de volta, e a
+ * barra mudava de significado embaixo do dedo. Barra que muda sozinha é barra
+ * em que não se confia.
+ *
+ * Agora as duas áreas ficam lado a lado, sempre visíveis. Trocar de app é um
+ * toque, de qualquer tela, e nenhum dos dois some da vista — que é o que
+ * impede o app menos usado de ser esquecido.
+ *
+ * Início não é o jiu-jitsu: é o dia inteiro, dos dois lados. O painel do
+ * tatame mora em /jiu-jitsu.
  */
 const ATALHOS = [
   { to: "/", label: "Início", icon: Icone.inicio, exato: true },
-  { to: "/diario", label: "Diário", icon: Icone.treino, exato: false },
-  { to: "/tecnicas", label: "Técnicas", icon: Icone.tecnica, exato: false },
-  { to: "/metas", label: "Evolução", icon: Icone.evolucao, exato: false },
+  { to: "/jiu-jitsu", label: "Jiu-jitsu", icon: Icone.rola, exato: false },
+  { to: "/dieta", label: "Dieta", icon: Icone.dieta, exato: false },
   { to: "/perfil", label: "Perfil", icon: Icone.perfil, exato: false },
 ] as const;
 
 /**
- * A barra da área de dieta.
+ * Tudo que existe, em três gavetas que abrem e fecham.
  *
- * O pedido era "quase como se fossem dois apps num só", e é exatamente isso
- * que acontece aqui: ao entrar em /dieta os atalhos trocam. Não é um tema
- * diferente nem uma tela isolada — é a barra inteira virando outra, porque
- * quem está anotando o almoço não vai tocar em "Técnicas", e quem está no
- * tatame não vai tocar em "Peso".
+ * Os grupos existiam antes, mas todos abertos ao mesmo tempo: dezenove itens
+ * empilhados numa tela de celular, com o fim da lista a três rolagens de
+ * distância. Um título de grupo que não fecha nada é uma legenda, não uma
+ * estrutura — ele organiza a leitura e não diminui o trabalho.
  *
- * O último atalho é a porta de volta, e ela é explícita de propósito: área em
- * que se entra sem saber sair é armadilha, não seção.
- */
-const ATALHOS_DIETA = [
-  { to: "/dieta", label: "Hoje", icon: Icone.dieta, exato: true },
-  { to: "/dieta/peso", label: "Peso", icon: Icone.peso, exato: false },
-  { to: "/dieta/ajustes", label: "Metas", icon: Icone.meta, exato: false },
-  { to: "/", label: "Jiu-jitsu", icon: Icone.treino, exato: true },
-] as const;
-
-/**
- * Tudo que existe, agrupado por assunto.
+ * Fechando, o menu inteiro cabe em três linhas, e a pessoa escolhe o assunto
+ * antes de escolher a tela. E são três porque são três mesmo: as duas áreas do
+ * app, e o que não é de nenhuma das duas — perfil, gente, ajustes.
  *
- * Antes era uma lista plana de onze itens, cada um com título em negrito e uma
- * frase de apoio embaixo. Na largura de um celular a frase não cabia: oito dos
- * onze terminavam em reticências, virando meia-frase — espaço gasto sem
- * informar nada. E onze linhas seguidas sem hierarquia nenhuma dão o mesmo
- * trabalho de leitura que uma lista de compras.
- *
- * O título do grupo faz o serviço que a frase tentava fazer, e faz melhor:
- * "Evolução" e "Plano do mês" não se distinguiam sozinhos, mas debaixo de
- * PROGRESSO os dois se explicam.
+ * Início fica de fora dos grupos de propósito: ele não é de uma área, é a porta.
  */
 const MENU = [
   {
-    grupo: "Treino",
+    grupo: "Jiu-jitsu",
+    icone: Icone.rola,
     itens: [
-      { to: "/", label: "Início", icon: Icone.inicio },
+      { to: "/jiu-jitsu", label: "Painel do tatame", icon: Icone.rola },
       { to: "/diario", label: "Diário", icon: Icone.treino },
       { to: "/tecnicas", label: "Técnicas", icon: Icone.tecnica },
       { to: "/analises", label: "Análises", icon: Icone.analise },
-    ],
-  },
-  {
-    grupo: "Progresso",
-    itens: [
       { to: "/metas", label: "Evolução", icon: Icone.evolucao },
-      { to: "/graduacao", label: "Graduação", icon: Icone.graduacao },
       { to: "/plano", label: "Plano do mês", icon: Icone.listaDeTecnicas },
+      { to: "/graduacao", label: "Graduação", icon: Icone.graduacao },
+      { to: "/minhas-lutas", label: "Minhas lutas", icon: Icone.rola },
+      { to: "/minhas-medalhas", label: "Medalhas", icon: Icone.medalha },
       { to: "/conquistas", label: "Conquistas", icon: Icone.conquista },
     ],
   },
   {
-    grupo: "Pessoas",
-    itens: [
-      { to: "/perfil", label: "Perfil", icon: Icone.perfil },
-      { to: "/parceiros", label: "Parceiros de rola", icon: Icone.parceiro },
-      { to: "/equipe", label: "Equipe", icon: Icone.equipe },
-      { to: "/meus-mestres", label: "Mestres e linhagem", icon: Icone.graduacao },
-    ],
-  },
-  {
     grupo: "Dieta",
+    icone: Icone.dieta,
     itens: [
       { to: "/dieta", label: "Hoje", icon: Icone.dieta },
       { to: "/dieta/peso", label: "Peso", icon: Icone.peso },
@@ -86,12 +68,44 @@ const MENU = [
     ],
   },
   {
-    grupo: "App",
+    grupo: "Pessoal",
+    icone: Icone.perfil,
     itens: [
+      { to: "/perfil", label: "Perfil", icon: Icone.perfil },
+      { to: "/parceiros", label: "Parceiros de rola", icon: Icone.parceiro },
+      { to: "/equipe", label: "Equipe", icon: Icone.equipe },
+      { to: "/meus-mestres", label: "Mestres e linhagem", icon: Icone.graduacao },
       { to: "/configuracoes", label: "Configurações", icon: Icone.ajustes },
     ],
   },
 ] as const;
+
+/**
+ * Qual gaveta abre sozinha: a da tela em que a pessoa está.
+ *
+ * Abrir todas anula a gaveta; abrir nenhuma obriga um toque a mais em quem já
+ * sabe onde está. Abrir a do lugar de onde se veio acerta na maioria das
+ * vezes, e é reversível num toque quando erra.
+ *
+ * Ganha o caminho MAIS LONGO que casa, e não o primeiro: /dieta/peso casa
+ * tanto com "/dieta" quanto consigo mesmo, e sem desempatar por tamanho a
+ * gaveta certa passaria a depender da ordem em que os grupos foram escritos —
+ * que é o tipo de acoplamento que ninguém lembra ao reordenar uma lista.
+ *
+ * "/" não está em MENU (o Início fica fora das gavetas), então nenhuma gaveta
+ * abre na tela inicial. É o certo: lá a pessoa ainda não escolheu um assunto.
+ */
+function grupoDaRota(pathname: string): string | null {
+  let melhor: { grupo: string; tamanho: number } | null = null;
+  for (const { grupo, itens } of MENU) {
+    for (const { to } of itens) {
+      if (pathname.startsWith(to) && (!melhor || to.length > melhor.tamanho)) {
+        melhor = { grupo, tamanho: to.length };
+      }
+    }
+  }
+  return melhor?.grupo ?? null;
+}
 
 export function BottomNav() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -99,13 +113,28 @@ export function BottomNav() {
   const botaoMenu = useRef<HTMLButtonElement>(null);
   const painel = useRef<HTMLElement>(null);
 
-  // `exato` existe por causa de /dieta: sem ele, "Hoje" e "Peso" acendiam
-  // juntos em /dieta/peso, porque um é prefixo do outro.
+  // `exato` existe por causa de /dieta e de /: sem ele, "Hoje" e "Peso"
+  // acendiam juntos em /dieta/peso, porque um é prefixo do outro.
   const ativo = (to: string, exato = false) =>
     exato || to === "/" ? pathname === to : pathname.startsWith(to);
 
-  /** Em qual dos dois apps a pessoa está. */
-  const atalhos = pathname.startsWith("/dieta") ? ATALHOS_DIETA : ATALHOS;
+  /**
+   * Quais gavetas do menu estão abertas.
+   *
+   * Um conjunto, e não uma gaveta só. A primeira versão era acordeão
+   * exclusivo — abrir Dieta fechava Jiu-jitsu — e o teste do menu pegou o
+   * defeito de cara: quem abre um grupo para comparar com o outro vê o
+   * primeiro sumir embaixo do dedo. Fechar coisa que a pessoa não mandou
+   * fechar é o oposto do que a gaveta serve para fazer.
+   */
+  const [gavetas, setGavetas] = useState<Set<string>>(() => new Set());
+
+  const alternar = (grupo: string) =>
+    setGavetas((atual) => {
+      const novo = new Set(atual);
+      if (!novo.delete(grupo)) novo.add(grupo);
+      return novo;
+    });
 
   // Fora da sessão não há para onde navegar. A barra aparecia na tela de
   // entrada, cobrindo o botão de criar conta e oferecendo seis telas que
@@ -128,6 +157,18 @@ export function BottomNav() {
 
   // Fecha ao trocar de tela
   useEffect(() => setAberto(false), [pathname]);
+
+  // Ao ABRIR, a gaveta do lugar onde a pessoa está já vem aberta.
+  //
+  // O efeito depende de `aberto` e não de `pathname` de propósito: assim quem
+  // fechou a gaveta na mão e navegou dentro dela não a vê reabrir sozinha —
+  // o palpite acontece uma vez por abertura do menu, não a cada clique.
+  useEffect(() => {
+    if (!aberto) return;
+    const daRota = grupoDaRota(pathname);
+    setGavetas(daRota ? new Set([daRota]) : new Set());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [aberto]);
 
   // Fecha com Esc, trava o scroll do fundo e devolve o foco ao botão
   useEffect(() => {
@@ -212,53 +253,82 @@ export function BottomNav() {
                 painel e o último item fica fora do alcance. A folga extra
                 embaixo garante que ele não termine colado na borda. */}
             <nav className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-2 pb-[max(1rem,var(--safe-b))]">
-              {MENU.map(({ grupo, itens }, g) => (
-                <section key={grupo} className={g > 0 ? "mt-5" : ""}>
-                  <h2 className="px-3 pb-1.5 text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">
-                    {grupo}
-                  </h2>
-                  <ul>
-                    {itens.map(({ to, label, icon: Icon }, i) => {
-                      const on = ativo(to, to === "/dieta");
-                      return (
+              {/* Início não mora em gaveta: ele é a porta, não um assunto. */}
+              <ItemDoMenu
+                to="/"
+                label="Início"
+                Icon={Icone.inicio}
+                on={pathname === "/"}
+                aoTocar={() => setAberto(false)}
+              />
+
+              {MENU.map(({ grupo, icone: IconeDoGrupo, itens }) => {
+                const abertaEsta = gavetas.has(grupo);
+                const id = `gaveta-${grupo.toLowerCase().replace(/[^a-z]/g, "")}`;
+                return (
+                  <section key={grupo} className="mt-3">
+                    <h2>
+                      <button
+                        type="button"
+                        onClick={() => alternar(grupo)}
+                        aria-expanded={abertaEsta}
+                        aria-controls={id}
+                        className="tap flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left active:scale-[0.98] hover:bg-secondary/50"
+                      >
+                        <IconeDoGrupo
+                          className={cn(
+                            "h-5 w-5 shrink-0",
+                            abertaEsta ? "text-primary" : "text-muted-foreground",
+                          )}
+                        />
+                        <span
+                          className={cn(
+                            "min-w-0 flex-1 truncate text-sm font-bold",
+                            abertaEsta && "text-primary",
+                          )}
+                        >
+                          {grupo}
+                        </span>
+                        <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
+                          {itens.length}
+                        </span>
+                        {/* Uma seta só, girando: duas setas diferentes para o
+                            mesmo botão fazem o olho reprocessar o ícone a cada
+                            toque em vez de ler o movimento. */}
+                        <Icone.expandir
+                          aria-hidden
+                          className={cn(
+                            "h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200",
+                            abertaEsta && "-rotate-180",
+                          )}
+                        />
+                      </button>
+                    </h2>
+
+                    {/* `hidden`, e não desmontar: o conteúdo continua no
+                        documento, então a busca do navegador acha, o leitor de
+                        tela sabe que existe, e `aria-controls` aponta para algo
+                        de verdade. */}
+                    <ul id={id} hidden={!abertaEsta} className="pl-3">
+                      {itens.map(({ to, label, icon: Icon }, i) => (
                         <li
                           key={to}
                           className="rise-in"
-                          style={{ "--i": Math.min(g * 4 + i, 10) } as CSSProperties}
+                          style={{ "--i": Math.min(i, 10) } as CSSProperties}
                         >
-                          <Link
+                          <ItemDoMenu
                             to={to}
-                            onClick={() => setAberto(false)}
-                            className={cn(
-                              // Sem moldura, sem brilho, sem crachá redondo em
-                              // volta do ícone. Onze círculos empilhados eram
-                              // metade do peso visual do menu, e não diziam nada
-                              // que o ícone sozinho já não dissesse.
-                              "tap flex items-center gap-3 rounded-xl px-3 py-2.5 active:scale-[0.98]",
-                              on ? "bg-primary/10" : "hover:bg-secondary/50",
-                            )}
-                          >
-                            <Icon
-                              className={cn(
-                                "h-5 w-5 shrink-0",
-                                on ? "text-primary" : "text-muted-foreground",
-                              )}
-                            />
-                            <span
-                              className={cn(
-                                "min-w-0 truncate text-sm",
-                                on ? "font-bold text-primary" : "text-foreground",
-                              )}
-                            >
-                              {label}
-                            </span>
-                          </Link>
+                            label={label}
+                            Icon={Icon}
+                            on={ativo(to, to === "/dieta")}
+                            aoTocar={() => setAberto(false)}
+                          />
                         </li>
-                      );
-                    })}
-                  </ul>
-                </section>
-              ))}
+                      ))}
+                    </ul>
+                  </section>
+                );
+              })}
             </nav>
           </aside>
         </div>
@@ -270,7 +340,7 @@ export function BottomNav() {
         className="fixed bottom-0 left-0 right-0 border-t border-border/60 bg-black/85 backdrop-blur-xl pb-[var(--safe-b)]"
       >
         <ul className="mx-auto flex max-w-md items-stretch justify-between px-1 py-1">
-          {atalhos.map(({ to, label, icon: Icon, exato }) => {
+          {ATALHOS.map(({ to, label, icon: Icon, exato }) => {
             const on = ativo(to, exato);
             return (
               <li key={to} className="min-w-0 flex-1">
@@ -317,5 +387,47 @@ export function BottomNav() {
         </ul>
       </nav>
     </>
+  );
+}
+
+/**
+ * Uma linha do menu. Sem moldura, sem brilho, sem crachá redondo em volta do
+ * ícone — dezenove círculos empilhados eram metade do peso visual do painel e
+ * não diziam nada que o ícone sozinho já não dissesse.
+ */
+function ItemDoMenu({
+  to,
+  label,
+  Icon,
+  on,
+  aoTocar,
+}: {
+  to: string;
+  label: string;
+  Icon: LucideIcon;
+  on: boolean;
+  aoTocar: () => void;
+}) {
+  return (
+    <Link
+      to={to}
+      onClick={aoTocar}
+      className={cn(
+        "tap flex items-center gap-3 rounded-xl px-3 py-2.5 active:scale-[0.98]",
+        on ? "bg-primary/10" : "hover:bg-secondary/50",
+      )}
+    >
+      <Icon
+        className={cn("h-5 w-5 shrink-0", on ? "text-primary" : "text-muted-foreground")}
+      />
+      <span
+        className={cn(
+          "min-w-0 truncate text-sm",
+          on ? "font-bold text-primary" : "text-foreground",
+        )}
+      >
+        {label}
+      </span>
+    </Link>
   );
 }

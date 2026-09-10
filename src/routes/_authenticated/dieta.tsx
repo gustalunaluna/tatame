@@ -322,6 +322,31 @@ function DietaPage() {
           />
         </CardContent>
       </Card>
+
+      {/* As outras duas telas da área.
+          Elas ficavam na barra de baixo enquanto ela trocava por área; agora a
+          barra é fixa e carrega as DUAS áreas, então o caminho para dentro da
+          dieta tem que sair de dentro dela. */}
+      <div className="grid grid-cols-2 gap-2">
+        <Link
+          to="/dieta/peso"
+          className="tap flex items-center gap-2 rounded-xl border border-border/60 p-3 active:scale-[0.98]"
+        >
+          <Icone.peso className="h-4 w-4 shrink-0 text-primary" />
+          <span className="min-w-0 flex-1 truncate text-sm font-bold">
+            Histórico
+          </span>
+          <Icone.avancar className="h-4 w-4 shrink-0 text-muted-foreground" />
+        </Link>
+        <Link
+          to="/dieta/ajustes"
+          className="tap flex items-center gap-2 rounded-xl border border-border/60 p-3 active:scale-[0.98]"
+        >
+          <Icone.meta className="h-4 w-4 shrink-0 text-primary" />
+          <span className="min-w-0 flex-1 truncate text-sm font-bold">Metas</span>
+          <Icone.avancar className="h-4 w-4 shrink-0 text-muted-foreground" />
+        </Link>
+      </div>
     </PageShell>
   );
 }
