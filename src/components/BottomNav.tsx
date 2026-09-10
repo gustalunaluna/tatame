@@ -10,11 +10,30 @@ import { cn } from "@/lib/utils";
  * ficam no Diário, junto dos treinos que as originaram.
  */
 const ATALHOS = [
-  { to: "/", label: "Início", icon: Icone.inicio },
-  { to: "/diario", label: "Diário", icon: Icone.treino },
-  { to: "/tecnicas", label: "Técnicas", icon: Icone.tecnica },
-  { to: "/metas", label: "Evolução", icon: Icone.evolucao },
-  { to: "/perfil", label: "Perfil", icon: Icone.perfil },
+  { to: "/", label: "Início", icon: Icone.inicio, exato: true },
+  { to: "/diario", label: "Diário", icon: Icone.treino, exato: false },
+  { to: "/tecnicas", label: "Técnicas", icon: Icone.tecnica, exato: false },
+  { to: "/metas", label: "Evolução", icon: Icone.evolucao, exato: false },
+  { to: "/perfil", label: "Perfil", icon: Icone.perfil, exato: false },
+] as const;
+
+/**
+ * A barra da área de dieta.
+ *
+ * O pedido era "quase como se fossem dois apps num só", e é exatamente isso
+ * que acontece aqui: ao entrar em /dieta os atalhos trocam. Não é um tema
+ * diferente nem uma tela isolada — é a barra inteira virando outra, porque
+ * quem está anotando o almoço não vai tocar em "Técnicas", e quem está no
+ * tatame não vai tocar em "Peso".
+ *
+ * O último atalho é a porta de volta, e ela é explícita de propósito: área em
+ * que se entra sem saber sair é armadilha, não seção.
+ */
+const ATALHOS_DIETA = [
+  { to: "/dieta", label: "Hoje", icon: Icone.dieta, exato: true },
+  { to: "/dieta/peso", label: "Peso", icon: Icone.peso, exato: false },
+  { to: "/dieta/ajustes", label: "Metas", icon: Icone.meta, exato: false },
+  { to: "/", label: "Jiu-jitsu", icon: Icone.treino, exato: true },
 ] as const;
 
 /**
@@ -59,6 +78,14 @@ const MENU = [
     ],
   },
   {
+    grupo: "Dieta",
+    itens: [
+      { to: "/dieta", label: "Hoje", icon: Icone.dieta },
+      { to: "/dieta/peso", label: "Peso", icon: Icone.peso },
+      { to: "/dieta/ajustes", label: "Metas da dieta", icon: Icone.meta },
+    ],
+  },
+  {
     grupo: "App",
     itens: [
       { to: "/configuracoes", label: "Configurações", icon: Icone.ajustes },
@@ -72,7 +99,13 @@ export function BottomNav() {
   const botaoMenu = useRef<HTMLButtonElement>(null);
   const painel = useRef<HTMLElement>(null);
 
-  const ativo = (to: string) => (to === "/" ? pathname === "/" : pathname.startsWith(to));
+  // `exato` existe por causa de /dieta: sem ele, "Hoje" e "Peso" acendiam
+  // juntos em /dieta/peso, porque um é prefixo do outro.
+  const ativo = (to: string, exato = false) =>
+    exato || to === "/" ? pathname === to : pathname.startsWith(to);
+
+  /** Em qual dos dois apps a pessoa está. */
+  const atalhos = pathname.startsWith("/dieta") ? ATALHOS_DIETA : ATALHOS;
 
   // Fora da sessão não há para onde navegar. A barra aparecia na tela de
   // entrada, cobrindo o botão de criar conta e oferecendo seis telas que
@@ -186,7 +219,7 @@ export function BottomNav() {
                   </h2>
                   <ul>
                     {itens.map(({ to, label, icon: Icon }, i) => {
-                      const on = ativo(to);
+                      const on = ativo(to, to === "/dieta");
                       return (
                         <li
                           key={to}
@@ -237,8 +270,8 @@ export function BottomNav() {
         className="fixed bottom-0 left-0 right-0 border-t border-border/60 bg-black/85 backdrop-blur-xl pb-[var(--safe-b)]"
       >
         <ul className="mx-auto flex max-w-md items-stretch justify-between px-1 py-1">
-          {ATALHOS.map(({ to, label, icon: Icon }) => {
-            const on = ativo(to);
+          {atalhos.map(({ to, label, icon: Icon, exato }) => {
+            const on = ativo(to, exato);
             return (
               <li key={to} className="min-w-0 flex-1">
                 <Link

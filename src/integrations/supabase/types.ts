@@ -384,9 +384,125 @@ export type Database = {
         };
         Relationships: [];
       };
+      /* --- a área de dieta (migração 041) ------------------------------- */
+      perfil_da_dieta: {
+        Row: {
+          user_id: string;
+          altura_cm: number | null;
+          sexo: string | null;
+          objetivo: string;
+          meta_kcal: number | null;
+          meta_proteina_g: number | null;
+          updated_at: string;
+        };
+        Insert: {
+          user_id: string;
+          altura_cm?: number | null;
+          sexo?: string | null;
+          objetivo?: string;
+          meta_kcal?: number | null;
+          meta_proteina_g?: number | null;
+          updated_at?: string;
+        };
+        Update: {
+          user_id?: string;
+          altura_cm?: number | null;
+          sexo?: string | null;
+          objetivo?: string;
+          meta_kcal?: number | null;
+          meta_proteina_g?: number | null;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      pesagens: {
+        Row: {
+          id: string;
+          user_id: string;
+          data: string;
+          peso_kg: number;
+          gordura_pct: number | null;
+          nota: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          data: string;
+          peso_kg: number;
+          gordura_pct?: number | null;
+          nota?: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          data?: string;
+          peso_kg?: number;
+          gordura_pct?: number | null;
+          nota?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      refeicoes: {
+        Row: {
+          id: string;
+          user_id: string;
+          data: string;
+          momento: string;
+          alimento: string;
+          porcao: string;
+          kcal: number;
+          proteina_g: number;
+          carboidrato_g: number;
+          gordura_g: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          data: string;
+          momento?: string;
+          alimento: string;
+          porcao?: string;
+          kcal?: number;
+          proteina_g?: number;
+          carboidrato_g?: number;
+          gordura_g?: number;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          data?: string;
+          momento?: string;
+          alimento?: string;
+          porcao?: string;
+          kcal?: number;
+          proteina_g?: number;
+          carboidrato_g?: number;
+          gordura_g?: number;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
+      /** O que a pessoa mais registra na dieta — ver migração 041. */
+      alimentos_recentes: {
+        Args: { p_limite?: number };
+        Returns: {
+          alimento: string;
+          porcao: string;
+          kcal: number;
+          proteina_g: number;
+          carboidrato_g: number;
+          gordura_g: number;
+          usos: number;
+        }[];
+      };
       achievement_stats: {
         Args: Record<string, never>;
         Returns: { total: number; unlocked: number }[];

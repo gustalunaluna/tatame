@@ -274,6 +274,28 @@ function Home() {
       </Link>
 
       {/**
+        * A porta da outra área do app.
+        *
+        * Fica logo abaixo de "Registrar treino" e não numa aba própria da barra
+        * de baixo: a barra tem cinco lugares e todos os cinco já estão pagando
+        * aluguel. Aqui ela é achável sem tirar espaço de nada — e uma linha só,
+        * porque a Dieta é um app inteiro do outro lado e não cabe em prévia.
+        */}
+      <Link
+        to="/dieta"
+        className="tap flex items-center gap-3 rounded-xl border border-border/60 p-3"
+      >
+        <Icone.dieta className="h-5 w-5 shrink-0 text-primary" />
+        <span className="min-w-0 flex-1">
+          <span className="block text-sm font-bold">Dieta</span>
+          <span className="block text-xs text-muted-foreground">
+            Peso, o que você comeu e quanto o treino de hoje gastou.
+          </span>
+        </span>
+        <Icone.avancar className="h-4 w-4 shrink-0 text-muted-foreground" />
+      </Link>
+
+      {/**
         * Os três números, com hierarquia.
         *
         * Foram três cartões idênticos, depois três colunas de peso igual. Mas

@@ -30,6 +30,8 @@ import {
   Minus,
   Pencil,
   Plus,
+  Salad,
+  Scale,
   Search,
   Settings,
   Shield,
@@ -41,6 +43,7 @@ import {
   TrendingUp,
   Trophy,
   User,
+  UtensilsCrossed,
   UserPlus,
   Users,
   X,
@@ -84,6 +87,11 @@ export const Icone = {
   sequencia: Flame,
   destaque: Star,
   premio: Award,
+
+  /* --- domínio: dieta -------------------------------------------------- */
+  dieta: Salad,
+  refeicao: UtensilsCrossed,
+  peso: Scale,
 
   /* --- selos ---------------------------------------------------------- */
   seloPessoa: BadgeCheck,
