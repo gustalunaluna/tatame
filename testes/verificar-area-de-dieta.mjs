@@ -18,6 +18,9 @@
 //   5. as três telas da dieta abrem sem erro de página
 //   6. a tela de hoje diz o que falta em vez de mostrar caloria inventada,
 //      quando ainda não há peso nem altura
+//   7. o INÍCIO continua sendo o painel do treino. A dieta é uma área nova, não
+//      uma sócia: se a tela de abertura deixar de ser o tatame, o app mudou de
+//      assunto sem ninguém ter decidido isso
 import { abrirNavegador } from "./navegador.mjs";
 import { readFileSync, mkdirSync } from "node:fs";
 
@@ -179,13 +182,36 @@ ver(
 );
 await pagina.screenshot({ path: "telas/dieta-metas.png" });
 
-/* --- e o painel do tatame continua onde deve ----------------------------- */
+/* --- o Início continua sendo o tatame ------------------------------------ */
+// Esta é a asserção que guarda a identidade do app. A dieta é uma área NOVA,
+// não uma sócia: se um dia a tela de abertura deixar de mostrar o painel do
+// treino, o app deixou de ser sobre jiu-jitsu sem ninguém ter decidido isso.
+await pagina.goto(`${BASE}/`, { waitUntil: "networkidle" });
+await pagina.waitForTimeout(1200);
+const inicio = await pagina.locator("main").innerText();
+ver(
+  "o Início é o painel do treino, e não um índice das duas áreas",
+  /Oss, guerreiro/i.test(inicio) &&
+    /sequ[êe]ncia/i.test(inicio) &&
+    !/saldo/i.test(inicio),
+  inicio.replace(/\n/g, " · ").slice(0, 260),
+);
+
+/* --- a aba Jiu-jitsu é o índice da área ---------------------------------- */
 await pagina.locator('nav.fixed.bottom-0 a[href="/jiu-jitsu"]').click();
 await pagina.waitForTimeout(1400);
 ver(
-  "a aba Jiu-jitsu leva ao painel do tatame, de dentro da dieta",
+  "a aba Jiu-jitsu leva ao índice da área",
   new URL(pagina.url()).pathname === "/jiu-jitsu",
   pagina.url(),
+);
+const indice = await pagina.locator("main").innerText();
+ver(
+  "o índice lista as telas do tatame e o caminho de volta ao painel",
+  /Painel do treino/i.test(indice) &&
+    /Diário/.test(indice) &&
+    /Graduação/.test(indice),
+  indice.replace(/\n/g, " · ").slice(0, 240),
 );
 
 ver("sem erro de página em nenhuma das telas", erros.length === 0, erros.join(" ; "));

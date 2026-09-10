@@ -1,74 +1,143 @@
+import type { CSSProperties } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Icone } from "@/design/icones";
 import { PageShell } from "@/components/PageShell";
 import { Faixa } from "@/components/Faixa";
 import { Card, CardContent } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 import { Bar } from "@/components/ui/bar";
 import { FotoDoAtleta } from "@/components/FotoDoAtleta";
-import { supabase } from "@/integrations/supabase/client";
-import { useEnsureSeeded, usePerfil, useTrainings } from "@/lib/bjj-storage";
-import { useContaDaDieta } from "@/lib/dieta-storage";
-import { sequenciaDeDias } from "@/lib/sequencia";
-import { useCountUp } from "@/lib/motion";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import {
+  useAchievementStats,
+  useEnsureSeeded,
+  useGoalStart,
+  usePerfil,
+  useTrainings,
+  useHydrated,
+} from "@/lib/bjj-storage";
+import { useCicloAtual, useMetas, diasAte } from "@/lib/plano-storage";
+import { nivelPorHoras, horasEmTexto } from "@/lib/nivel";
+import { RotaDeGraduacao } from "@/components/RotaDeGraduacao";
+import { PainelDoJogo, FechamentoDaSemana } from "@/components/PainelDoJogo";
+import { estiloDaFaixa } from "@/lib/faixa-cores";
+import { useCountUp } from "@/lib/motion";
+import { sequenciaDeDias } from "@/lib/sequencia";
 
 export const Route = createFileRoute("/_authenticated/")({
   head: () => ({
     meta: [
       { title: "Início — Ponteira" },
-      {
-        name: "description",
-        content: "O dia inteiro numa tela: o treino e a comida.",
-      },
+      { name: "description", content: "Resumo gamificado do seu treino de Jiu-Jitsu." },
     ],
   }),
-  component: Inicio,
+  component: Home,
 });
 
-const hoje = () => new Date().toISOString().slice(0, 10);
+function daysBetween(a: Date, b: Date) {
+  const ms = 1000 * 60 * 60 * 24;
+  return Math.floor((b.getTime() - a.getTime()) / ms);
+}
 
-/**
- * O Início, depois que o app virou dois.
- *
- * Esta tela era o painel do jiu-jitsu inteiro — hexágono, meta, plano do mês,
- * últimos treinos. Ela continua existindo, em /jiu-jitsu, e não perdeu nada.
- *
- * O que mudou é que "início" deixou de poder significar "tatame". Com uma
- * segunda área no app, uma tela de abertura que só fala de uma delas empurra a
- * outra para o segundo plano todo dia — e a que fica em segundo plano é a que
- * se abandona. Então o Início virou o que o nome diz: as DUAS áreas, no estado
- * de hoje, e nada além disso.
- *
- * Nada aqui é dado novo: sequência e treino saem do Diário, o saldo sai da
- * Dieta. Esta tela não calcula nada por conta própria — ela só junta.
- */
-function Inicio() {
-  useEnsureSeeded();
+const WEEKDAY_LABELS = ["D", "S", "T", "Q", "Q", "S", "S"];
+
+function Home() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const { perfil } = usePerfil();
-  const { items: treinos } = useTrainings();
-  const dia = hoje();
-  const conta = useContaDaDieta(dia);
-
-  const sequencia = sequenciaDeDias(
-    treinos.map((t) => t.date),
-    dia,
-  );
-  const sequenciaAnimada = useCountUp(sequencia, 600);
-  const treinosDeHoje = treinos.filter((t) => t.date === dia);
-  const minutosHoje = treinosDeHoje.reduce((n, t) => n + t.durationMin, 0);
-  const rolasHoje = treinosDeHoje.reduce((n, t) => n + t.rolls, 0);
-
-  async function sair() {
+  async function handleLogout() {
     await supabase.auth.signOut();
     // Limpa na hora, sem esperar o ouvinte de sessão: ninguém deve ver um
     // frame sequer com os dados da conta que acabou de sair.
     queryClient.clear();
     navigate({ to: "/auth", replace: true });
   }
+
+  const hydrated = useHydrated();
+  useEnsureSeeded();
+  const { items: trainings } = useTrainings();
+  const { ciclo, itens: itensDoCiclo, execucao, ready: cicloPronto } = useCicloAtual();
+  const { ativas: metasAtivas } = useMetas();
+  const { start } = useGoalStart();
+  const { perfil } = usePerfil();
+  const conquistas = useAchievementStats();
+
+  const now = new Date();
+  const monthKey = now.toISOString().slice(0, 7);
+  const thisMonth = trainings.filter((t) => t.date.startsWith(monthKey)).length;
+  const streakDays = sequenciaDeDias(
+    trainings.map((t) => t.date),
+    new Date().toISOString().slice(0, 10),
+  );
+  const totalTrainings = trainings.length;
+
+  // O level vem das horas de tatame, não da contagem de aberturas do app.
+  const minutosTotais = trainings.reduce((n, t) => n + (t.durationMin || 0), 0);
+  const nivel = nivelPorHoras(minutosTotais);
+
+  // O plano do mês: a semana em curso é a primeira que ainda tem item aberto.
+  const semanaAtual =
+    itensDoCiclo.find((i) => i.feito < (i.alvo || 1))?.semana ??
+    itensDoCiclo[0]?.semana ??
+    1;
+  const focoDaSemana =
+    itensDoCiclo.find((i) => i.semana === semanaAtual && i.foco)?.foco ?? "";
+  const itensDaSemana = itensDoCiclo.filter((i) => i.semana === semanaAtual);
+  const feitosDaSemana = itensDaSemana.filter(
+    (i) => i.feito >= (i.alvo || 1),
+  ).length;
+
+  const startDate = new Date(start);
+  const daysTraining = Math.max(0, daysBetween(startDate, now));
+
+  // A meta em destaque é a graduação com prazo mais próximo; sem ela, a
+  // primeira meta ativa qualquer. Nada de faixa azul cravada no código.
+  const metaDestaque =
+    metasAtivas.find((m) => m.kind === "graduacao" && m.targetDate) ??
+    metasAtivas[0] ??
+    null;
+  const diasRestantesMeta = diasAte(metaDestaque?.targetDate ?? null);
+  const metaPct =
+    metaDestaque?.kind === "graduacao" && diasRestantesMeta != null
+      ? Math.min(
+          100,
+          Math.round(
+            (daysTraining / (daysTraining + Math.max(0, diasRestantesMeta))) * 100,
+          ),
+        )
+      : metaDestaque?.kind === "volume" && metaDestaque.targetNumber
+        ? Math.min(
+            100,
+            Math.round((totalTrainings / metaDestaque.targetNumber) * 100),
+          )
+        : null;
+
+  const unlockedAch = conquistas.unlocked;
+  const totalAch = conquistas.total;
+  const achPct = totalAch ? Math.round((unlockedAch / totalAch) * 100) : 0;
+
+  // Weekday dots — current week (Sun..Sat)
+  const startOfWeek = new Date(now);
+  startOfWeek.setDate(now.getDate() - now.getDay());
+  startOfWeek.setHours(0, 0, 0, 0);
+  const trainedSet = new Set(trainings.map((t) => t.date));
+  const weekDots = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(startOfWeek);
+    d.setDate(startOfWeek.getDate() + i);
+    const key = d.toISOString().slice(0, 10);
+    const isToday = d.toDateString() === now.toDateString();
+    const isPast = d <= now;
+    return { key, label: WEEKDAY_LABELS[i], trained: trainedSet.has(key), isToday, isPast };
+  });
+
+  const last = trainings.slice(0, 3);
+
+  // Só os números de destaque contam — em tudo viraria ruído
+  const totalAnimado = useCountUp(totalTrainings);
+  const streakAnimado = useCountUp(streakDays, 600);
+  const mesAnimado = useCountUp(thisMonth, 600);
 
   return (
     <PageShell
@@ -80,7 +149,7 @@ function Inicio() {
       })}
       action={
         <button
-          onClick={sair}
+          onClick={handleLogout}
           aria-label="Sair"
           className="grid h-9 w-9 place-items-center rounded-full border border-border/60 bg-card/60 text-muted-foreground transition hover:text-foreground"
         >
@@ -88,179 +157,353 @@ function Inicio() {
         </button>
       }
     >
-      {/* ---- quem é, e há quantos dias não para ---- */}
-      <Card className="overflow-hidden">
-        <CardContent className="flex items-center gap-4 p-4">
-          <FotoDoAtleta
-            url={perfil?.photoUrl}
-            nome={perfil?.nickname}
-            className="h-14 w-14 shrink-0 rounded-2xl"
-          />
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-base font-black">
-              {perfil?.nickname || "Atleta"}
+      {/* Cartão do atleta: quem você é + o level */}
+      <Card className="relative overflow-hidden border-primary/40 bg-gradient-to-br from-primary/15 via-card/80 to-card/80 shadow-[0_0_40px_-12px_var(--primary)]">
+        <CardContent className="p-5">
+          <Link to="/perfil" className="tap flex items-center gap-4 active:scale-[0.99]">
+            <FotoDoAtleta
+              url={perfil?.photoUrl}
+              nome={perfil?.nickname}
+              className="h-16 w-16 rounded-2xl ring-2 ring-primary/40"
+              classeDasIniciais="text-lg"
+            />
+
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-xl font-black leading-tight">
+                {perfil?.nickname || "Oss, guerreiro"}
+              </p>
+              <div className="mt-1.5">
+                <Faixa
+                  belt={perfil?.belt ?? "Branca"}
+                  degrees={perfil?.degrees ?? 0}
+                  compacta
+                />
+              </div>
+              <p className="mt-1 truncate text-xs text-muted-foreground">
+                {[
+                  perfil?.gym || null,
+                  `${Math.max(0, Math.floor(daysTraining / 30.44))} meses`,
+                  perfil?.master ? `Mestre ${perfil.master}` : null,
+                ]
+                  .filter(Boolean)
+                  .join(" · ")}
+              </p>
+            </div>
+
+            <Icone.avancar className="h-5 w-5 shrink-0 text-muted-foreground" />
+          </Link>
+
+          {/* Nível — horas de tatame, que é como o jiu-jitsu mede de verdade.
+              Era "LEVEL", em inglês, num app inteiramente em português e cuja
+              própria biblioteca se chama `nivel.ts`. E em versalete espaçado,
+              que é o mesmo maneirismo que saiu da faixa de estatísticas. */}
+          <div className="mt-4 border-t border-border/50 pt-3">
+            <div className="flex items-end justify-between">
+              <p className="text-sm font-black text-primary">
+                Nível {nivel.level}
+              </p>
+              <p className="text-sm font-black tabular-nums">
+                {hydrated ? horasEmTexto(nivel.horas) : "—"}{" "}
+                <span className="text-xs font-semibold text-muted-foreground">
+                  no tatame
+                </span>
+              </p>
+            </div>
+            <Bar
+              value={nivel.progresso}
+              className="mt-2 h-1.5"
+              label={`Progresso para o nível ${nivel.level + 1}`}
+            />
+            <p className="mt-1 text-xs text-muted-foreground">
+              {nivel.faltam}h para o nível {nivel.level + 1}
             </p>
-            {perfil && (
-              <Faixa
-                className="mt-1"
-                belt={perfil.belt}
-                degrees={perfil.degrees}
-              />
-            )}
           </div>
-          <div className="shrink-0 text-right">
-            <p className="font-mono text-2xl font-black tabular-nums text-primary">
-              {sequenciaAnimada}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              <Icone.sequencia className="mr-0.5 inline h-3 w-3 text-primary" />
-              {sequencia === 1 ? "dia" : "dias"}
-            </p>
+
+          {/* Dias da semana */}
+          <div className="mt-4 flex items-center justify-between">
+            {weekDots.map((d, i) => (
+              <div
+                key={d.key}
+                className="rise-in flex flex-col items-center gap-1"
+                style={{ "--i": i } as CSSProperties}
+              >
+                <span
+                  className={cn(
+                    "text-xs font-bold",
+                    d.isToday ? "text-primary" : "text-muted-foreground",
+                  )}
+                >
+                  {d.label}
+                </span>
+                <span
+                  className={cn(
+                    "block h-2.5 w-2.5 rounded-full transition-[background-color,box-shadow] duration-300 ease-[var(--ease-out-expo)]",
+                    d.trained
+                      ? "bg-primary shadow-[0_0_8px_var(--primary)]"
+                      : d.isPast
+                        ? "bg-muted"
+                        : "bg-muted/40 ring-1 ring-border",
+                    d.isToday && !d.trained && "ring-2 ring-primary",
+                  )}
+                />
+              </div>
+            ))}
           </div>
         </CardContent>
       </Card>
 
-      {/* ---- o dia, dos dois lados ---- */}
-      <section>
-        <h2 className="mb-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">
-          Hoje
-        </h2>
+      {/* Registrar treino — presente, mas sem gritar */}
+      <Link
+        to="/diario"
+        className="tap flex items-center justify-center gap-2 rounded-xl border border-primary/40 bg-primary/10 px-4 py-2.5 text-sm font-bold text-primary hover:bg-primary/15 active:scale-[0.98]"
+      >
+        <Icone.adicionar className="h-4 w-4" />
+        Registrar treino
+      </Link>
 
-        <div className="space-y-2">
-          {/* tatame */}
-          {treinosDeHoje.length > 0 ? (
-            <Card>
-              <CardContent className="flex items-center gap-3 p-3">
-                <Icone.treino className="h-5 w-5 shrink-0 text-primary" />
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-bold">
-                    {treinosDeHoje.length === 1
-                      ? "Treino registrado"
-                      : `${treinosDeHoje.length} treinos registrados`}
-                  </p>
-                  <p className="text-xs tabular-nums text-muted-foreground">
-                    {minutosHoje} min · {rolasHoje}{" "}
-                    {rolasHoje === 1 ? "rola" : "rolas"}
-                  </p>
-                </div>
-                <Link
-                  to="/diario"
-                  className="tap shrink-0 text-xs font-bold text-primary"
-                >
-                  Ver
-                </Link>
-              </CardContent>
-            </Card>
-          ) : (
-            <Link
-              to="/diario"
-              className="tap flex items-center justify-center gap-2 rounded-xl border border-primary/40 bg-primary/10 px-4 py-2.5 text-sm font-bold text-primary hover:bg-primary/15 active:scale-[0.98]"
-            >
-              <Icone.adicionar className="h-4 w-4" />
-              Registrar treino
-            </Link>
-          )}
+      {/**
+        * Os três números, com hierarquia.
+        *
+        * Foram três cartões idênticos, depois três colunas de peso igual. Mas
+        * elas não valem igual: SEQUÊNCIA é a única que muda de comportamento —
+        * é o número que a pessoa protege quando pensa em faltar. Mês e total
+        * são placar, e placar se confere.
+        *
+        * Então a sequência ganha o bloco grande, com um brilho da cor da faixa
+        * por trás; os outros dois viram duas linhas empilhadas ao lado. O olho
+        * pega a hierarquia antes de ler qualquer palavra — que é o que três
+        * caixas iguais nunca conseguem fazer.
+        */}
+      <Card className="overflow-hidden border-border/50 bg-card/60">
+        <CardContent className="grid grid-cols-[1.15fr_1fr] gap-0 p-0">
+          <div className="relative flex flex-col justify-center gap-1 p-4">
+            <span
+              aria-hidden
+              className="pointer-events-none absolute -left-6 -top-8 h-28 w-28 rounded-full bg-primary/15 blur-2xl"
+            />
+            <span className="relative flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+              <Icone.sequencia className="h-3.5 w-3.5 text-primary" />
+              em sequência
+            </span>
+            <p className="relative text-4xl font-black leading-none tabular-nums text-primary">
+              {hydrated ? streakAnimado : "—"}
+              <span className="ml-1.5 text-base font-bold text-muted-foreground">
+                {streakDays === 1 ? "dia" : "dias"}
+              </span>
+            </p>
+          </div>
 
-          {/* comida */}
-          <Card>
-            <CardContent className="flex items-center gap-3 p-3">
-              <Icone.dieta className="h-5 w-5 shrink-0 text-primary" />
-              <div className="min-w-0 flex-1">
-                {conta.pronta && conta.meta ? (
-                  <>
-                    <p className="text-sm font-bold">
-                      <span
-                        className={cn(
-                          "tabular-nums",
-                          conta.saldo < 0 ? "text-destructive" : "text-primary",
-                        )}
-                      >
-                        {Math.abs(conta.saldo)} kcal
-                      </span>{" "}
-                      {conta.saldo < 0 ? "acima da meta" : "ainda cabem"}
-                    </p>
-                    <Bar
-                      className="mt-1.5"
-                      value={
-                        conta.meta.kcal > 0
-                          ? (conta.consumido.kcal / conta.meta.kcal) * 100
-                          : 0
-                      }
-                      fillClassName={
-                        conta.saldo < 0 ? "bg-destructive" : undefined
-                      }
-                      label={`${conta.consumido.kcal} de ${conta.meta.kcal} kcal`}
-                    />
-                  </>
-                ) : (
-                  <>
-                    <p className="text-sm font-bold">Dieta</p>
-                    <p className="text-xs text-muted-foreground">
-                      {conta.pendencias.includes("peso")
-                        ? "Falta uma pesagem para a conta fechar."
-                        : "Nada anotado ainda hoje."}
-                    </p>
-                  </>
-                )}
+          <div className="divide-y divide-border/60 border-l border-border/60">
+            {[
+              {
+                icone: <Icone.plano className="h-3.5 w-3.5 text-primary" />,
+                valor: hydrated ? mesAnimado : "—",
+                unidade: thisMonth === 1 ? "treino" : "treinos",
+                rotulo: "neste mês",
+              },
+              {
+                icone: <Icone.treino className="h-3.5 w-3.5 text-primary" />,
+                valor: hydrated ? totalAnimado : "—",
+                unidade: totalTrainings === 1 ? "dia" : "dias",
+                rotulo: "no total",
+              },
+            ].map((e) => (
+              <div
+                key={e.rotulo}
+                className="flex items-baseline justify-between gap-2 px-3 py-3"
+              >
+                {/* `whitespace-nowrap`: na coluna estreita "neste mês"
+                    quebrava entre as duas palavras e desalinhava a linha. */}
+                <span className="flex items-center gap-1.5 whitespace-nowrap text-xs text-muted-foreground">
+                  {e.icone}
+                  {e.rotulo}
+                </span>
+                <p className="text-xl font-black leading-none tabular-nums">
+                  {e.valor}
+                  <span className="ml-1 text-xs font-semibold text-muted-foreground">
+                    {e.unidade}
+                  </span>
+                </p>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* O que a semana deixou aberto. Vem cedo de propósito: é ação
+          pendente, e ação pendente enterrada no rodapé não é vista. */}
+      <FechamentoDaSemana />
+
+      {/* O hexágono, na versão de leitura — toque leva para Evolução, onde
+          estão a tabela e o plano. */}
+      <PainelDoJogo compacto />
+
+      {/* Achievements teaser */}
+      <Link
+        to="/conquistas"
+        className="tap block rounded-2xl border border-primary/30 bg-card/70 p-4 hover:border-primary/60 active:scale-[0.98]"
+      >
+        <div className="flex items-center gap-3">
+          <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-primary/15 text-primary">
+            <Icone.conquista className="h-5 w-5" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-bold">Rumo ao topo</p>
+              <span className="text-xs font-black text-primary">{achPct}%</span>
+            </div>
+            <Progress value={achPct} className="mt-2 h-1.5" />
+            <p className="mt-1 text-xs text-muted-foreground">
+              {unlockedAch}/{totalAch} conquistas
+            </p>
+          </div>
+        </div>
+      </Link>
+
+      {/* O plano do mês — o de verdade, o mesmo que a tela Plano mostra */}
+      {ciclo ? (
+        <Card className="border-border/50 bg-card/70">
+          <CardContent className="p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                  Semana {semanaAtual} · {ciclo.titulo}
+                </p>
+                <p className="mt-1 truncate font-bold">
+                  {focoDaSemana || "Plano do mês em andamento"}
+                </p>
               </div>
               <Link
-                to="/dieta"
-                className="tap shrink-0 text-xs font-bold text-primary"
+                to="/plano"
+                className="shrink-0 text-xs font-bold text-primary underline-offset-4 hover:underline"
               >
-                Abrir
+                Ver plano
               </Link>
+            </div>
+            <Progress value={execucao} className="mt-3 h-1.5" />
+            <p className="mt-1 text-xs text-muted-foreground">
+              {feitosDaSemana}/{itensDaSemana.length} desta semana · {execucao}% do mês
+            </p>
+          </CardContent>
+        </Card>
+      ) : (
+        cicloPronto && (
+          <Link
+            to="/plano"
+            className="tap block rounded-2xl border border-dashed border-primary/40 bg-transparent p-4 active:scale-[0.99]"
+          >
+            <p className="text-sm font-bold text-primary">Montar o plano do mês</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Escolha o que quer melhorar e o app monta as quatro semanas.
+            </p>
+          </Link>
+        )
+      )}
+
+      {/* A meta que a pessoa escolheu — não uma cravada no código. Quando é de
+          graduação, o cartão veste a cor da faixa-alvo. */}
+      {metaDestaque ? (
+        <Card
+          style={
+            metaDestaque.kind === "graduacao" && metaDestaque.targetBelt
+              ? estiloDaFaixa(metaDestaque.targetBelt)
+              : undefined
+          }
+          className="border-border/50 bg-card/70"
+        >
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex min-w-0 items-center gap-2">
+                <Icone.meta className="h-4 w-4 shrink-0 text-primary" />
+                <p className="truncate font-bold">{metaDestaque.title}</p>
+              </div>
+              {metaPct != null && (
+                <span className="shrink-0 text-xs font-black text-primary">
+                  {metaPct}%
+                </span>
+              )}
+            </div>
+            {metaDestaque.kind === "graduacao" &&
+              metaDestaque.targetBelt &&
+              perfil && (
+                <RotaDeGraduacao
+                  className="mt-3"
+                  compacta
+                  comTitulo={false}
+                  de={{ belt: perfil.belt, degrees: perfil.degrees }}
+                  para={{
+                    belt: metaDestaque.targetBelt,
+                    degrees: metaDestaque.targetDegrees ?? 0,
+                  }}
+                />
+              )}
+            {metaPct != null && <Progress className="mt-3 h-1.5" value={metaPct} />}
+            <p className="mt-1 text-xs text-muted-foreground">
+              {diasRestantesMeta != null
+                ? diasRestantesMeta >= 0
+                  ? `${daysTraining} dias no tatame · faltam ${diasRestantesMeta}`
+                  : `${daysTraining} dias no tatame · o prazo passou`
+                : `${daysTraining} dias no tatame`}
+            </p>
+          </CardContent>
+        </Card>
+      ) : (
+        <Link
+          to="/metas"
+          className="tap block rounded-2xl border border-dashed border-primary/40 bg-transparent p-4 active:scale-[0.99]"
+        >
+          <p className="text-sm font-bold text-primary">Definir uma meta</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            Faixa azul, pódio num campeonato, um número de treinos no ano.
+          </p>
+        </Link>
+      )}
+
+      <section>
+        <div className="mb-2 flex items-center justify-between">
+          <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+            Últimos treinos
+          </h2>
+          <Link to="/diario" className="text-xs font-bold text-primary">
+            Ver todos
+          </Link>
+        </div>
+        {hydrated && last.length === 0 && (
+          <Card className="border-dashed border-border/60 bg-transparent">
+            <CardContent className="p-5 text-center text-sm text-muted-foreground">
+              <Icone.treino className="mx-auto mb-2 h-5 w-5 text-primary" />
+              Nenhum treino ainda. O primeiro round é agora.
             </CardContent>
           </Card>
-        </div>
-      </section>
-
-      {/* ---- as duas portas ---- */}
-      <section>
-        <h2 className="mb-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">
-          As duas áreas
-        </h2>
-        <div className="grid grid-cols-2 gap-2">
-          <Porta
-            para="/jiu-jitsu"
-            icone={<Icone.rola className="h-5 w-5 text-primary" />}
-            nome="Jiu-jitsu"
-            detalhe={`${treinos.length} ${treinos.length === 1 ? "treino" : "treinos"}`}
-          />
-          <Porta
-            para="/dieta"
-            icone={<Icone.dieta className="h-5 w-5 text-primary" />}
-            nome="Dieta"
-            detalhe={
-              conta.pesoKg !== null
-                ? `${String(conta.pesoKg).replace(".", ",")} kg`
-                : "sem pesagem"
-            }
-          />
+        )}
+        <div className="space-y-2">
+          {last.map((t, i) => (
+            <Card
+              key={t.id}
+              className="rise-in border-border/50 bg-card/60"
+              style={{ "--i": i } as CSSProperties}
+            >
+              <CardContent className="flex items-center justify-between p-3">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-bold">
+                    {new Date(t.date + "T00:00:00").toLocaleDateString("pt-BR", {
+                      day: "2-digit",
+                      month: "short",
+                    })}{" "}
+                    · {t.type} · {t.durationMin}min
+                  </p>
+                  <p className="truncate text-xs text-muted-foreground">
+                    {t.techniques || "Sem técnicas anotadas"}
+                  </p>
+                </div>
+                <span className="ml-3 shrink-0 rounded-full bg-primary/20 px-2 py-1 text-xs font-black text-primary">
+                  {t.rolls} {t.rolls === 1 ? "rola" : "rolas"}
+                </span>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       </section>
     </PageShell>
-  );
-}
-
-function Porta({
-  para,
-  icone,
-  nome,
-  detalhe,
-}: {
-  para: "/jiu-jitsu" | "/dieta";
-  icone: React.ReactNode;
-  nome: string;
-  detalhe: string;
-}) {
-  return (
-    <Link
-      to={para}
-      className="tap flex flex-col gap-1 rounded-xl border border-border/60 p-3 active:scale-[0.98]"
-    >
-      {icone}
-      <span className="text-sm font-bold">{nome}</span>
-      <span className="text-xs tabular-nums text-muted-foreground">{detalhe}</span>
-    </Link>
   );
 }

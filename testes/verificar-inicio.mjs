@@ -1,8 +1,5 @@
-// Confere que o painel do Jiu-jitsu lê o plano e a meta DE VERDADE, e não a
-// tabela morta `plan_weeks` nem a faixa azul cravada no código.
-//
-// O painel morava em "/" até o app ganhar a segunda área; hoje "/" é o Início
-// das duas e o painel do tatame é /jiu-jitsu. O que o teste prende é o mesmo.
+// Confere que a tela Início lê o plano e a meta DE VERDADE, e não a tabela
+// morta `plan_weeks` nem a faixa azul cravada no código.
 //
 // O truque do teste: o stub devolve dados propositalmente diferentes entre
 // `plan_weeks` (o sistema velho) e `plan_cycles` (o novo). Se a tela ler o
@@ -73,7 +70,7 @@ await pagina.route(`https://${REF}.supabase.co/**`, async (rota) => {
   return json([]);
 });
 
-await pagina.goto(`${BASE}/jiu-jitsu`, { waitUntil: "networkidle" });
+await pagina.goto(`${BASE}/`, { waitUntil: "networkidle" });
 await pagina.waitForTimeout(1200);
 // `innerText` devolve o texto já com o `text-transform` do CSS aplicado, então
 // os títulos vêm em caixa alta. Comparar sem diferenciar caixa evita um teste

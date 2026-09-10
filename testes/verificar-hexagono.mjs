@@ -13,7 +13,7 @@
  *   3. a tabela diz "sem rolas registradas" em vez de mostrar um número
  *   4. a geometria está certa — nota 5 encosta no anel externo
  *   5. o plano só aponta para eixo que TEM dado
- *   6. o hexágono aparece também no painel do Jiu-jitsu
+ *   6. o hexágono aparece também no Início
  */
 import { abrirNavegador } from "./navegador.mjs";
 
@@ -201,10 +201,10 @@ conferir(
 );
 
 /* --- 6. o hexágono também aparece no Início ------------------------------ */
-await p.goto(`${BASE}/jiu-jitsu`, { waitUntil: "load" });
+await p.goto(`${BASE}/`, { waitUntil: "load" });
 await p.waitForTimeout(1500);
 conferir(
-  "o hexágono aparece no painel do Jiu-jitsu",
+  "o hexágono aparece no Início",
   (await p.locator('svg[role="img"]').count()) >= 1,
 );
 conferir(
@@ -215,7 +215,7 @@ conferir(
 /* --- 7. a fita de meses compara DENTRO do mesmo hexágono ----------------- */
 // A comparação não é um segundo gráfico: é o mesmo, com um contorno tracejado
 // por baixo. Este bloco prende as três coisas que fazem isso funcionar — a
-// fita existir no painel, dois meses desenharem dois polígonos, e o "8
+// fita existir no Início, dois meses desenharem dois polígonos, e o "8
 // semanas" devolver ao padrão.
 const doisMeses = [
   ...Array.from({ length: 10 }, () => ({
@@ -233,11 +233,11 @@ const doisMeses = [
 ];
 sinais = doisMeses;
 
-await p.goto(`${BASE}/jiu-jitsu`, { waitUntil: "load" });
+await p.goto(`${BASE}/`, { waitUntil: "load" });
 await p.waitForTimeout(2000);
 
 const oitoSemanas = p.getByRole("button", { name: "8 semanas" });
-conferir("a fita de meses aparece no painel do Jiu-jitsu", (await oitoSemanas.count()) === 1);
+conferir("a fita de meses aparece no Início", (await oitoSemanas.count()) === 1);
 conferir(
   "e o padrão nasce marcado",
   (await oitoSemanas.getAttribute("aria-pressed")) === "true",

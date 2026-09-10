@@ -17,8 +17,10 @@ import { cn } from "@/lib/utils";
  * toque, de qualquer tela, e nenhum dos dois some da vista — que é o que
  * impede o app menos usado de ser esquecido.
  *
- * Início não é o jiu-jitsu: é o dia inteiro, dos dois lados. O painel do
- * tatame mora em /jiu-jitsu.
+ * O Início continua sendo o PAINEL DO TREINO — sequência, hexágono, meta,
+ * últimos treinos. Este app é sobre jiu-jitsu, e a tela de abertura tem que
+ * dizer isso na primeira olhada. A aba "Jiu-jitsu" é outra coisa: o índice da
+ * área, o mapa das onze telas do tatame, espelhando o que a Dieta tem.
  */
 const ATALHOS = [
   { to: "/", label: "Início", icon: Icone.inicio, exato: true },
@@ -46,7 +48,7 @@ const MENU = [
     grupo: "Jiu-jitsu",
     icone: Icone.rola,
     itens: [
-      { to: "/jiu-jitsu", label: "Painel do tatame", icon: Icone.rola },
+      { to: "/jiu-jitsu", label: "Todas as telas", icon: Icone.rola },
       { to: "/diario", label: "Diário", icon: Icone.treino },
       { to: "/tecnicas", label: "Técnicas", icon: Icone.tecnica },
       { to: "/analises", label: "Análises", icon: Icone.analise },

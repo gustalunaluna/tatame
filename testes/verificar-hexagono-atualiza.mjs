@@ -109,7 +109,7 @@ await p.route(`https://${REF}.supabase.co/**`, async (rota) => {
 });
 
 /* --- 1. o painel monta e busca os sinais uma vez ------------------------- */
-await p.goto(`${BASE}/jiu-jitsu`, { waitUntil: "load" });
+await p.goto(`${BASE}/`, { waitUntil: "load" });
 await p.waitForTimeout(2500);
 
 const antes = idasAosSinais;
@@ -138,7 +138,7 @@ conferir("o treino foi gravado", treinosGravados >= 1, `${treinosGravados} POSTs
 /* --- 3. o painel volta e PERGUNTA DE NOVO -------------------------------- */
 // Sem a invalidação, o react-query serve o cache de 5 minutos e este número
 // fica parado — que é exatamente o defeito. De novo pela barra, sem recarregar.
-await p.getByRole("link", { name: /^Jiu-jitsu$/ }).first().click();
+await p.getByRole("link", { name: /^Início$/ }).first().click();
 await p.waitForTimeout(2500);
 
 conferir(

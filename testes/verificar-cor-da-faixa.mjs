@@ -57,7 +57,7 @@ for (const faixa of FAIXAS) {
     return json([]);
   });
 
-  await pagina.goto(`${BASE}/jiu-jitsu`, { waitUntil: "networkidle" });
+  await pagina.goto(`${BASE}/`, { waitUntil: "networkidle" });
   await pagina.waitForTimeout(1300);
 
   const medido = await pagina.evaluate(() => {

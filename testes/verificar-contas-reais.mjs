@@ -106,19 +106,19 @@ async function abrir(caminho, arquivo) {
   return await pagina.locator("body").innerText();
 }
 
-/* ============= 1. PAINEL DO JIU-JITSU — conta do Gustavo ============= */
-let t = await abrir("/jiu-jitsu", "1-jiu-jitsu-gustavo");
+/* ==================== 1. INÍCIO — conta do Gustavo ==================== */
+let t = await abrir("/", "1-inicio-gustavo");
 const horasG = (G.treinos.reduce((n, x) => n + (x.duration_min || 0), 0) / 60);
-ver("Painel: nome do Gustavo", t.includes("Gustavo"));
-ver(`Painel: nível das horas reais (${horasG.toFixed(0)}h → Nível 6)`,
+ver("Início: nome do Gustavo", t.includes("Gustavo"));
+ver(`Início: nível das horas reais (${horasG.toFixed(0)}h → Nível 6)`,
   /N[íi]vel\s*6/i.test(t) && t.includes("128h"), t.match(/N[íi]vel \d+[\s\S]{0,40}/)?.[0]);
-ver("Painel: faixa branca 3 graus", /3 graus/i.test(t));
-ver("Painel: plano do mês real (não plan_weeks)",
+ver("Início: faixa branca 3 graus", /3 graus/i.test(t));
+ver("Início: plano do mês real (não plan_weeks)",
   t.toLowerCase().includes(String(G.ciclos.find(c => c.status === "ativo")?.titulo ?? "??").toLowerCase()));
-ver("Painel: meta real do Gustavo",
+ver("Início: meta real do Gustavo",
   G.metas.filter(m => m.status === "ativa").some(m => t.includes(m.title)),
   G.metas.filter(m => m.status === "ativa").map(m => m.title).join(" | "));
-ver("Painel: sem erro", erros.length === 0, erros.join(" ; "));
+ver("Início: sem erro", erros.length === 0, erros.join(" ; "));
 
 /* ==================== 2. PERFIL do Gustavo ==================== */
 t = await abrir("/perfil", "2-perfil-gustavo");
