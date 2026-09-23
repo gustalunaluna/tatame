@@ -217,15 +217,39 @@ conferir(
 // por baixo. Este bloco prende as três coisas que fazem isso funcionar — a
 // fita existir no Início, dois meses desenharem dois polígonos, e o "8
 // semanas" devolver ao padrão.
+//
+// As duas datas são RELATIVAS a hoje, e isso não é preciosismo: a fita só
+// nasce quando a leitura rolante tem dado, e dado envelhece — o peso cai pela
+// metade a cada quatro semanas. Um mês escrito à mão no código vira teste que
+// passa na semana em que foi escrito e falha sozinho dois meses depois, sem
+// que nada no app tenha quebrado. Foi o que aconteceu com "jul/26" e "ago/26".
+//
+// Hoje e o último dia do mês passado sempre caem em meses diferentes, e o
+// mais antigo dos dois nunca fica a mais de 31 dias daqui — dentro da janela
+// de oito semanas em qualquer dia do ano.
+const iso = (d) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+const NOMES_DE_MES = ["jan", "fev", "mar", "abr", "mai", "jun",
+                      "jul", "ago", "set", "out", "nov", "dez"];
+const rotuloDoMes = (data) => {
+  const [ano, m] = data.split("-");
+  return `${NOMES_DE_MES[Number(m) - 1]}/${ano.slice(2)}`;
+};
+const DIA_NOVO = iso(hoje);
+const DIA_ANTIGO = iso(new Date(hoje.getFullYear(), hoje.getMonth(), 0));
+const MES_NOVO = rotuloDoMes(DIA_NOVO);
+const MES_ANTIGO = rotuloDoMes(DIA_ANTIGO);
+const comoRegex = (rotulo) => new RegExp(rotulo.replace("/", "\\/"));
+
 const doisMeses = [
   ...Array.from({ length: 10 }, () => ({
-    data: "2026-07-10", parceiro_faixa: "Azul", rolas: 1,
+    data: DIA_ANTIGO, parceiro_faixa: "Azul", rolas: 1,
     fin_a_favor: 0, fin_sofridas: 0, pass_a_favor: 0, pass_sofridas: 0,
     rasp_a_favor: 3, rasp_sofridas: 0, confirmado: true, detalhado: true,
     ritmo_caiu_na: null, ritmo_respondido: false, rolas_da_sessao: 5,
   })),
   ...Array.from({ length: 10 }, () => ({
-    data: "2026-08-02", parceiro_faixa: "Azul", rolas: 1,
+    data: DIA_NOVO, parceiro_faixa: "Azul", rolas: 1,
     fin_a_favor: 0, fin_sofridas: 0, pass_a_favor: 3, pass_sofridas: 0,
     rasp_a_favor: 0, rasp_sofridas: 0, confirmado: true, detalhado: true,
     ritmo_caiu_na: null, ritmo_respondido: false, rolas_da_sessao: 5,
@@ -250,29 +274,34 @@ conferir(
     (await p.locator('svg[role="img"] polygon[stroke-dasharray]').count()) === 0,
 );
 
-const jul = p.getByRole("button", { name: /jul\/26/ });
-const ago = p.getByRole("button", { name: /ago\/26/ });
-conferir("os dois meses com rola aparecem", (await jul.count()) === 1 && (await ago.count()) === 1);
+const antigo = p.getByRole("button", { name: comoRegex(MES_ANTIGO) });
+const novo = p.getByRole("button", { name: comoRegex(MES_NOVO) });
+conferir(
+  "os dois meses com rola aparecem",
+  (await antigo.count()) === 1 && (await novo.count()) === 1,
+  `${MES_ANTIGO} / ${MES_NOVO}`,
+);
 
-await jul.click();
+await antigo.click();
 await p.waitForTimeout(600);
 conferir(
   "tocar um mês desmarca o padrão",
   (await oitoSemanas.getAttribute("aria-pressed")) === "false",
 );
 
-await ago.click();
+await novo.click();
 await p.waitForTimeout(700);
 conferir(
   "dois meses desenham o contorno tracejado no MESMO hexágono",
   (await p.locator('svg[role="img"] polygon[stroke-dasharray]').count()) === 1,
 );
 // O mais novo em cima, o mais antigo tracejado — independente da ordem dos
-// toques. Aqui jul foi tocado primeiro, e mesmo assim é ele o tracejado.
+// toques. Aqui o mês antigo foi tocado primeiro, e mesmo assim é ele o
+// tracejado.
 const titulo = await p.locator('svg[role="img"] title').first().textContent();
 conferir(
   "o mais novo fica cheio e o mais antigo tracejado",
-  /ago\/26 comparado com jul\/26/.test(titulo ?? ""),
+  (titulo ?? "").includes(`${MES_NOVO} comparado com ${MES_ANTIGO}`),
   titulo ?? "",
 );
 
