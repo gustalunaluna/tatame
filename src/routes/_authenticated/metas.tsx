@@ -35,6 +35,7 @@ import {
   useHydrated,
   usePerfil,
 } from "@/lib/bjj-storage";
+import { contarTreinos } from "@/lib/dia-parado";
 import { useEquipes } from "@/lib/social-storage";
 import { useMetas, useCicloAtual, diasAte, type Meta, type TipoMeta } from "@/lib/plano-storage";
 import { FAIXAS, type Faixa } from "@/lib/bjj-types";
@@ -436,7 +437,7 @@ function MetasPage() {
           key={m.id}
           meta={m}
           diasDeTatame={dias}
-          treinosNoPeriodo={treinos.length}
+          treinosNoPeriodo={contarTreinos(treinos)}
           faixaAtual={
             perfil ? { belt: perfil.belt, degrees: perfil.degrees } : undefined
           }

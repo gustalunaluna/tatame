@@ -3,6 +3,7 @@ import { Icone, type LucideIcon } from "@/design/icones";
 import { PageShell } from "@/components/PageShell";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAchievementStats, useTrainings } from "@/lib/bjj-storage";
+import { minutosDeTatame, somenteTreinos } from "@/lib/dia-parado";
 import { useMinhasLutas } from "@/lib/lutas-storage";
 import { horasEmTexto } from "@/lib/nivel";
 
@@ -36,8 +37,10 @@ function AreaDoJiuJitsu() {
   const conquistas = useAchievementStats();
   const { cartel } = useMinhasLutas();
 
-  const minutos = treinos.reduce((n, t) => n + (t.durationMin || 0), 0);
-  const rolas = treinos.reduce((n, t) => n + (t.rolls || 0), 0);
+  // Só tatame. Dia parado é linha do diário, não é treino — ver `dia-parado.ts`.
+  const doTatame = somenteTreinos(treinos);
+  const minutos = minutosDeTatame(treinos);
+  const rolas = doTatame.reduce((n, t) => n + (t.rolls || 0), 0);
 
   return (
     <PageShell title="Jiu-jitsu" subtitle="Todas as telas do tatame.">
@@ -64,7 +67,7 @@ function AreaDoJiuJitsu() {
           para="/diario"
           icone={Icone.treino}
           nome="Diário"
-          detalhe={`${treinos.length} ${treinos.length === 1 ? "treino" : "treinos"} · ${horasEmTexto(minutos)}`}
+          detalhe={`${doTatame.length} ${doTatame.length === 1 ? "treino" : "treinos"} · ${horasEmTexto(minutos / 60)}`}
         />
         <Porta
           para="/tecnicas"

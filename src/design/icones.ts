@@ -28,6 +28,7 @@ import {
   Medal,
   Menu,
   Minus,
+  Pause,
   Pencil,
   Plus,
   Salad,
@@ -85,6 +86,8 @@ export const Icone = {
   evolucao: TrendingUp,
   analise: FileText,
   sequencia: Flame,
+  /* O dia em que não se treinou — e que, registrado, não quebra a corrente. */
+  parado: Pause,
   destaque: Star,
   premio: Award,
 

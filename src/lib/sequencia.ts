@@ -22,14 +22,34 @@
  * Então: se hoje não tem treino, a contagem começa em ontem. Se ontem também
  * não tem, aí sim acabou.
  */
-export function sequenciaDeDias(datas: string[], hoje: string): number {
+/**
+ * A segunda regra: **o dia parado registrado não quebra, mas também não
+ * conta.**
+ *
+ * Quem passou terça de cama, avisou o app, e treinou segunda e quarta, tem
+ * dois dias de treino em três dias de calendário. A corrente atravessa a
+ * terça — mas a terça não vira um terceiro dia de treino, porque não foi.
+ * Somar seria a mesma mentira do contador que inflava as horas, só que no
+ * outro número.
+ *
+ * E a ponte precisa ter sido REGISTRADA. Sumir sem dizer nada continua
+ * quebrando a sequência; é essa diferença que faz o registro valer a pena.
+ */
+export function sequenciaDeDias(
+  datas: string[],
+  hoje: string,
+  pontes: string[] = [],
+): number {
   const treinados = new Set(datas);
+  const atravessa = new Set(pontes);
   let dias = 0;
   let dia = hoje;
 
   for (let i = 0; i < 3650; i++) {
     if (treinados.has(dia)) dias++;
-    else if (i > 0) break;
+    else if (atravessa.has(dia)) {
+      /* ponte: não soma, não quebra */
+    } else if (i > 0) break;
     dia = diaAnterior(dia);
   }
   return dias;

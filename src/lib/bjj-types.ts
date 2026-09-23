@@ -1,3 +1,5 @@
+import type { MotivoDeParada } from "./dia-parado";
+
 // Metas de graduação (em dias desde o início da jornada)
 export const DIAS_AZUL = 365; // Faixa Azul em 1 ano
 export const DIAS_ROXA = 1095; // Faixa Roxa em 3 anos
@@ -51,7 +53,13 @@ export type TrainingType = "Gi" | "No-Gi";
 export interface Training {
   id: string;
   date: string; // ISO yyyy-mm-dd
-  type: TrainingType;
+  /**
+   * "Gi" ou "No-Gi" quando houve tatame; o MOTIVO quando foi dia parado
+   * ("Doença", "Lesão", …). Uma linha só para os dois casos porque o
+   * calendário é um só: o dia 7 não pode existir duas vezes com histórias
+   * diferentes. Quem separa os dois é `ehTreino()`, em `dia-parado.ts`.
+   */
+  type: TrainingType | MotivoDeParada;
   durationMin: number;
   rolls: number;
   partners: string;

@@ -36,6 +36,8 @@ import {
   type RascunhoTecnica,
 } from "@/lib/tecnicas-storage";
 import { useRecalcularJogo } from "@/lib/sinais-storage";
+import { DiaParadoDialog, type DadosDoDiaParado } from "@/components/DiaParadoDialog";
+import { ehDiaParado } from "@/lib/dia-parado";
 import { ParceirosDoTreino } from "@/components/ParceirosDoTreino";
 import { RelatoDoTreino } from "@/components/RelatoDoTreino";
 import type { RascunhoParceiro } from "@/lib/social-types";
@@ -56,6 +58,7 @@ function DiaryPage() {
   const { items, add, remove, update } = useTrainings();
   const recalcularJogo = useRecalcularJogo();
   const [open, setOpen] = useState(false);
+  const [abrindoParado, setAbrindoParado] = useState(false);
   const [editando, setEditando] = useState<Training | null>(null);
   const [monthFilter, setMonthFilter] = useState<string>("all");
 
@@ -70,6 +73,29 @@ function DiaryPage() {
       title="Diário"
       subtitle="Cada rola conta uma história."
       action={
+        <div className="flex items-center gap-1.5">
+        {/* O dia parado fica ao lado do "Novo", e não escondido num menu: ele
+            só é registrado se for mais fácil registrar do que deixar para lá.
+            Discreto porque não é o caminho principal — o app é de treino. */}
+        <Dialog open={abrindoParado} onOpenChange={setAbrindoParado}>
+          <DialogTrigger asChild>
+            <Button size="sm" variant="outline" className="gap-1">
+              <Icone.parado className="h-4 w-4" /> Dia parado
+            </Button>
+          </DialogTrigger>
+          {abrindoParado && (
+            <DiaParadoDialog
+              aoSalvar={async (d) => {
+                setAbrindoParado(false);
+                const id = await add(d);
+                if (!id) return;
+                toast.success(
+                  `${d.type} registrado. Sua sequência continua de pé.`,
+                );
+              }}
+            />
+          )}
+        </Dialog>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button size="sm" className="gap-1">
@@ -118,6 +144,7 @@ function DiaryPage() {
             />
           )}
         </Dialog>
+        </div>
       }
     >
       {/* As análises nascem destes treinos — por isso ficam aqui. */}
@@ -162,8 +189,20 @@ function DiaryPage() {
       )}
 
       <div className="space-y-3">
-        {filtered.map((t) => (
-          <Card key={t.id} className="border-border/60 bg-card/70">
+        {filtered.map((t) => {
+        // O dia parado aparece na mesma lista, mas não vestido de treino: sem
+        // "0 min" e sem "0 rolas", que é como um não-treino vira um treino
+        // ruim aos olhos de quem folheia o diário três meses depois.
+        const parado = ehDiaParado(t);
+        return (
+          <Card
+            key={t.id}
+            className={
+              parado
+                ? "border-dashed border-border/60 bg-card/40"
+                : "border-border/60 bg-card/70"
+            }
+          >
             <CardContent className="p-4">
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
@@ -175,22 +214,35 @@ function DiaryPage() {
                     })}
                   </p>
                   <div className="mt-1 flex flex-wrap gap-1.5 text-xs">
-                    <span className="rounded-full bg-primary/15 px-2 py-0.5 font-semibold text-primary">
-                      {t.type}
-                    </span>
-                    <span className="rounded-full bg-secondary px-2 py-0.5 text-secondary-foreground">
-                      {t.durationMin} min
-                    </span>
-                    <span className="rounded-full bg-secondary px-2 py-0.5 text-secondary-foreground">
-                      {t.rolls} {t.rolls === 1 ? "rola" : "rolas"}
-                    </span>
+                    {parado ? (
+                      <>
+                        <span className="inline-flex items-center gap-1 rounded-full bg-secondary px-2 py-0.5 font-semibold text-secondary-foreground">
+                          <Icone.parado className="h-3 w-3" /> {t.type}
+                        </span>
+                        <span className="rounded-full px-1 py-0.5 text-muted-foreground">
+                          não conta como treino · não quebra a sequência
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="rounded-full bg-primary/15 px-2 py-0.5 font-semibold text-primary">
+                          {t.type}
+                        </span>
+                        <span className="rounded-full bg-secondary px-2 py-0.5 text-secondary-foreground">
+                          {t.durationMin} min
+                        </span>
+                        <span className="rounded-full bg-secondary px-2 py-0.5 text-secondary-foreground">
+                          {t.rolls} {t.rolls === 1 ? "rola" : "rolas"}
+                        </span>
+                      </>
+                    )}
                   </div>
                 </div>
                 <div className="flex shrink-0 gap-0.5">
                 <button
                   onClick={() => setEditando(t)}
                   className="rounded-md p-1.5 text-muted-foreground hover:bg-primary/10 hover:text-primary"
-                  aria-label={`Editar treino de ${new Date(t.date + "T00:00:00").toLocaleDateString("pt-BR")}`}
+                  aria-label={`Editar ${parado ? "dia parado" : "treino"} de ${new Date(t.date + "T00:00:00").toLocaleDateString("pt-BR")}`}
                 >
                   <Icone.editar className="h-4 w-4" />
                 </button>
@@ -198,7 +250,7 @@ function DiaryPage() {
                   onClick={() => {
                     const backup = t;
                     void remove(t.id);
-                    toast("Treino removido.", {
+                    toast(parado ? "Dia parado removido." : "Treino removido.", {
                       action: {
                         label: "Desfazer",
                         onClick: () =>
@@ -215,7 +267,7 @@ function DiaryPage() {
                     });
                   }}
                   className="rounded-md p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-                  aria-label={`Remover treino de ${new Date(t.date + "T00:00:00").toLocaleDateString("pt-BR")}`}
+                  aria-label={`Remover ${parado ? "dia parado" : "treino"} de ${new Date(t.date + "T00:00:00").toLocaleDateString("pt-BR")}`}
                 >
                   <Icone.apagar className="h-4 w-4" />
                 </button>
@@ -234,7 +286,8 @@ function DiaryPage() {
               {t.notes && <RelatoDoTreino texto={t.notes} />}
             </CardContent>
           </Card>
-        ))}
+        );
+        })}
       </div>
 
       {/* Edição: o diálogo só é montado quando há treino escolhido, para o
@@ -244,7 +297,19 @@ function DiaryPage() {
         open={!!editando}
         onOpenChange={(aberto) => !aberto && setEditando(null)}
       >
-        {editando && (
+        {editando && ehDiaParado(editando) && (
+          <DiaParadoDialog
+            key={editando.id}
+            registro={editando}
+            aoSalvar={async (d) => {
+              const alvo = editando;
+              setEditando(null);
+              const salvou = await update(alvo.id, d);
+              if (salvou) toast.success("Dia parado atualizado.");
+            }}
+          />
+        )}
+        {editando && !ehDiaParado(editando) && (
           <TrainingDialog
             key={editando.id}
             treino={editando}
@@ -306,7 +371,11 @@ function TrainingDialog({
   const [date, setDate] = useState(
     treino?.date ?? new Date().toISOString().slice(0, 10),
   );
-  const [type, setType] = useState<TrainingType>(treino?.type ?? "Gi");
+  // O elenco é seguro por construção: este diálogo só é montado para linha
+  // que NÃO é dia parado (ver a lista acima) — e aí `type` é Gi ou No-Gi.
+  const [type, setType] = useState<TrainingType>(
+    (treino?.type as TrainingType) ?? "Gi",
+  );
   const [durationMin, setDuration] = useState(treino?.durationMin ?? 60);
   const [rolls, setRolls] = useState(treino?.rolls ?? 4);
   const [techniques, setTechniques] = useState(treino?.techniques ?? "");
@@ -442,7 +511,16 @@ function TrainingDialog({
         )}
         <Button
           className="w-full"
-          onClick={() =>
+          onClick={() => {
+            // Treino de zero minuto não existe, e o banco recusa desde a 044.
+            // Barrar aqui, com o nome do caminho certo, vale mais do que
+            // deixar o erro do Postgres chegar à tela em inglês.
+            if (durationMin <= 0) {
+              toast.error(
+                "Treino precisa de duração. Não treinou? Use “Dia parado”.",
+              );
+              return;
+            }
             onSalvar({
               date,
               type,
@@ -459,8 +537,8 @@ function TrainingDialog({
               notes,
               parceiros,
               tecnicasDoDia,
-            })
-          }
+            });
+          }}
         >
           {editando ? "Salvar alterações" : "Salvar treino"}
         </Button>

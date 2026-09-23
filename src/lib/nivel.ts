@@ -43,7 +43,13 @@ export interface Nivel {
   progresso: number;
 }
 
-export function nivelPorHoras(minutosTotais: number): Nivel {
+/**
+ * O nome era `nivelPorHoras` e o argumento era em MINUTOS. Isso já custou um
+ * bug: a área do Jiu-jitsu chamava `horasEmTexto(minutos)` — que espera horas —
+ * e a tela anunciava sessenta vezes mais tatame do que existia. Agora o nome
+ * diz a unidade, e o erro fica difícil de repetir.
+ */
+export function nivelPorMinutos(minutosTotais: number): Nivel {
   const horas = minutosTotais / 60;
 
   let level = 1;
@@ -63,7 +69,8 @@ export function nivelPorHoras(minutosTotais: number): Nivel {
   };
 }
 
-/** "128h" para números redondos, "12,5h" quando ainda faz diferença. */
+/** "128h" para números redondos, "12,5h" quando ainda faz diferença. O
+    argumento é em HORAS — quem tem minutos divide por 60 antes. */
 export function horasEmTexto(horas: number): string {
   if (horas >= 100) return `${Math.round(horas)}h`;
   return `${horas.toFixed(1).replace(".", ",").replace(",0", "")}h`;

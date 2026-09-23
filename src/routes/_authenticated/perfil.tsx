@@ -27,6 +27,7 @@ import {
   useResumoMedalhasDoAtleta,
 } from "@/lib/medalhas-storage";
 import { useAchievementStats } from "@/lib/bjj-storage";
+import { contarTreinos } from "@/lib/dia-parado";
 import { Faixa as FaixaVisual } from "@/components/Faixa";
 import {
   ajustarGrau,
@@ -230,7 +231,7 @@ function PerfilPage() {
               : "Ver luta a luta, com o método de cada uma"}
           </Link>
           <p className="mt-2 text-center text-xs text-muted-foreground">
-            {treinos.length} treinos registrados
+            {contarTreinos(treinos)} treinos registrados
           </p>
         </CardContent>
       </Card>

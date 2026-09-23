@@ -19,12 +19,19 @@ import {
   useHydrated,
 } from "@/lib/bjj-storage";
 import { useCicloAtual, useMetas, diasAte } from "@/lib/plano-storage";
-import { nivelPorHoras, horasEmTexto } from "@/lib/nivel";
+import { nivelPorMinutos, horasEmTexto } from "@/lib/nivel";
 import { RotaDeGraduacao } from "@/components/RotaDeGraduacao";
 import { PainelDoJogo, FechamentoDaSemana } from "@/components/PainelDoJogo";
 import { estiloDaFaixa } from "@/lib/faixa-cores";
 import { useCountUp } from "@/lib/motion";
 import { sequenciaDeDias } from "@/lib/sequencia";
+import {
+  contarTreinos,
+  diasDePonte,
+  diasTreinados,
+  minutosDeTatame,
+  somenteTreinos,
+} from "@/lib/dia-parado";
 
 export const Route = createFileRoute("/_authenticated/")({
   head: () => ({
@@ -66,16 +73,24 @@ function Home() {
 
   const now = new Date();
   const monthKey = now.toISOString().slice(0, 7);
-  const thisMonth = trainings.filter((t) => t.date.startsWith(monthKey)).length;
+
+  // Dia parado é linha do diário, mas NÃO é treino. Os três números desta tela
+  // passavam por cima dessa diferença e contavam doença como tatame — o mesmo
+  // defeito que a função do banco tinha (migração 043). Um app de treino que
+  // erra para mais no contador de treino não erra num detalhe: erra na única
+  // coisa que ele promete medir.
+  const treinos = somenteTreinos(trainings);
+  const thisMonth = treinos.filter((t) => t.date.startsWith(monthKey)).length;
   const streakDays = sequenciaDeDias(
-    trainings.map((t) => t.date),
+    diasTreinados(trainings),
     new Date().toISOString().slice(0, 10),
+    diasDePonte(trainings),
   );
-  const totalTrainings = trainings.length;
+  const totalTrainings = contarTreinos(trainings);
 
   // O level vem das horas de tatame, não da contagem de aberturas do app.
-  const minutosTotais = trainings.reduce((n, t) => n + (t.durationMin || 0), 0);
-  const nivel = nivelPorHoras(minutosTotais);
+  const minutosTotais = minutosDeTatame(trainings);
+  const nivel = nivelPorMinutos(minutosTotais);
 
   // O plano do mês: a semana em curso é a primeira que ainda tem item aberto.
   const semanaAtual =
@@ -122,17 +137,28 @@ function Home() {
   const startOfWeek = new Date(now);
   startOfWeek.setDate(now.getDate() - now.getDay());
   startOfWeek.setHours(0, 0, 0, 0);
-  const trainedSet = new Set(trainings.map((t) => t.date));
+  const trainedSet = new Set(diasTreinados(trainings));
+  // A bolinha do dia parado não é a mesma do dia em que a pessoa sumiu: uma
+  // diz "avisei que estava de cama", a outra diz "não apareceu". Apagar essa
+  // diferença é apagar justamente o que o registro serviu para guardar.
+  const pontes = new Set(diasDePonte(trainings));
   const weekDots = Array.from({ length: 7 }, (_, i) => {
     const d = new Date(startOfWeek);
     d.setDate(startOfWeek.getDate() + i);
     const key = d.toISOString().slice(0, 10);
     const isToday = d.toDateString() === now.toDateString();
     const isPast = d <= now;
-    return { key, label: WEEKDAY_LABELS[i], trained: trainedSet.has(key), isToday, isPast };
+    return {
+      key,
+      label: WEEKDAY_LABELS[i],
+      trained: trainedSet.has(key),
+      ponte: pontes.has(key),
+      isToday,
+      isPast,
+    };
   });
 
-  const last = trainings.slice(0, 3);
+  const last = treinos.slice(0, 3);
 
   // Só os números de destaque contam — em tudo viraria ruído
   const totalAnimado = useCountUp(totalTrainings);
@@ -240,9 +266,11 @@ function Home() {
                     "block h-2.5 w-2.5 rounded-full transition-[background-color,box-shadow] duration-300 ease-[var(--ease-out-expo)]",
                     d.trained
                       ? "bg-primary shadow-[0_0_8px_var(--primary)]"
-                      : d.isPast
-                        ? "bg-muted"
-                        : "bg-muted/40 ring-1 ring-border",
+                      : d.ponte
+                        ? "bg-transparent ring-2 ring-primary/40"
+                        : d.isPast
+                          ? "bg-muted"
+                          : "bg-muted/40 ring-1 ring-border",
                     d.isToday && !d.trained && "ring-2 ring-primary",
                   )}
                 />
@@ -304,7 +332,10 @@ function Home() {
               {
                 icone: <Icone.treino className="h-3.5 w-3.5 text-primary" />,
                 valor: hydrated ? totalAnimado : "—",
-                unidade: totalTrainings === 1 ? "dia" : "dias",
+                // "dias" era mentira em dois sentidos: dois treinos no mesmo
+                // dia contavam dois, e dia parado contava um. O número sempre
+                // foi de TREINOS; agora o rótulo diz isso.
+                unidade: totalTrainings === 1 ? "treino" : "treinos",
                 rotulo: "no total",
               },
             ].map((e) => (
